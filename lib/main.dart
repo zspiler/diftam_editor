@@ -66,14 +66,17 @@ class _GraphClusterViewPageState extends State<GraphClusterViewPage> {
   Widget rectangWidget(int? i) {
     return InkWell(
       onTap: () {
-        print('CLICKED ${i}');
+        print('REMOVING NODE at ${i! - 1} ${nodes[i! - 1]}');
+        graph.removeNode(nodes[i! - 1]);
       },
       child: Container(
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
             boxShadow: [
-              BoxShadow(color: Colors.blue, spreadRadius: 1),
+              BoxShadow(
+                  color: const Color.fromRGBO(33, 150, 243, 1),
+                  spreadRadius: 1),
             ],
           ),
           child: Text('Node $i')),
@@ -82,6 +85,7 @@ class _GraphClusterViewPageState extends State<GraphClusterViewPage> {
 
   final Graph graph = Graph();
   late Algorithm builder;
+  final nodes = <Node>[];
 
   @override
   void initState() {
@@ -94,6 +98,15 @@ class _GraphClusterViewPageState extends State<GraphClusterViewPage> {
     final g = Node.Id(7);
     final h = Node.Id(8);
 
+    nodes.add(a);
+    nodes.add(b);
+    nodes.add(c);
+    nodes.add(d);
+    nodes.add(e);
+    nodes.add(f);
+    nodes.add(g);
+    nodes.add(h);
+
     graph.addEdge(a, b, paint: Paint()..color = Colors.red);
     graph.addEdge(a, c);
     graph.addEdge(a, d);
@@ -103,6 +116,8 @@ class _GraphClusterViewPageState extends State<GraphClusterViewPage> {
     graph.addEdge(g, c);
     graph.addEdge(h, g);
 
-    builder = FruchtermanReingoldAlgorithm(iterations: 1000);
+    builder = FruchtermanReingoldAlgorithm(iterations: 500);
+    print("EDGE RENDERER: ");
+    print(builder.renderer);
   }
 }
