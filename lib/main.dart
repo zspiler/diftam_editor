@@ -48,6 +48,7 @@ class _CanvasViewState extends State<CanvasView> {
       nodes.add(Node(Point(300, 300)));
 
       edges[0] = [1];
+      edges[1] = [1];
     });
   }
 
@@ -119,29 +120,35 @@ class MyCustomPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
+  bool shouldRepaint(CustomPainter oldDelegate) => true; // TODO optimize?
 }
 
 class NodeDrawer {
+  static final paintStyle = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 4.0
+    ..color = Colors.lime;
+
   static void drawNode(Canvas canvas, double x, double y) {
     final radius = Radius.circular(20);
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0
-      ..color = Colors.lime;
 
     canvas.drawRRect(
         RRect.fromRectAndRadius(Rect.fromLTWH(x, y, boxSize, boxSize), radius),
-        paint);
+        paintStyle);
   }
 }
 
 class EdgeDrawer {
+  static final paintStyle = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 4.0
+    ..color = Colors.lime;
+
   static void drawEdge(Canvas canvas, Point fromPoint, Point toPoint) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0
-      ..color = Colors.lime;
+    if (fromPoint == toPoint) {
+      drawLoop(canvas, fromPoint);
+      return;
+    }
 
     final fromOffset =
         Offset(fromPoint.x + boxSize / 2, fromPoint.y + boxSize / 2);
@@ -151,10 +158,53 @@ class EdgeDrawer {
         Point(fromOffset.dx, fromOffset.dy), Point(toOffset.dx, toOffset.dy));
 
     canvas.drawLine(Offset(points[0].x as double, points[0].y as double),
-        Offset(points[1].x as double, points[1].y as double), paint);
+        Offset(points[1].x as double, points[1].y as double), paintStyle);
 
     drawArrowhead(canvas, Offset(points[1].x as double, points[1].y as double),
-        Offset(points[0].x as double, points[0].y as double), paint);
+        Offset(points[0].x as double, points[0].y as double), paintStyle);
+  }
+
+  // TODO: dynamic, avoid other edges
+  static void drawLoop(Canvas canvas, Point center) {
+    const double loopWidth = boxSize / 2 + 10;
+    const double loopHeight = boxSize / 2 + 10;
+
+    final Offset boxTopCenter =
+        Offset(center.x + boxSize / 2, center.y as double);
+
+    // control points for the Bezier curve
+    final Offset controlPoint1 = boxTopCenter.translate(loopWidth, -loopHeight);
+    final Offset controlPoint2 =
+        boxTopCenter.translate(-loopWidth, -loopHeight);
+
+    // start and end points
+    final Offset loopPoint =
+        boxTopCenter.translate(0, -paintStyle.strokeWidth * 2);
+
+    final Path path = Path();
+    path.moveTo(loopPoint.dx, loopPoint.dy);
+    path.cubicTo(
+      controlPoint1.dx,
+      controlPoint1.dy,
+      controlPoint2.dx,
+      controlPoint2.dy,
+      loopPoint.dx,
+      loopPoint.dy,
+    );
+
+    canvas.drawPath(path, paintStyle);
+
+    // arrow is rotated by 90 degrees to make the arrow point downwards
+    final double angle = atan2(
+            controlPoint2.dy - loopPoint.dy, controlPoint2.dx - loopPoint.dx) +
+        pi / 2;
+
+    drawArrowhead(
+        canvas,
+        loopPoint,
+        Offset(loopPoint.dx + cos(angle), loopPoint.dy + sin(angle)),
+        paintStyle,
+        arrowLength: 15);
   }
 
   static List<Point> calculateIntersectionPoints(Point center1, Point center2) {
@@ -186,8 +236,8 @@ class EdgeDrawer {
   }
 
   static void drawArrowhead(
-      Canvas canvas, Offset point, Offset direction, Paint paint) {
-    double arrowLength = 20;
+      Canvas canvas, Offset point, Offset direction, Paint paint,
+      {double arrowLength = 20}) {
     double arrowAngle = pi / 6;
 
     double edgeAngle = atan2(direction.dy - point.dy, direction.dx - point.dx);
