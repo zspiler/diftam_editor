@@ -15,9 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: Colors.blue),
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: CanvasView(),
-      ),
+      home: Scaffold(body: CanvasView()),
     );
   }
 }
@@ -38,6 +36,10 @@ class _CanvasViewState extends State<CanvasView> {
   var edges = Map<int, List<int>>();
 
   int? nodeBeingDraggedIndex;
+  bool isInEdgeDrawingMode = false;
+  Offset? draggingStartPoint;
+  Offset? draggingEndPoint;
+  int? nodeFromWhichDragging;
 
   @override
   void initState() {
@@ -46,6 +48,7 @@ class _CanvasViewState extends State<CanvasView> {
     setState(() {
       nodes.add(Node(Point(150, 150)));
       nodes.add(Node(Point(300, 300)));
+      nodes.add(Node(Point(500, 150)));
 
       edges[0] = [1];
       edges[1] = [1];
@@ -59,77 +62,170 @@ class _CanvasViewState extends State<CanvasView> {
         node.position.y + boxSize > offset.dy;
   }
 
+  void stopEdgeDrawing() {
+    setState(() {
+      nodeFromWhichDragging = null;
+      draggingStartPoint = null;
+      draggingEndPoint = null;
+      isInEdgeDrawingMode = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onPanStart: (details) {
-        for (var (i, node) in nodes.indexed) {
-          if (isHit(node, details.localPosition)) {
-            setState(() {
-              nodeBeingDraggedIndex = i;
-            });
-            break;
-          }
-        }
-      },
-      onPanUpdate: (details) {
-        if (nodeBeingDraggedIndex != null) {
-          final node = nodes[nodeBeingDraggedIndex!];
-          final newNode = Node(Point(node.position.x + details.delta.dx,
-              node.position.y + details.delta.dy));
-          setState(() {
-            nodes[nodeBeingDraggedIndex!] = newNode;
-          });
-        }
-      },
-      onPanEnd: (details) {
-        nodeBeingDraggedIndex = null;
-      },
-      child: Container(
-        color: darkBlue,
-        height: 1000,
-        width: 1000,
-        child: CustomPaint(
-          painter: MyCustomPainter(nodes, edges),
+    return Row(children: [
+      Container(
+        color: Colors.blue,
+        width: 150, // temp to prevent column resize when texty value changes
+        child: Column(
+          children: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor:
+                    isInEdgeDrawingMode ? Colors.green : Colors.red,
+                elevation: 0,
+                minimumSize: Size(100, 70),
+              ),
+              onPressed: () {
+                if (isInEdgeDrawingMode) {
+                  isInEdgeDrawingMode = false;
+                  stopEdgeDrawing();
+                } else {
+                  isInEdgeDrawingMode = true;
+                }
+              },
+              child: const Text("Edge drawing"),
+            ),
+          ],
         ),
       ),
-    );
+      Expanded(
+        child: Container(
+            height: MediaQuery.of(context).size.height - 25,
+            width: MediaQuery.of(context).size.width - 25,
+            color: darkBlue,
+            child: Listener(
+              onPointerHover: (event) {
+                if (isInEdgeDrawingMode) {
+                  setState(() {
+                    draggingEndPoint = event.localPosition;
+                  });
+                }
+              },
+              child: GestureDetector(
+                  onTapDown: (details) {
+                    if (isInEdgeDrawingMode) {
+                      for (var (i, node) in nodes.indexed) {
+                        if (isHit(node, details.localPosition)) {
+                          if (draggingStartPoint == null) {
+                            // NOTE probably dont need here since its called on hover but ok
+                            setState(() {
+                              draggingStartPoint = details.localPosition;
+                              nodeFromWhichDragging = i;
+                            });
+                          } else {
+                            setState(() {
+                              // TODO ensure edge of same type is one-way?
+                              if (edges.containsKey(nodeFromWhichDragging)) {
+                                edges[nodeFromWhichDragging!]!
+                                    .add(i); // TODO null safety 😬
+                              } else {
+                                edges[nodeFromWhichDragging!] = [i];
+                              }
+                            });
+                            stopEdgeDrawing();
+                          }
+                          return;
+                        }
+                      }
+                      stopEdgeDrawing();
+
+                      return;
+                    }
+                  },
+                  onPanStart: (details) {
+                    if (isInEdgeDrawingMode) return;
+                    for (var (i, node) in nodes.indexed) {
+                      if (isHit(node, details.localPosition)) {
+                        setState(() {
+                          nodeBeingDraggedIndex = i;
+                        });
+                        break;
+                      }
+                    }
+                  },
+                  onPanUpdate: (details) {
+                    if (isInEdgeDrawingMode) return;
+
+                    // TODO respect canvas boundaries
+                    if (nodeBeingDraggedIndex != null) {
+                      final node = nodes[nodeBeingDraggedIndex!];
+                      final newNode = Node(Point(
+                          node.position.x + details.delta.dx,
+                          node.position.y + details.delta.dy));
+                      setState(() {
+                        nodes[nodeBeingDraggedIndex!] = newNode;
+                      });
+                    }
+                  },
+                  onPanEnd: (details) {
+                    nodeBeingDraggedIndex = null;
+                  },
+                  child: CustomPaint(
+                    painter: MyCustomPainter(
+                        nodes,
+                        edges,
+                        isInEdgeDrawingMode &&
+                                draggingStartPoint != null &&
+                                draggingEndPoint != null
+                            ? (draggingStartPoint!, draggingEndPoint!)
+                            : null), // TODO null safety 😬
+                  )),
+            )),
+      ),
+    ]);
   }
 }
 
 class MyCustomPainter extends CustomPainter {
   final List<Node> nodes;
   final Map<int, List<int>> edges;
+  final (Offset, Offset)? newEdge; // TODO check existing type for this
 
-  MyCustomPainter(this.nodes, this.edges);
+  MyCustomPainter(this.nodes, this.edges, this.newEdge);
 
   @override
   void paint(Canvas canvas, Size size) {
     // NOTE widget rebuilt each time _CanvasViewState changes 😬
     for (var node in nodes) {
-      NodeDrawer.drawNode(
-          canvas, node.position.x as double, node.position.y as double);
+      NodePainter.drawNode(canvas, node);
     }
 
     edges.forEach((fromNodeIndex, toNodeIndexes) {
       for (var toNodeIndex in toNodeIndexes) {
-        EdgeDrawer.drawEdge(
-            canvas, nodes[fromNodeIndex].position, nodes[toNodeIndex].position);
+        EdgePainter.drawEdge(canvas, nodes[fromNodeIndex], nodes[toNodeIndex]);
       }
     });
+
+    if (newEdge != null) {
+      EdgePainter.drawEdgeInProgress(canvas, newEdge!);
+      // TODO always use offset vs point
+    }
   }
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true; // TODO optimize?
 }
 
-class NodeDrawer {
+class NodePainter {
   static final paintStyle = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 4.0
     ..color = Colors.lime;
 
-  static void drawNode(Canvas canvas, double x, double y) {
+  static void drawNode(Canvas canvas, Node node) {
+    final (x, y) = (node.position.x as double, node.position.y as double);
     final radius = Radius.circular(20);
 
     canvas.drawRRect(
@@ -138,21 +234,33 @@ class NodeDrawer {
   }
 }
 
-class EdgeDrawer {
+class EdgePainter {
   static final paintStyle = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 4.0
     ..color = Colors.lime;
 
-  static void drawEdge(Canvas canvas, Point fromPoint, Point toPoint) {
-    if (fromPoint == toPoint) {
-      drawLoop(canvas, fromPoint);
+  static void drawEdgeInProgress(Canvas canvas, (Offset, Offset) points) {
+    final paintStyleFaded = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0
+      ..color = Colors.lime.withOpacity(0.7);
+
+    final (fromPoint, toPoint) = points;
+    canvas.drawLine(fromPoint, toPoint, paintStyleFaded);
+    drawArrowhead(canvas, toPoint, fromPoint, paintStyleFaded);
+  }
+
+  static void drawEdge(Canvas canvas, Node fromNode, Node toNode) {
+    if (fromNode == toNode) {
+      drawLoop(canvas, fromNode);
       return;
     }
 
-    final fromOffset =
-        Offset(fromPoint.x + boxSize / 2, fromPoint.y + boxSize / 2);
-    final toOffset = Offset(toPoint.x + boxSize / 2, toPoint.y + boxSize / 2);
+    final fromOffset = Offset(
+        fromNode.position.x + boxSize / 2, fromNode.position.y + boxSize / 2);
+    final toOffset = Offset(
+        toNode.position.x + boxSize / 2, toNode.position.y + boxSize / 2);
 
     List<Point> points = calculateIntersectionPoints(
         Point(fromOffset.dx, fromOffset.dy), Point(toOffset.dx, toOffset.dy));
@@ -165,12 +273,12 @@ class EdgeDrawer {
   }
 
   // TODO: dynamic, avoid other edges
-  static void drawLoop(Canvas canvas, Point center) {
+  static void drawLoop(Canvas canvas, Node node) {
     const double loopWidth = boxSize / 2 + 10;
     const double loopHeight = boxSize / 2 + 10;
 
     final Offset boxTopCenter =
-        Offset(center.x + boxSize / 2, center.y as double);
+        Offset(node.position.x + boxSize / 2, node.position.y as double);
 
     // control points for the Bezier curve
     final Offset controlPoint1 = boxTopCenter.translate(loopWidth, -loopHeight);
