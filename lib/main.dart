@@ -1,5 +1,8 @@
+import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:vector_math/vector_math_64.dart' as vector;
 
 final Color darkBlue = Color.fromARGB(255, 18, 32, 47);
 
@@ -41,13 +44,16 @@ class _CanvasViewState extends State<CanvasView> {
   Offset? draggingStartPoint;
   Offset? draggingEndPoint;
   int? nodeFromWhichDragging;
+  Offset cursorPosition = Offset.zero;
+  Offset canvasPosition = Offset.zero;
+  double scale = 1.0;
 
   @override
   void initState() {
     super.initState();
     // TODO why cant just do this above?
     setState(() {
-      nodes.add(Node(Point(150, 150)));
+      nodes.add(Node(Point(100, 100)));
       nodes.add(Node(Point(300, 300)));
       nodes.add(Node(Point(500, 150)));
 
@@ -72,12 +78,40 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
+  void handlePanning(Offset scrollDelta) {
+    setState(() {
+      canvasPosition -= scrollDelta / 1.5;
+    });
+  }
+
+  void handleZoom(Offset scrollDelta) {
+    final oldScale = scale;
+
+    if (scrollDelta.dy < 0) {
+      setState(() {
+        scale *= 1.1;
+      });
+    } else {
+      setState(() {
+        scale *= 0.9;
+      });
+    }
+
+    final scaleChange = scale - oldScale;
+    final offsetX = -(cursorPosition.dx * scaleChange);
+    final offsetY = -(cursorPosition.dy * scaleChange);
+
+    setState(() {
+      canvasPosition += Offset(offsetX, offsetY);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(children: [
       Container(
         color: Colors.blue,
-        width: 150, // temp to prevent column resize when texty value changes
+        width: 175, // temp to prevent column resize when texty value changes
         child: Column(
           children: [
             ElevatedButton(
@@ -125,98 +159,141 @@ class _CanvasViewState extends State<CanvasView> {
         ),
       ),
       Expanded(
-        child: Container(
-            height: MediaQuery.of(context).size.height - 25,
-            width: MediaQuery.of(context).size.width - 25,
-            color: darkBlue,
-            child: Listener(
-              onPointerHover: (event) {
-                if (isInEdgeDrawingMode) {
-                  setState(() {
-                    draggingEndPoint = event.localPosition;
-                  });
-                }
-              },
-              child: GestureDetector(
-                  onTapUp: (details) {
-                    if (isInNodeCreationMode) {
-                      setState(() {
-                        nodes.add(Node(Point(
-                            details.localPosition.dx - boxSize / 2,
-                            details.localPosition.dy - boxSize / 2)));
-                      });
-                      isInNodeCreationMode = false;
-                      return;
-                    }
-                  },
-                  onTapDown: (details) {
-                    if (isInEdgeDrawingMode) {
-                      for (var (i, node) in nodes.indexed) {
-                        if (isHit(node, details.localPosition)) {
-                          if (draggingStartPoint == null) {
-                            // NOTE probably dont need here since its called on hover but ok
-                            setState(() {
-                              draggingStartPoint = details.localPosition;
-                              nodeFromWhichDragging = i;
-                            });
-                          } else {
-                            setState(() {
-                              // TODO ensure edge of same type is one-way?
-                              if (edges.containsKey(nodeFromWhichDragging)) {
-                                edges[nodeFromWhichDragging!]!
-                                    .add(i); // TODO null safety 😬
-                              } else {
-                                edges[nodeFromWhichDragging!] = [i];
-                              }
-                            });
-                            stopEdgeDrawing();
-                          }
+        child: Listener(
+          onPointerSignal: (pointerSignal) {
+            if (pointerSignal is! PointerScrollEvent) return;
+
+            final isMetaPressed = RawKeyboard.instance.keysPressed
+                .contains(LogicalKeyboardKey.metaLeft);
+
+            // TODO: fix trackpad behavior
+            if (isMetaPressed) {
+              handleZoom(pointerSignal.scrollDelta);
+            } else {
+              handlePanning(pointerSignal.scrollDelta);
+            }
+          },
+          onPointerHover: (event) {
+            setState(() {
+              /*
+                Because Listener is outside Transformation (since we want to scroll etc. even outside original canvas area). 
+                here the coordinates do not match transformd coordinates so we need to apply inverse transformation.
+               */
+              Matrix4 inverseTransformation = Matrix4.identity()
+                ..translate(canvasPosition.dx, canvasPosition.dy)
+                ..scale(scale, scale)
+                ..invert();
+
+              vector.Vector3 transformedPositionVector =
+                  inverseTransformation.transform3(vector.Vector3(
+                      event.localPosition.dx, event.localPosition.dy, 0));
+
+              cursorPosition = Offset(
+                  transformedPositionVector.x, transformedPositionVector.y);
+            });
+
+            if (isInEdgeDrawingMode) {
+              setState(() {
+                draggingEndPoint = cursorPosition;
+              });
+            }
+          },
+          child: Container(
+            color: Color.fromARGB(255, 20, 54, 91),
+            child: ClipRect(
+              child: Transform(
+                transform: Matrix4.identity()
+                  ..translate(canvasPosition.dx, canvasPosition.dy)
+                  ..scale(scale, scale),
+                child: Container(
+                  height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width,
+                  color: darkBlue,
+                  child: GestureDetector(
+                      onTapUp: (details) {
+                        if (isInNodeCreationMode) {
+                          setState(() {
+                            nodes.add(Node(Point(
+                                details.localPosition.dx - boxSize / 2,
+                                details.localPosition.dy - boxSize / 2)));
+                          });
+                          isInNodeCreationMode = false;
                           return;
                         }
-                      }
-                      stopEdgeDrawing();
-                      return;
-                    }
-                  },
-                  onPanStart: (details) {
-                    if (isInEdgeDrawingMode || isInNodeCreationMode) return;
-                    for (var (i, node) in nodes.indexed) {
-                      if (isHit(node, details.localPosition)) {
-                        setState(() {
-                          nodeBeingDraggedIndex = i;
-                        });
-                        break;
-                      }
-                    }
-                  },
-                  onPanUpdate: (details) {
-                    if (isInEdgeDrawingMode || isInNodeCreationMode) return;
+                      },
+                      onTapDown: (details) {
+                        if (isInEdgeDrawingMode) {
+                          for (var (i, node) in nodes.indexed) {
+                            if (isHit(node, details.localPosition)) {
+                              if (draggingStartPoint == null) {
+                                // NOTE probably dont need here since its called on hover but ok
+                                setState(() {
+                                  draggingStartPoint = details.localPosition;
+                                  nodeFromWhichDragging = i;
+                                });
+                              } else {
+                                setState(() {
+                                  // TODO ensure edge of same type is one-way?
+                                  if (edges
+                                      .containsKey(nodeFromWhichDragging)) {
+                                    edges[nodeFromWhichDragging!]!
+                                        .add(i); // TODO null safety 😬
+                                  } else {
+                                    edges[nodeFromWhichDragging!] = [i];
+                                  }
+                                });
+                                stopEdgeDrawing();
+                              }
+                              return;
+                            }
+                          }
+                          stopEdgeDrawing();
+                          return;
+                        }
+                      },
+                      onPanStart: (details) {
+                        if (isInEdgeDrawingMode || isInNodeCreationMode) return;
+                        for (var (i, node) in nodes.indexed) {
+                          if (isHit(node, details.localPosition)) {
+                            setState(() {
+                              nodeBeingDraggedIndex = i;
+                            });
+                            break;
+                          }
+                        }
+                      },
+                      onPanUpdate: (details) {
+                        if (isInEdgeDrawingMode || isInNodeCreationMode) return;
 
-                    // TODO respect canvas boundaries
-                    if (nodeBeingDraggedIndex != null) {
-                      final node = nodes[nodeBeingDraggedIndex!];
-                      final newNode = Node(Point(
-                          node.position.x + details.delta.dx,
-                          node.position.y + details.delta.dy));
-                      setState(() {
-                        nodes[nodeBeingDraggedIndex!] = newNode;
-                      });
-                    }
-                  },
-                  onPanEnd: (details) {
-                    nodeBeingDraggedIndex = null;
-                  },
-                  child: CustomPaint(
-                    painter: MyCustomPainter(
-                        nodes,
-                        edges,
-                        isInEdgeDrawingMode &&
-                                draggingStartPoint != null &&
-                                draggingEndPoint != null
-                            ? (draggingStartPoint!, draggingEndPoint!)
-                            : null), // TODO null safety 😬
-                  )),
-            )),
+                        // TODO respect canvas boundaries
+                        if (nodeBeingDraggedIndex != null) {
+                          final node = nodes[nodeBeingDraggedIndex!];
+                          final newNode = Node(Point(
+                              node.position.x + details.delta.dx,
+                              node.position.y + details.delta.dy));
+                          setState(() {
+                            nodes[nodeBeingDraggedIndex!] = newNode;
+                          });
+                        }
+                      },
+                      onPanEnd: (details) {
+                        nodeBeingDraggedIndex = null;
+                      },
+                      child: CustomPaint(
+                        painter: MyCustomPainter(
+                            nodes,
+                            edges,
+                            isInEdgeDrawingMode &&
+                                    draggingStartPoint != null &&
+                                    draggingEndPoint != null
+                                ? (draggingStartPoint!, draggingEndPoint!)
+                                : null), // TODO null safety 😬
+                      )),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     ]);
   }
@@ -252,10 +329,12 @@ class MyCustomPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) => true; // TODO optimize?
 }
 
+const strokeWidth = 4.0;
+
 class NodePainter {
   static final paintStyle = Paint()
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 4.0
+    ..strokeWidth = strokeWidth
     ..color = Colors.lime;
 
   static void drawNode(Canvas canvas, Node node) {
@@ -271,13 +350,13 @@ class NodePainter {
 class EdgePainter {
   static final paintStyle = Paint()
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 4.0
+    ..strokeWidth = strokeWidth
     ..color = Colors.lime;
 
   static void drawEdgeInProgress(Canvas canvas, (Offset, Offset) points) {
     final paintStyleFaded = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0
+      ..strokeWidth = strokeWidth
       ..color = Colors.lime.withOpacity(0.7);
 
     final (fromPoint, toPoint) = points;
@@ -350,8 +429,8 @@ class EdgePainter {
   }
 
   static List<Point> calculateIntersectionPoints(Point center1, Point center2) {
-    double width = 100.0;
-    double height = 100.0;
+    double width = boxSize;
+    double height = boxSize;
 
     Point intersect1 = intersectionPoint(center1, center2, width, height);
     Point intersect2 = intersectionPoint(center2, center1, width, height);
