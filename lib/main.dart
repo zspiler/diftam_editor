@@ -37,6 +37,7 @@ class _CanvasViewState extends State<CanvasView> {
 
   int? nodeBeingDraggedIndex;
   bool isInEdgeDrawingMode = false;
+  bool isInNodeCreationMode = false;
   Offset? draggingStartPoint;
   Offset? draggingEndPoint;
   int? nodeFromWhichDragging;
@@ -88,14 +89,37 @@ class _CanvasViewState extends State<CanvasView> {
                 minimumSize: Size(100, 70),
               ),
               onPressed: () {
-                if (isInEdgeDrawingMode) {
-                  isInEdgeDrawingMode = false;
-                  stopEdgeDrawing();
-                } else {
-                  isInEdgeDrawingMode = true;
-                }
+                setState(() {
+                  isInNodeCreationMode = false;
+                  if (isInEdgeDrawingMode) {
+                    stopEdgeDrawing();
+                  } else {
+                    isInEdgeDrawingMode = true;
+                  }
+                });
               },
               child: const Text("Edge drawing"),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor:
+                    isInNodeCreationMode ? Colors.green : Colors.red,
+                elevation: 0,
+                minimumSize: Size(100, 70),
+              ),
+              onPressed: () {
+                setState(() {
+                  stopEdgeDrawing();
+                  if (isInNodeCreationMode) {
+                    isInNodeCreationMode = false;
+                  } else {
+                    isInNodeCreationMode = true;
+                  }
+                });
+              },
+              child: const Text("Add node"),
             ),
           ],
         ),
@@ -114,6 +138,17 @@ class _CanvasViewState extends State<CanvasView> {
                 }
               },
               child: GestureDetector(
+                  onTapUp: (details) {
+                    if (isInNodeCreationMode) {
+                      setState(() {
+                        nodes.add(Node(Point(
+                            details.localPosition.dx - boxSize / 2,
+                            details.localPosition.dy - boxSize / 2)));
+                      });
+                      isInNodeCreationMode = false;
+                      return;
+                    }
+                  },
                   onTapDown: (details) {
                     if (isInEdgeDrawingMode) {
                       for (var (i, node) in nodes.indexed) {
@@ -140,12 +175,11 @@ class _CanvasViewState extends State<CanvasView> {
                         }
                       }
                       stopEdgeDrawing();
-
                       return;
                     }
                   },
                   onPanStart: (details) {
-                    if (isInEdgeDrawingMode) return;
+                    if (isInEdgeDrawingMode || isInNodeCreationMode) return;
                     for (var (i, node) in nodes.indexed) {
                       if (isHit(node, details.localPosition)) {
                         setState(() {
@@ -156,7 +190,7 @@ class _CanvasViewState extends State<CanvasView> {
                     }
                   },
                   onPanUpdate: (details) {
-                    if (isInEdgeDrawingMode) return;
+                    if (isInEdgeDrawingMode || isInNodeCreationMode) return;
 
                     // TODO respect canvas boundaries
                     if (nodeBeingDraggedIndex != null) {
