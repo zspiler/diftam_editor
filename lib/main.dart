@@ -33,6 +33,7 @@ class CanvasView extends StatefulWidget {
 }
 
 const boxSize = 100.0;
+const gridSize = 25;
 
 class _CanvasViewState extends State<CanvasView> {
   var nodes = <Node>[];
@@ -268,9 +269,10 @@ class _CanvasViewState extends State<CanvasView> {
                         // TODO respect canvas boundaries
                         if (nodeBeingDraggedIndex != null) {
                           final node = nodes[nodeBeingDraggedIndex!];
-                          final newNode = Node(Point(
-                              node.position.x + details.delta.dx,
-                              node.position.y + details.delta.dy));
+                          var newX = node.position.x + details.delta.dx;
+                          var newY = node.position.y + details.delta.dy;
+
+                          final newNode = Node(Point(newX, newY));
                           setState(() {
                             nodes[nodeBeingDraggedIndex!] = newNode;
                           });
@@ -310,12 +312,13 @@ class MyCustomPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // NOTE widget rebuilt each time _CanvasViewState changes 😬
     for (var node in nodes) {
-      NodePainter.drawNode(canvas, node);
+      NodePainter.drawNode(canvas, node, snapToGrid: true);
     }
 
     edges.forEach((fromNodeIndex, toNodeIndexes) {
       for (var toNodeIndex in toNodeIndexes) {
-        EdgePainter.drawEdge(canvas, nodes[fromNodeIndex], nodes[toNodeIndex]);
+        EdgePainter.drawEdge(canvas, nodes[fromNodeIndex], nodes[toNodeIndex],
+            snapToGrid: true);
       }
     });
 
@@ -337,8 +340,14 @@ class NodePainter {
     ..strokeWidth = strokeWidth
     ..color = Colors.lime;
 
-  static void drawNode(Canvas canvas, Node node) {
-    final (x, y) = (node.position.x as double, node.position.y as double);
+  static void drawNode(Canvas canvas, Node node, {bool snapToGrid = false}) {
+    var (x, y) = (node.position.x as double, node.position.y as double);
+
+    if (snapToGrid) {
+      x = Utils.snapToGrid(x, gridSize);
+      y = Utils.snapToGrid(y, gridSize);
+    }
+
     final radius = Radius.circular(20);
 
     canvas.drawRRect(
@@ -364,16 +373,26 @@ class EdgePainter {
     drawArrowhead(canvas, toPoint, fromPoint, paintStyleFaded);
   }
 
-  static void drawEdge(Canvas canvas, Node fromNode, Node toNode) {
+  static void drawEdge(Canvas canvas, Node fromNode, Node toNode,
+      {bool snapToGrid = false}) {
     if (fromNode == toNode) {
-      drawLoop(canvas, fromNode);
+      drawLoop(canvas, fromNode, snapToGrid: true);
       return;
     }
 
-    final fromOffset = Offset(
-        fromNode.position.x + boxSize / 2, fromNode.position.y + boxSize / 2);
-    final toOffset = Offset(
-        toNode.position.x + boxSize / 2, toNode.position.y + boxSize / 2);
+    var (fromX, fromY) =
+        (fromNode.position.x as double, fromNode.position.y as double);
+    var (toX, toY) = (toNode.position.x as double, toNode.position.y as double);
+
+    if (snapToGrid) {
+      fromX = Utils.snapToGrid(fromX, gridSize);
+      fromY = Utils.snapToGrid(fromY, gridSize);
+      toX = Utils.snapToGrid(toX, gridSize);
+      toY = Utils.snapToGrid(toY, gridSize);
+    }
+
+    final fromOffset = Offset(fromX + boxSize / 2, fromY + boxSize / 2);
+    final toOffset = Offset(toX + boxSize / 2, toY + boxSize / 2);
 
     List<Point> points = calculateIntersectionPoints(
         Point(fromOffset.dx, fromOffset.dy), Point(toOffset.dx, toOffset.dy));
@@ -386,12 +405,19 @@ class EdgePainter {
   }
 
   // TODO: dynamic, avoid other edges
-  static void drawLoop(Canvas canvas, Node node) {
+  static void drawLoop(Canvas canvas, Node node, {bool snapToGrid = false}) {
     const double loopWidth = boxSize / 2 + 10;
     const double loopHeight = boxSize / 2 + 10;
 
-    final Offset boxTopCenter =
-        Offset(node.position.x + boxSize / 2, node.position.y as double);
+    var boxTopCenterX = node.position.x + boxSize / 2;
+    var boxTopCenterY = node.position.y as double;
+
+    if (snapToGrid) {
+      boxTopCenterX = Utils.snapToGrid(boxTopCenterX, gridSize);
+      boxTopCenterY = Utils.snapToGrid(boxTopCenterY, gridSize);
+    }
+
+    final Offset boxTopCenter = Offset(boxTopCenterX, boxTopCenterY);
 
     // control points for the Bezier curve
     final Offset controlPoint1 = boxTopCenter.translate(loopWidth, -loopHeight);
@@ -481,4 +507,10 @@ class Node {
   final Point position;
 
   Node(this.position);
+}
+
+class Utils {
+  static double snapToGrid(double value, int gridSize) {
+    return (value / gridSize).round() * gridSize * 1.0;
+  }
 }
