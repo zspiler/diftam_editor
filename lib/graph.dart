@@ -37,10 +37,11 @@ class _CanvasViewState extends State<CanvasView> {
     // TODO why cant just do this above?
     setState(() {
       // TODO ensure unique IDS?
-      nodes.add(Node("some long id", Point(100, 100)));
-      nodes.add(Node("tag 2", Point(300, 300)));
-      nodes.add(Node("tag 3", Point(500, 150)));
-      nodes.add(Node("some very very very long id", Point(500, 100)));
+      nodes.add(Node("some long id", Point(100, 100), NodeType.tag));
+      nodes.add(Node("tag 2", Point(300, 300), NodeType.tag));
+      nodes.add(Node("tag 3", Point(500, 150), NodeType.tag));
+      nodes.add(Node("stdin", Point(600, 150), NodeType.entryExit));
+      nodes.add(Node("some very very very long id", Point(500, 100), NodeType.tag));
 
       edges[0] = [1];
       edges[1] = [1];
@@ -203,7 +204,7 @@ class _CanvasViewState extends State<CanvasView> {
                             final newNodePosition = Point(
                                 details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
 
-                            nodes.add(Node(randomId, newNodePosition));
+                            nodes.add(Node(randomId, newNodePosition, NodeType.tag));
                           });
                           isInNodeCreationMode = false;
                           return;
@@ -257,7 +258,8 @@ class _CanvasViewState extends State<CanvasView> {
                           var newX = node.position.x + details.delta.dx;
                           var newY = node.position.y + details.delta.dy;
 
-                          final newNode = Node(nodes[nodeBeingDraggedIndex!].id, Point(newX, newY)); // TODO update node
+                          final newNode = Node(nodes[nodeBeingDraggedIndex!].id, Point(newX, newY),
+                              nodes[nodeBeingDraggedIndex!].type); // TODO update node
                           setState(() {
                             nodes[nodeBeingDraggedIndex!] = newNode;
                           });

@@ -7,6 +7,10 @@ class NodePainter {
   static const strokeWidth = 4.0;
   static const textStyle = TextStyle(color: Colors.white, fontSize: 18);
 
+  static Radius getNodeRadius(NodeType nodeType) {
+    return nodeType == NodeType.entryExit ? const Radius.circular(2) : const Radius.circular(24);
+  }
+
   static final paintStyle = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = strokeWidth
@@ -22,9 +26,8 @@ class NodePainter {
 
     final (boxWidth, boxHeight) = calculateNodeBoxSize(node.id);
 
-    final radius = Radius.circular(20);
-
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x, y, boxWidth, boxHeight), radius), paintStyle);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(Rect.fromLTWH(x, y, boxWidth, boxHeight), getNodeRadius(node.type)), paintStyle);
 
     drawText(canvas, x, y, node.id, node);
   }
