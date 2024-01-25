@@ -13,7 +13,6 @@ class CanvasView extends StatefulWidget {
   State<CanvasView> createState() => _CanvasViewState();
 }
 
-const boxSize = 100.0;
 const gridSize = 25;
 
 class _CanvasViewState extends State<CanvasView> {
@@ -35,9 +34,11 @@ class _CanvasViewState extends State<CanvasView> {
     super.initState();
     // TODO why cant just do this above?
     setState(() {
-      nodes.add(Node(Point(100, 100)));
-      nodes.add(Node(Point(300, 300)));
-      nodes.add(Node(Point(500, 150)));
+      // TODO ensure unique IDS?
+      nodes.add(Node("some long id", Point(100, 100)));
+      nodes.add(Node("tag 2", Point(300, 300)));
+      nodes.add(Node("tag 3", Point(500, 150)));
+      nodes.add(Node("some very very very long id", Point(500, 100)));
 
       edges[0] = [1];
       edges[1] = [1];
@@ -45,10 +46,12 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   bool isHit(Node node, Offset offset) {
+    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(node.id);
+
     return node.position.x < offset.dx &&
-        node.position.x + boxSize > offset.dx &&
+        node.position.x + nodeWidth > offset.dx &&
         node.position.y < offset.dy &&
-        node.position.y + boxSize > offset.dy;
+        node.position.y + nodeHeight > offset.dy;
   }
 
   void stopEdgeDrawing() {
@@ -99,8 +102,7 @@ class _CanvasViewState extends State<CanvasView> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                backgroundColor:
-                    isInEdgeDrawingMode ? Colors.green : Colors.red,
+                backgroundColor: isInEdgeDrawingMode ? Colors.green : Colors.red,
                 elevation: 0,
                 minimumSize: Size(100, 70),
               ),
@@ -120,8 +122,7 @@ class _CanvasViewState extends State<CanvasView> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                backgroundColor:
-                    isInNodeCreationMode ? Colors.green : Colors.red,
+                backgroundColor: isInNodeCreationMode ? Colors.green : Colors.red,
                 elevation: 0,
                 minimumSize: Size(100, 70),
               ),
@@ -145,8 +146,7 @@ class _CanvasViewState extends State<CanvasView> {
           onPointerSignal: (pointerSignal) {
             if (pointerSignal is! PointerScrollEvent) return;
 
-            final isMetaPressed = RawKeyboard.instance.keysPressed
-                .contains(LogicalKeyboardKey.metaLeft);
+            final isMetaPressed = RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.metaLeft);
 
             // TODO: fix trackpad behavior
             if (isMetaPressed) {
@@ -156,6 +156,7 @@ class _CanvasViewState extends State<CanvasView> {
             }
           },
           onPointerHover: (event) {
+            // TODO this is currently terrible - all mouse movement updates states and rerenders everything 🙈
             setState(() {
               /*
                 Because Listener is outside Transformation (since we want to scroll etc. even outside original canvas area). 
@@ -167,11 +168,9 @@ class _CanvasViewState extends State<CanvasView> {
                 ..invert();
 
               vector.Vector3 transformedPositionVector =
-                  inverseTransformation.transform3(vector.Vector3(
-                      event.localPosition.dx, event.localPosition.dy, 0));
+                  inverseTransformation.transform3(vector.Vector3(event.localPosition.dx, event.localPosition.dy, 0));
 
-              cursorPosition = Offset(
-                  transformedPositionVector.x, transformedPositionVector.y);
+              cursorPosition = Offset(transformedPositionVector.x, transformedPositionVector.y);
             });
 
             if (isInEdgeDrawingMode) {
@@ -195,9 +194,14 @@ class _CanvasViewState extends State<CanvasView> {
                       onTapUp: (details) {
                         if (isInNodeCreationMode) {
                           setState(() {
-                            nodes.add(Node(Point(
-                                details.localPosition.dx - boxSize / 2,
-                                details.localPosition.dy - boxSize / 2)));
+                            final randomId = Utils.generateRandomString(4);
+
+                            final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(randomId);
+
+                            final newNodePosition = Point(
+                                details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
+
+                            nodes.add(Node(randomId, newNodePosition));
                           });
                           isInNodeCreationMode = false;
                           return;
@@ -216,10 +220,8 @@ class _CanvasViewState extends State<CanvasView> {
                               } else {
                                 setState(() {
                                   // TODO ensure edge of same type is one-way?
-                                  if (edges
-                                      .containsKey(nodeFromWhichDragging)) {
-                                    edges[nodeFromWhichDragging!]!
-                                        .add(i); // TODO null safety 😬
+                                  if (edges.containsKey(nodeFromWhichDragging)) {
+                                    edges[nodeFromWhichDragging!]!.add(i); // TODO null safety 😬
                                   } else {
                                     edges[nodeFromWhichDragging!] = [i];
                                   }
@@ -253,7 +255,7 @@ class _CanvasViewState extends State<CanvasView> {
                           var newX = node.position.x + details.delta.dx;
                           var newY = node.position.y + details.delta.dy;
 
-                          final newNode = Node(Point(newX, newY));
+                          final newNode = Node(nodes[nodeBeingDraggedIndex!].id, Point(newX, newY)); // TODO update node
                           setState(() {
                             nodes[nodeBeingDraggedIndex!] = newNode;
                           });
@@ -266,9 +268,7 @@ class _CanvasViewState extends State<CanvasView> {
                         painter: GraphPainter(
                             nodes,
                             edges,
-                            isInEdgeDrawingMode &&
-                                    draggingStartPoint != null &&
-                                    draggingEndPoint != null
+                            isInEdgeDrawingMode && draggingStartPoint != null && draggingEndPoint != null
                                 ? (draggingStartPoint!, draggingEndPoint!)
                                 : null), // TODO null safety 😬
                       )),
@@ -298,8 +298,7 @@ class GraphPainter extends CustomPainter {
 
     edges.forEach((fromNodeIndex, toNodeIndexes) {
       for (var toNodeIndex in toNodeIndexes) {
-        EdgePainter.drawEdge(canvas, nodes[fromNodeIndex], nodes[toNodeIndex],
-            snapToGrid: true);
+        EdgePainter.drawEdge(canvas, nodes[fromNodeIndex], nodes[toNodeIndex], snapToGrid: true);
       }
     });
 
@@ -316,6 +315,8 @@ class GraphPainter extends CustomPainter {
 const strokeWidth = 4.0;
 
 class NodePainter {
+  static const textStyle = TextStyle(color: Colors.white, fontSize: 18);
+
   static final paintStyle = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = strokeWidth
@@ -329,11 +330,39 @@ class NodePainter {
       y = Utils.snapToGrid(y, gridSize);
     }
 
+    final (boxWidth, boxHeight) = calculateNodeBoxSize(node.id);
+
     final radius = Radius.circular(20);
 
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTWH(x, y, boxSize, boxSize), radius),
-        paintStyle);
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x, y, boxWidth, boxHeight), radius), paintStyle);
+
+    drawText(canvas, x, y, node.id, node);
+  }
+
+  static TextPainter getNodeTextPainter(String nodeId) {
+    TextSpan span = TextSpan(style: textStyle, text: nodeId);
+    if (nodeId.length > 15) {
+      span = TextSpan(style: textStyle, text: nodeId.substring(0, 12) + '...');
+    }
+
+    final textPainter = TextPainter(text: span, textAlign: TextAlign.center, textDirection: TextDirection.ltr);
+    textPainter.layout();
+    return textPainter;
+  }
+
+  static (double width, double height) calculateNodeBoxSize(String nodeId, {bool snapToGrid = false}) {
+    final boxWidth = min(getNodeTextPainter(nodeId).width, 100) + 50 as double;
+    final boxHeight = 75 as double;
+    return (boxWidth, boxHeight);
+  }
+
+  static void drawText(Canvas canvas, double x, double y, String text, Node node) {
+    final (boxWidth, boxHeight) = calculateNodeBoxSize(node.id);
+
+    final textPainter = getNodeTextPainter(node.id);
+
+    textPainter.paint(
+        canvas, Offset(x + boxWidth / 2 - textPainter.width * 0.5, y + boxHeight / 2 - textPainter.height * 0.5));
   }
 }
 
@@ -354,29 +383,13 @@ class EdgePainter {
     drawArrowhead(canvas, toPoint, fromPoint, paintStyleFaded);
   }
 
-  static void drawEdge(Canvas canvas, Node fromNode, Node toNode,
-      {bool snapToGrid = false}) {
+  static void drawEdge(Canvas canvas, Node fromNode, Node toNode, {bool snapToGrid = false}) {
     if (fromNode == toNode) {
       drawLoop(canvas, fromNode, snapToGrid: true);
       return;
     }
 
-    var (fromX, fromY) =
-        (fromNode.position.x as double, fromNode.position.y as double);
-    var (toX, toY) = (toNode.position.x as double, toNode.position.y as double);
-
-    if (snapToGrid) {
-      fromX = Utils.snapToGrid(fromX, gridSize);
-      fromY = Utils.snapToGrid(fromY, gridSize);
-      toX = Utils.snapToGrid(toX, gridSize);
-      toY = Utils.snapToGrid(toY, gridSize);
-    }
-
-    final fromOffset = Offset(fromX + boxSize / 2, fromY + boxSize / 2);
-    final toOffset = Offset(toX + boxSize / 2, toY + boxSize / 2);
-
-    List<Point> points = calculateIntersectionPoints(
-        Point(fromOffset.dx, fromOffset.dy), Point(toOffset.dx, toOffset.dy));
+    List<Point> points = calculateIntersectionPoints(fromNode, toNode, snapToGrid: true);
 
     canvas.drawLine(Offset(points[0].x as double, points[0].y as double),
         Offset(points[1].x as double, points[1].y as double), paintStyle);
@@ -387,27 +400,30 @@ class EdgePainter {
 
   // TODO: dynamic, avoid other edges
   static void drawLoop(Canvas canvas, Node node, {bool snapToGrid = false}) {
-    const double loopWidth = boxSize / 2 + 10;
-    const double loopHeight = boxSize / 2 + 10;
+    final (nodeWidth, _) = NodePainter.calculateNodeBoxSize(node.id);
 
-    var boxTopCenterX = node.position.x + boxSize / 2;
-    var boxTopCenterY = node.position.y as double;
+    const loopWidth = 60.0;
+    const loopHeight = 70.0;
+
+    var nodeX = node.position.x as double;
+    var nodeY = node.position.y as double;
 
     if (snapToGrid) {
-      boxTopCenterX = Utils.snapToGrid(boxTopCenterX, gridSize);
-      boxTopCenterY = Utils.snapToGrid(boxTopCenterY, gridSize);
+      nodeX = Utils.snapToGrid(nodeX, gridSize);
+      nodeY = Utils.snapToGrid(nodeY, gridSize);
     }
+
+    final boxTopCenterX = nodeX + nodeWidth / 2;
+    final boxTopCenterY = nodeY;
 
     final Offset boxTopCenter = Offset(boxTopCenterX, boxTopCenterY);
 
     // control points for the Bezier curve
     final Offset controlPoint1 = boxTopCenter.translate(loopWidth, -loopHeight);
-    final Offset controlPoint2 =
-        boxTopCenter.translate(-loopWidth, -loopHeight);
+    final Offset controlPoint2 = boxTopCenter.translate(-loopWidth, -loopHeight);
 
     // start and end points
-    final Offset loopPoint =
-        boxTopCenter.translate(0, -paintStyle.strokeWidth * 2);
+    final Offset loopPoint = boxTopCenter.translate(0, -paintStyle.strokeWidth * 2);
 
     final Path path = Path();
     path.moveTo(loopPoint.dx, loopPoint.dy);
@@ -423,30 +439,39 @@ class EdgePainter {
     canvas.drawPath(path, paintStyle);
 
     // arrow is rotated by 90 degrees to make the arrow point downwards
-    final double angle = atan2(
-            controlPoint2.dy - loopPoint.dy, controlPoint2.dx - loopPoint.dx) +
-        pi / 2;
+    final double angle = atan2(controlPoint2.dy - loopPoint.dy, controlPoint2.dx - loopPoint.dx) + pi / 2;
 
-    drawArrowhead(
-        canvas,
-        loopPoint,
-        Offset(loopPoint.dx + cos(angle), loopPoint.dy + sin(angle)),
-        paintStyle,
+    drawArrowhead(canvas, loopPoint, Offset(loopPoint.dx + cos(angle), loopPoint.dy + sin(angle)), paintStyle,
         arrowLength: 15);
   }
 
-  static List<Point> calculateIntersectionPoints(Point center1, Point center2) {
-    double width = boxSize;
-    double height = boxSize;
+  static List<Point> calculateIntersectionPoints(Node node1, Node node2, {bool snapToGrid = false}) {
+    var (fromX, fromY) = (node1.position.x as double, node1.position.y as double);
+    var (toX, toY) = (node2.position.x as double, node2.position.y as double);
 
-    Point intersect1 = intersectionPoint(center1, center2, width, height);
-    Point intersect2 = intersectionPoint(center2, center1, width, height);
+    if (snapToGrid) {
+      fromX = Utils.snapToGrid(fromX, gridSize);
+      fromY = Utils.snapToGrid(fromY, gridSize);
+      toX = Utils.snapToGrid(toX, gridSize);
+      toY = Utils.snapToGrid(toY, gridSize);
+    }
+
+    final (fromNodeWidth, fromNodeHeight) = NodePainter.calculateNodeBoxSize(node1.id);
+    final (toNodeWidth, toNodeHeight) = NodePainter.calculateNodeBoxSize(node2.id);
+
+    final fromOffset = Offset(fromX + fromNodeWidth / 2, fromY + fromNodeHeight / 2);
+    final toOffset = Offset(toX + toNodeWidth / 2, toY + toNodeHeight / 2);
+
+    final node1Center = Point(fromOffset.dx, fromOffset.dy);
+    final node2Center = Point(toOffset.dx, toOffset.dy);
+
+    Point intersect1 = intersectionPoint(node1Center, node2Center, fromNodeWidth, fromNodeHeight);
+    Point intersect2 = intersectionPoint(node2Center, node1Center, toNodeWidth, toNodeHeight);
 
     return [intersect1, intersect2];
   }
 
-  static Point intersectionPoint(
-      Point center1, Point center2, double width, double height) {
+  static Point intersectionPoint(Point center1, Point center2, double width, double height) {
     double dx = center2.x - center1.x as double;
     double dy = center2.y - center1.y as double;
 
@@ -463,9 +488,7 @@ class EdgePainter {
     return Point(center1.x + dx * scale, center1.y + dy * scale);
   }
 
-  static void drawArrowhead(
-      Canvas canvas, Offset point, Offset direction, Paint paint,
-      {double arrowLength = 20}) {
+  static void drawArrowhead(Canvas canvas, Offset point, Offset direction, Paint paint, {double arrowLength = 20}) {
     double arrowAngle = pi / 6;
 
     double edgeAngle = atan2(direction.dy - point.dy, direction.dx - point.dx);
@@ -485,13 +508,20 @@ class EdgePainter {
 }
 
 class Node {
+  String id;
   final Point position;
 
-  Node(this.position);
+  Node(this.id, this.position);
 }
 
 class Utils {
   static double snapToGrid(double value, int gridSize) {
     return (value / gridSize).round() * gridSize * 1.0;
+  }
+
+  static String generateRandomString(int len) {
+    var r = Random();
+    const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    return List.generate(len, (index) => _chars[r.nextInt(_chars.length)]).join();
   }
 }
