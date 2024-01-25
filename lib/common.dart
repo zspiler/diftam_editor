@@ -2,11 +2,14 @@ import 'dart:math';
 
 const gridSize = 25;
 
+enum NodeType { entryExit, tag }
+
 class Node {
   String id;
   final Point position;
+  final NodeType type;
 
-  Node(this.id, this.position);
+  Node(this.id, this.position, this.type);
 }
 
 class Utils {
