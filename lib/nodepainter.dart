@@ -43,9 +43,15 @@ class NodePainter {
     return textPainter;
   }
 
-  static (double width, double height) calculateNodeBoxSize(String nodeId, {bool snapToGrid = false}) {
-    final boxWidth = min(getNodeTextPainter(nodeId).width, 100) + 50 as double;
-    final boxHeight = 75 as double;
+  static (double width, double height) calculateNodeBoxSize(String nodeId, {bool snapToGrid = true}) {
+    // TODO snapToGrid=false should be by default? 🤔
+    var boxWidth = min(getNodeTextPainter(nodeId).width, 100) + 50 as double;
+    var boxHeight = 75 as double;
+    if (snapToGrid) {
+      boxWidth = Utils.snapToGrid(boxWidth, gridSize);
+      boxHeight = Utils.snapToGrid(boxHeight, gridSize);
+    }
+
     return (boxWidth, boxHeight);
   }
 
