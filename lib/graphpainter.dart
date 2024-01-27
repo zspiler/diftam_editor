@@ -29,17 +29,28 @@ class GraphPainter extends CustomPainter {
 
   void drawEdges(Canvas canvas, List<Edge> edges) {
     for (Edge edge1 in edges) {
-      var areEdgesOfDifferentTypesBetweenSameNodes = edges.any((edge2) =>
-          edge1 != edge2 &&
-          edge1.type != edge2.type &&
-          ((edge1.source == edge2.source && edge1.target == edge2.target) ||
-              (edge1.source == edge2.target && edge1.target == edge2.source)));
+      final (fromNode, toNode) = (edge1.source, edge1.target);
+      if (fromNode == toNode) {
+        final loopEdgesOnNode = edges.where((edge2) => edge2.source == fromNode && edge2.target == fromNode);
+        if (loopEdgesOnNode.length == 2) {
+          EdgePainter.drawLoop(canvas, fromNode, EdgeType.aware, snapToGrid: true);
+          EdgePainter.drawLoop(canvas, fromNode, EdgeType.oblivious, small: true, snapToGrid: true);
+        } else {
+          EdgePainter.drawLoop(canvas, fromNode, edge1.type, snapToGrid: true);
+        }
+      } else {
+        var areEdgesOfDifferentTypesBetweenSameNodes = edges.any((edge2) =>
+            edge1 != edge2 &&
+            edge1.type != edge2.type &&
+            ((edge1.source == edge2.source && edge1.target == edge2.target) ||
+                (edge1.source == edge2.target && edge1.target == edge2.source)));
 
-      final edgeShape = areEdgesOfDifferentTypesBetweenSameNodes
-          ? (edge1.type == EdgeType.oblivious ? EdgeShape.curvedUp : EdgeShape.curvedDown)
-          : EdgeShape.straight;
+        final edgeShape = areEdgesOfDifferentTypesBetweenSameNodes
+            ? (edge1.type == EdgeType.oblivious ? EdgeShape.curvedUp : EdgeShape.curvedDown)
+            : EdgeShape.straight;
 
-      EdgePainter.drawEdge(canvas, edge1, shape: edgeShape, snapToGrid: true);
+        EdgePainter.drawEdge(canvas, edge1, shape: edgeShape, snapToGrid: true);
+      }
     }
   }
 

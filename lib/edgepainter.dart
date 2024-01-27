@@ -34,10 +34,6 @@ class EdgePainter {
 
   static void drawEdge(Canvas canvas, Edge edge, {shape = EdgeShape.straight, bool snapToGrid = false}) {
     final (fromNode, toNode) = (edge.source, edge.target);
-    if (fromNode == toNode) {
-      drawLoop(canvas, fromNode, edge.type, snapToGrid: true);
-      return;
-    }
 
     List<Point> points = calculateIntersectionPoints(fromNode, toNode, snapToGrid: true);
 
@@ -78,11 +74,11 @@ class EdgePainter {
   }
 
   // TODO: dynamic, avoid other edges
-  static void drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool snapToGrid = false}) {
+  static void drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool snapToGrid = false}) {
     final paintStyle = getEdgePaintStyle(edgeType);
 
-    const loopWidth = 60.0;
-    const loopHeight = 70.0;
+    final loopWidth = 60.0 / (small ? 1.5 : 1);
+    final loopHeight = 70.0 / (small ? 1.5 : 1);
 
     var nodeX = node.position.x as double;
     var nodeY = node.position.y as double;
