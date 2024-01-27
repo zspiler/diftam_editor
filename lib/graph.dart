@@ -31,6 +31,8 @@ class _CanvasViewState extends State<CanvasView> {
   Offset canvasPosition = Offset.zero;
   double scale = 1.0;
 
+  NodeType _drawingNodeType = NodeType.tag;
+
   @override
   void initState() {
     super.initState();
@@ -122,6 +124,17 @@ class _CanvasViewState extends State<CanvasView> {
               child: const Text("Edge drawing"),
             ),
             SizedBox(height: 10),
+            DropdownButton<NodeType>(
+                value: _drawingNodeType,
+                onChanged: (NodeType? newValue) {
+                  setState(() {
+                    _drawingNodeType = newValue!;
+                  });
+                },
+                items: NodeType.values.map((NodeType nodeType) {
+                  return DropdownMenuItem<NodeType>(value: nodeType, child: Text(nodeType.value));
+                }).toList()),
+            SizedBox(height: 10),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
@@ -204,7 +217,7 @@ class _CanvasViewState extends State<CanvasView> {
                             final newNodePosition = Point(
                                 details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
 
-                            nodes.add(Node(randomId, newNodePosition, NodeType.tag));
+                            nodes.add(Node(randomId, newNodePosition, _drawingNodeType));
                           });
                           isInNodeCreationMode = false;
                           return;

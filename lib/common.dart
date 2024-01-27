@@ -2,7 +2,23 @@ import 'dart:math';
 
 const gridSize = 25;
 
-enum NodeType { entryExit, tag }
+enum NodeType {
+  entryExit('Entry/Exit'),
+  tag('Tag');
+
+  final String value;
+
+  const NodeType(this.value);
+}
+
+enum EdgeType {
+  oblivious('Oblivious'),
+  aware('Aware');
+
+  final String value;
+
+  const EdgeType(this.value);
+}
 
 class Node {
   String id;
