@@ -8,13 +8,25 @@ class NodePainter {
   static const textStyle = TextStyle(color: Colors.white, fontSize: 18);
 
   static Radius getNodeRadius(NodeType nodeType) {
-    return nodeType == NodeType.entryExit ? const Radius.circular(2) : const Radius.circular(24);
+    return nodeType == NodeType.tag ? const Radius.circular(24) : const Radius.circular(2);
+  }
+
+  static Paint getNodePaintStyle(NodeType nodeType) {
+    final color = switch (nodeType) {
+      NodeType.tag => Colors.lime,
+      NodeType.entry => Colors.grey,
+      NodeType.exit => const Color.fromARGB(255, 96, 96, 96),
+    };
+
+    return Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..color = color;
   }
 
   static final paintStyle = Paint()
     ..style = PaintingStyle.stroke
-    ..strokeWidth = strokeWidth
-    ..color = Colors.lime;
+    ..strokeWidth = strokeWidth;
 
   static void drawNode(Canvas canvas, Node node, {bool snapToGrid = false}) {
     var (x, y) = (node.position.x as double, node.position.y as double);
@@ -26,8 +38,8 @@ class NodePainter {
 
     final (boxWidth, boxHeight) = calculateNodeBoxSize(node.id);
 
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTWH(x, y, boxWidth, boxHeight), getNodeRadius(node.type)), paintStyle);
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x, y, boxWidth, boxHeight), getNodeRadius(node.type)),
+        getNodePaintStyle(node.type));
 
     drawText(canvas, x, y, node.id, node);
   }

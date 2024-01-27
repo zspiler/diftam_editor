@@ -5,9 +5,9 @@ import 'edgepainter.dart';
 import 'common.dart';
 
 class GraphPainter extends CustomPainter {
-  final List<Node> nodes;
-  final Map<int, List<int>> edges;
-  final (Offset, Offset)? newEdge; // TODO check existing type for this
+  final List<Node> nodes; // TODO set?
+  final List<Edge> edges; // TODO set?
+  final (Offset, Offset)? newEdge; // TODO check existing type for this?
 
   GraphPainter(this.nodes, this.edges, this.newEdge);
 
@@ -20,11 +20,9 @@ class GraphPainter extends CustomPainter {
       NodePainter.drawNode(canvas, node, snapToGrid: true);
     }
 
-    edges.forEach((fromNodeIndex, toNodeIndexes) {
-      for (var toNodeIndex in toNodeIndexes) {
-        EdgePainter.drawEdge(canvas, nodes[fromNodeIndex], nodes[toNodeIndex], snapToGrid: true);
-      }
-    });
+    for (var edge in edges) {
+      EdgePainter.drawEdge(canvas, edge, snapToGrid: true);
+    }
 
     if (newEdge != null) {
       EdgePainter.drawEdgeInProgress(canvas, newEdge!);
