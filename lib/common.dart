@@ -3,7 +3,8 @@ import 'dart:math';
 const gridSize = 25;
 
 enum NodeType {
-  entryExit('Entry/Exit'),
+  entry('Entry'),
+  exit('Exit'),
   tag('Tag');
 
   final String value;
@@ -22,10 +23,38 @@ enum EdgeType {
 
 class Node {
   String id;
-  final Point position;
+  Point position;
   final NodeType type;
 
   Node(this.id, this.position, this.type);
+}
+
+class Edge {
+  final Node source;
+  final Node target;
+  EdgeType type;
+
+  Edge(this.source, this.target, this.type) {
+    _validate(source, target);
+  }
+
+  void _validate(Node source, Node target) {
+    if (source == target && source.type != NodeType.tag) {
+      throw ArgumentError("Only 'Tag' node can connect with itself");
+    }
+
+    if (source.type == NodeType.entry && target.type != NodeType.tag) {
+      throw ArgumentError("'Entry' node can only connect into 'Tag' node!");
+    }
+
+    if (source.type == NodeType.exit) {
+      throw ArgumentError("'Exit' node cannot have any outgoing edges!");
+    }
+
+    if (target.type == NodeType.entry) {
+      throw ArgumentError("'Entry' node cannot have any incoming edges!");
+    }
+  }
 }
 
 class Utils {

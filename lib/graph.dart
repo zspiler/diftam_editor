@@ -7,6 +7,7 @@ import 'package:vector_math/vector_math_64.dart' as vector;
 import 'nodepainter.dart';
 import 'graphpainter.dart';
 import 'common.dart';
+import 'snackbar.dart';
 
 class CanvasView extends StatefulWidget {
   const CanvasView({
@@ -18,19 +19,20 @@ class CanvasView extends StatefulWidget {
 }
 
 class _CanvasViewState extends State<CanvasView> {
-  var nodes = <Node>[];
-  var edges = Map<int, List<int>>();
+  var nodes = <Node>[]; // TODO Set!
+  var edges = <Edge>[]; // TODO Set!
 
-  int? nodeBeingDraggedIndex;
   bool isInEdgeDrawingMode = false;
   bool isInNodeCreationMode = false;
   Offset? draggingStartPoint;
   Offset? draggingEndPoint;
-  int? nodeFromWhichDragging;
+  Node? nodeBeingDragged;
+  Node? nodeFromWhichDragging;
   Offset cursorPosition = Offset.zero;
   Offset canvasPosition = Offset.zero;
   double scale = 1.0;
 
+  EdgeType _drawingEdgeType = EdgeType.oblivious;
   NodeType _drawingNodeType = NodeType.tag;
 
   @override
@@ -39,14 +41,22 @@ class _CanvasViewState extends State<CanvasView> {
     // TODO why cant just do this above?
     setState(() {
       // TODO ensure unique IDS?
-      nodes.add(Node("some long id", Point(100, 100), NodeType.tag));
-      nodes.add(Node("tag 2", Point(300, 300), NodeType.tag));
-      nodes.add(Node("tag 3", Point(500, 150), NodeType.tag));
-      nodes.add(Node("stdin", Point(600, 150), NodeType.entryExit));
-      nodes.add(Node("some very very very long id", Point(500, 100), NodeType.tag));
+      final someLongId = Node("some long id", Point(100, 100), NodeType.tag);
+      final tag2 = Node("tag 2", Point(300, 300), NodeType.tag);
+      final tag3 = Node("tag 3", Point(500, 150), NodeType.tag);
+      final stdin = Node("stdin", Point(600, 150), NodeType.entry);
+      final stdout = Node("stdout", Point(800, 150), NodeType.exit);
+      final someVeryVeryVeryLongId = Node("some very very very long id", Point(500, 100), NodeType.tag);
 
-      edges[0] = [1];
-      edges[1] = [1];
+      nodes.add(someLongId);
+      nodes.add(tag2);
+      nodes.add(tag3);
+      nodes.add(stdin);
+      nodes.add(stdout);
+      nodes.add(someVeryVeryVeryLongId);
+
+      edges.add(Edge(someLongId, tag2, EdgeType.oblivious));
+      edges.add(Edge(tag2, tag3, EdgeType.aware));
     });
   }
 
@@ -104,6 +114,17 @@ class _CanvasViewState extends State<CanvasView> {
         width: 175, // temp to prevent column resize when texty value changes
         child: Column(
           children: [
+            DropdownButton<EdgeType>(
+                value: _drawingEdgeType,
+                onChanged: (EdgeType? newValue) {
+                  setState(() {
+                    _drawingEdgeType = newValue!;
+                  });
+                },
+                items: EdgeType.values.map((EdgeType edgeType) {
+                  return DropdownMenuItem<EdgeType>(value: edgeType, child: Text(edgeType.value));
+                }).toList()),
+            SizedBox(height: 10),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
@@ -211,9 +232,7 @@ class _CanvasViewState extends State<CanvasView> {
                         if (isInNodeCreationMode) {
                           setState(() {
                             final randomId = Utils.generateRandomString(4);
-
                             final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(randomId);
-
                             final newNodePosition = Point(
                                 details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
 
@@ -231,17 +250,19 @@ class _CanvasViewState extends State<CanvasView> {
                                 // NOTE probably dont need here since its called on hover but ok
                                 setState(() {
                                   draggingStartPoint = details.localPosition;
-                                  nodeFromWhichDragging = i;
+                                  nodeFromWhichDragging = node;
                                 });
                               } else {
-                                setState(() {
-                                  // TODO ensure edge of same type is one-way?
-                                  if (edges.containsKey(nodeFromWhichDragging)) {
-                                    edges[nodeFromWhichDragging!]!.add(i); // TODO null safety 😬
-                                  } else {
-                                    edges[nodeFromWhichDragging!] = [i];
+                                if (nodeFromWhichDragging != null) {
+                                  try {
+                                    final newEdge = Edge(nodeFromWhichDragging!, node, _drawingEdgeType);
+                                    setState(() {
+                                      edges.add(newEdge);
+                                    });
+                                  } on ArgumentError catch (e) {
+                                    SnackbarGlobal.show(e.message);
                                   }
-                                });
+                                }
                                 stopEdgeDrawing();
                               }
                               return;
@@ -256,7 +277,7 @@ class _CanvasViewState extends State<CanvasView> {
                         for (var (i, node) in nodes.indexed) {
                           if (isHit(node, details.localPosition)) {
                             setState(() {
-                              nodeBeingDraggedIndex = i;
+                              nodeBeingDragged = node;
                             });
                             break;
                           }
@@ -266,20 +287,17 @@ class _CanvasViewState extends State<CanvasView> {
                         if (isInEdgeDrawingMode || isInNodeCreationMode) return;
 
                         // TODO respect canvas boundaries
-                        if (nodeBeingDraggedIndex != null) {
-                          final node = nodes[nodeBeingDraggedIndex!];
-                          var newX = node.position.x + details.delta.dx;
-                          var newY = node.position.y + details.delta.dy;
+                        if (nodeBeingDragged != null) {
+                          var newX = nodeBeingDragged!.position.x + details.delta.dx;
+                          var newY = nodeBeingDragged!.position.y + details.delta.dy;
 
-                          final newNode = Node(nodes[nodeBeingDraggedIndex!].id, Point(newX, newY),
-                              nodes[nodeBeingDraggedIndex!].type); // TODO update node
                           setState(() {
-                            nodes[nodeBeingDraggedIndex!] = newNode;
+                            nodeBeingDragged!.position = Point(newX, newY);
                           });
                         }
                       },
                       onPanEnd: (details) {
-                        nodeBeingDraggedIndex = null;
+                        nodeBeingDragged = null;
                       },
                       child: CustomPaint(
                         painter: GraphPainter(

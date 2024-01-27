@@ -7,10 +7,13 @@ import 'common.dart';
 class EdgePainter {
   static const strokeWidth = 4.0;
 
-  static final paintStyle = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = strokeWidth
-    ..color = Colors.lime;
+  static Paint getEdgePaintStyle(EdgeType edgeType) {
+    final color = edgeType == EdgeType.aware ? Colors.green.withAlpha(200) : Colors.red.withAlpha(200);
+    return Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..color = color;
+  }
 
   static void drawEdgeInProgress(Canvas canvas, (Offset, Offset) points) {
     final paintStyleFaded = Paint()
@@ -23,23 +26,26 @@ class EdgePainter {
     drawArrowhead(canvas, toPoint, fromPoint, paintStyleFaded);
   }
 
-  static void drawEdge(Canvas canvas, Node fromNode, Node toNode, {bool snapToGrid = false}) {
+  static void drawEdge(Canvas canvas, Edge edge, {bool snapToGrid = false}) {
+    final (fromNode, toNode) = (edge.source, edge.target);
     if (fromNode == toNode) {
-      drawLoop(canvas, fromNode, snapToGrid: true);
+      drawLoop(canvas, fromNode, edge.type, snapToGrid: true);
       return;
     }
 
     List<Point> points = calculateIntersectionPoints(fromNode, toNode, snapToGrid: true);
 
     canvas.drawLine(Offset(points[0].x as double, points[0].y as double),
-        Offset(points[1].x as double, points[1].y as double), paintStyle);
+        Offset(points[1].x as double, points[1].y as double), getEdgePaintStyle(edge.type));
 
     drawArrowhead(canvas, Offset(points[1].x as double, points[1].y as double),
-        Offset(points[0].x as double, points[0].y as double), paintStyle);
+        Offset(points[0].x as double, points[0].y as double), getEdgePaintStyle(edge.type));
   }
 
   // TODO: dynamic, avoid other edges
-  static void drawLoop(Canvas canvas, Node node, {bool snapToGrid = false}) {
+  static void drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool snapToGrid = false}) {
+    final paintStyle = getEdgePaintStyle(edgeType);
+
     const loopWidth = 60.0;
     const loopHeight = 70.0;
 
