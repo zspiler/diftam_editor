@@ -18,6 +18,8 @@ class CanvasView extends StatefulWidget {
   State<CanvasView> createState() => _CanvasViewState();
 }
 
+const darkBlue = Color.fromARGB(255, 20, 54, 91);
+
 class _CanvasViewState extends State<CanvasView> {
   var nodes = <Node>[]; // TODO Set!
   var edges = <Edge>[]; // TODO Set!
@@ -110,7 +112,7 @@ class _CanvasViewState extends State<CanvasView> {
   Widget build(BuildContext context) {
     return Row(children: [
       Container(
-        color: Colors.blue,
+        color: Colors.grey,
         width: 175, // temp to prevent column resize when texty value changes
         child: Column(
           children: [
@@ -185,7 +187,7 @@ class _CanvasViewState extends State<CanvasView> {
 
             final isMetaPressed = RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.metaLeft);
 
-            // TODO: fix trackpad behavior
+            // TODO: Fix trackpad!
             if (isMetaPressed) {
               handleZoom(pointerSignal.scrollDelta);
             } else {
@@ -217,16 +219,16 @@ class _CanvasViewState extends State<CanvasView> {
             }
           },
           child: Container(
-            color: Color.fromARGB(255, 20, 54, 91),
+            color: Colors.grey[200],
             child: ClipRect(
               child: Transform(
                 transform: Matrix4.identity()
                   ..translate(canvasPosition.dx, canvasPosition.dy)
                   ..scale(scale, scale),
                 child: Container(
+                  // NOTE width would do nothing here because Expanded above determines width
                   height: MediaQuery.of(context).size.height,
-                  width: MediaQuery.of(context).size.width,
-                  color: Color.fromARGB(255, 18, 32, 47),
+                  color: darkBlue,
                   child: GestureDetector(
                       onTapUp: (details) {
                         if (isInNodeCreationMode) {
@@ -286,10 +288,23 @@ class _CanvasViewState extends State<CanvasView> {
                       onPanUpdate: (details) {
                         if (isInEdgeDrawingMode || isInNodeCreationMode) return;
 
-                        // TODO respect canvas boundaries
                         if (nodeBeingDragged != null) {
                           var newX = nodeBeingDragged!.position.x + details.delta.dx;
                           var newY = nodeBeingDragged!.position.y + details.delta.dy;
+
+                          final canvasWidth = MediaQuery.of(context).size.width - 175;
+                          final canvasHeight = MediaQuery.of(context).size.height;
+
+                          final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(nodeBeingDragged!.id);
+
+                          final isNewPositionValid = newX > 0 &&
+                              newX + nodeWidth < canvasWidth &&
+                              newY > 0 &&
+                              newY + nodeHeight < canvasHeight;
+
+                          if (!isNewPositionValid) {
+                            return;
+                          }
 
                           setState(() {
                             nodeBeingDragged!.position = Point(newX, newY);
