@@ -13,6 +13,8 @@ class GraphPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    drawGrid(canvas, size);
+
     // NOTE widget rebuilt each time _CanvasViewState changes 😬
     for (var node in nodes) {
       NodePainter.drawNode(canvas, node, snapToGrid: true);
@@ -32,4 +34,20 @@ class GraphPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true; // TODO optimize?
+
+  void drawGrid(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.withAlpha(50)
+      ..strokeWidth = 1;
+
+    final (canvasWidth, canvasHeight) = (size.width, size.height);
+
+    for (var i = 0; i < canvasWidth; i += gridSize) {
+      canvas.drawLine(Offset(i * 1.0, 0), Offset(i * 1.0, canvasHeight), paint);
+    }
+
+    for (var i = 0; i < canvasHeight; i += gridSize) {
+      canvas.drawLine(Offset(0, i * 1.0), Offset(canvasWidth, i * 1.0), paint);
+    }
+  }
 }
