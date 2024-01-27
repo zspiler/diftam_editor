@@ -46,19 +46,21 @@ class _CanvasViewState extends State<CanvasView> {
       final someLongId = Node("some long id", Point(100, 100), NodeType.tag);
       final tag2 = Node("tag 2", Point(300, 300), NodeType.tag);
       final tag3 = Node("tag 3", Point(500, 150), NodeType.tag);
-      final stdin = Node("stdin", Point(600, 150), NodeType.entry);
-      final stdout = Node("stdout", Point(800, 150), NodeType.exit);
-      final someVeryVeryVeryLongId = Node("some very very very long id", Point(500, 100), NodeType.tag);
+      // final stdin = Node("stdin", Point(600, 150), NodeType.entry);
+      // final stdout = Node("stdout", Point(800, 150), NodeType.exit);
+      // final someVeryVeryVeryLongId = Node("some very very very long id", Point(500, 100), NodeType.tag);
 
       nodes.add(someLongId);
       nodes.add(tag2);
       nodes.add(tag3);
-      nodes.add(stdin);
-      nodes.add(stdout);
-      nodes.add(someVeryVeryVeryLongId);
+      // nodes.add(stdin);
+      // nodes.add(stdout);
+      // nodes.add(someVeryVeryVeryLongId);
 
       edges.add(Edge(someLongId, tag2, EdgeType.oblivious));
-      edges.add(Edge(tag2, tag3, EdgeType.aware));
+      edges.add(Edge(someLongId, tag3, EdgeType.oblivious));
+      edges.add(Edge(someLongId, tag2, EdgeType.aware));
+      // edges.add(Edge(tag2, tag3, EdgeType.aware));
     });
   }
 

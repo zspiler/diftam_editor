@@ -27,6 +27,11 @@ class Node {
   final NodeType type;
 
   Node(this.id, this.position, this.type);
+
+  @override
+  String toString() {
+    return 'Node{$id, ${type.value}}';
+  }
 }
 
 class Edge {
@@ -54,6 +59,11 @@ class Edge {
     if (target.type == NodeType.entry) {
       throw ArgumentError("'Entry' node cannot have any incoming edges!");
     }
+  }
+
+  @override
+  String toString() {
+    return 'Edge{source: $source, target: $target, type: ${type.value}}';
   }
 }
 

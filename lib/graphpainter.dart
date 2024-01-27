@@ -14,19 +14,32 @@ class GraphPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     drawGrid(canvas, size);
+    drawEdges(canvas, edges);
 
     // NOTE widget rebuilt each time _CanvasViewState changes 😬
     for (var node in nodes) {
       NodePainter.drawNode(canvas, node, snapToGrid: true);
     }
 
-    for (var edge in edges) {
-      EdgePainter.drawEdge(canvas, edge, snapToGrid: true);
-    }
-
     if (newEdge != null) {
-      EdgePainter.drawEdgeInProgress(canvas, newEdge!);
       // TODO always use offset vs point
+      EdgePainter.drawEdgeInProgress(canvas, newEdge!);
+    }
+  }
+
+  void drawEdges(Canvas canvas, List<Edge> edges) {
+    for (Edge edge1 in edges) {
+      var areEdgesOfDifferentTypesBetweenSameNodes = edges.any((edge2) =>
+          edge1 != edge2 &&
+          edge1.type != edge2.type &&
+          ((edge1.source == edge2.source && edge1.target == edge2.target) ||
+              (edge1.source == edge2.target && edge1.target == edge2.source)));
+
+      final edgeShape = areEdgesOfDifferentTypesBetweenSameNodes
+          ? (edge1.type == EdgeType.oblivious ? EdgeShape.curvedUp : EdgeShape.curvedDown)
+          : EdgeShape.straight;
+
+      EdgePainter.drawEdge(canvas, edge1, shape: edgeShape, snapToGrid: true);
     }
   }
 
