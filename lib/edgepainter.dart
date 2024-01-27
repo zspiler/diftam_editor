@@ -4,6 +4,12 @@ import 'dart:math';
 import 'nodepainter.dart';
 import 'common.dart';
 
+enum EdgeShape {
+  straight,
+  curvedUp,
+  curvedDown,
+}
+
 class EdgePainter {
   static const strokeWidth = 4.0;
 
@@ -26,7 +32,7 @@ class EdgePainter {
     drawArrowhead(canvas, toPoint, fromPoint, paintStyleFaded);
   }
 
-  static void drawEdge(Canvas canvas, Edge edge, {bool snapToGrid = false}) {
+  static void drawEdge(Canvas canvas, Edge edge, {shape = EdgeShape.straight, bool snapToGrid = false}) {
     final (fromNode, toNode) = (edge.source, edge.target);
     if (fromNode == toNode) {
       drawLoop(canvas, fromNode, edge.type, snapToGrid: true);
@@ -35,11 +41,40 @@ class EdgePainter {
 
     List<Point> points = calculateIntersectionPoints(fromNode, toNode, snapToGrid: true);
 
-    canvas.drawLine(Offset(points[0].x as double, points[0].y as double),
-        Offset(points[1].x as double, points[1].y as double), getEdgePaintStyle(edge.type));
+    Offset start = Offset(points[0].x as double, points[0].y as double);
+    Offset end = Offset(points[1].x as double, points[1].y as double);
 
-    drawArrowhead(canvas, Offset(points[1].x as double, points[1].y as double),
-        Offset(points[0].x as double, points[0].y as double), getEdgePaintStyle(edge.type));
+    if (shape == EdgeShape.straight) {
+      canvas.drawLine(start, end, getEdgePaintStyle(edge.type));
+      drawArrowhead(canvas, end, start, getEdgePaintStyle(edge.type));
+    } else {
+      drawCurvedEdge(canvas, edge, start, end, shape);
+    }
+  }
+
+  static void drawCurvedEdge(Canvas canvas, Edge edge, Offset start, Offset end, EdgeShape shape) {
+    bool areNodesVerticallyAligned = (start.dx - end.dx).abs() < 10; // Define a small threshold value
+
+    Offset controlPoint;
+    double displacementValue = 50;
+
+    if (areNodesVerticallyAligned) {
+      double horizontalDisplacement = shape == EdgeShape.curvedUp ? -displacementValue : displacementValue;
+      controlPoint = Offset((start.dx + end.dx) / 2 + horizontalDisplacement, (start.dy + end.dy) / 2);
+    } else {
+      double verticalDisplacement = shape == EdgeShape.curvedUp ? displacementValue : -displacementValue;
+      controlPoint = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2 + verticalDisplacement);
+    }
+
+    // draw bezier curve
+    Path path = Path();
+    path.moveTo(start.dx, start.dy);
+    path.quadraticBezierTo(controlPoint.dx, controlPoint.dy, end.dx, end.dy);
+    canvas.drawPath(path, getEdgePaintStyle(edge.type));
+
+    // draw  arrowhead
+    Offset tangentDirection = Offset(end.dx - controlPoint.dx, end.dy - controlPoint.dy);
+    drawArrowhead(canvas, end, end - tangentDirection, getEdgePaintStyle(edge.type));
   }
 
   // TODO: dynamic, avoid other edges
