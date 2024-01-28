@@ -41,9 +41,12 @@ class _CanvasViewState extends State<CanvasView> {
   EdgeType? _drawingEdgeType; // TODO private?
   NodeType? _drawingNodeType; // TODO private?
 
+  late FocusNode focusNode;
+
   @override
   void initState() {
     super.initState();
+    focusNode = FocusNode();
     // TODO why cant just do this above?
     setState(() {
       // TODO ensure unique IDS?
@@ -67,6 +70,12 @@ class _CanvasViewState extends State<CanvasView> {
       // edges.add(Edge(someLongId, tag3, EdgeType.oblivious));
       // edges.add(Edge(tag2, tag3, EdgeType.aware));
     });
+  }
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
   }
 
   bool isInSelectionMode() {
@@ -172,6 +181,22 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
+  void deleteObject(GraphObject object) {
+    Dialogs.showConfirmationDialog(context,
+        confirmButtonText: 'Delete', title: 'Are you sure you want to delete this object?', onConfirm: () {
+      if (object is Node) {
+        setState(() {
+          nodes.remove(object);
+          edges.removeWhere((edge) => edge.source == object || edge.target == object);
+        });
+      } else {
+        setState(() {
+          edges.remove(object);
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(children: [
@@ -246,113 +271,125 @@ class _CanvasViewState extends State<CanvasView> {
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
                   color: darkBlue,
-                  child: GestureDetector(
-                      onTapUp: (details) {
-                        if (isInSelectionMode()) {
-                          setState(() {
-                            selectedObject = hoveredObject;
-                          });
-                        } else if (isInNodeCreationMode()) {
-                          setState(() {
-                            final randomId = Utils.generateRandomString(4);
-                            final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(randomId);
-                            final newNodePosition = Point(
-                                details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
-
-                            final newNode = Node(randomId, newNodePosition, _drawingNodeType!);
-                            nodes.add(newNode);
-                            selectedObject = newNode;
-                            _drawingNodeType = null;
-                          });
+                  child: KeyboardListener(
+                    focusNode: focusNode,
+                    autofocus: true,
+                    onKeyEvent: (event) {
+                      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace ||
+                          event.logicalKey == LogicalKeyboardKey.delete) {
+                        if (selectedObject != null) {
+                          deleteObject(selectedObject!);
                         }
-                      },
-                      onTapDown: (details) {
-                        if (isInEdgeDrawingMode()) {
-                          for (var node in nodes) {
-                            if (isNodeHit(node, details.localPosition)) {
-                              if (draggingStartPoint == null) {
-                                // NOTE probably dont need here since its called on hover but ok
-                                setState(() {
-                                  draggingStartPoint = details.localPosition;
-                                  nodeFromWhichDragging = node;
-                                });
-                              } else {
-                                if (nodeFromWhichDragging != null && _drawingEdgeType != null) {
-                                  try {
-                                    final newEdge = Edge(nodeFromWhichDragging!, node, _drawingEdgeType!);
-                                    final edgeExists = edges.any((edge) =>
-                                        edge.source == newEdge.source &&
-                                        edge.target == newEdge.target &&
-                                        edge.type == newEdge.type);
-                                    if (!edgeExists) {
-                                      setState(() {
-                                        edges.add(newEdge);
-                                      });
-                                    }
-                                  } on ArgumentError catch (e) {
-                                    SnackbarGlobal.show(e.message);
-                                  }
-                                }
-                                stopEdgeDrawing();
-                              }
-                              return;
-                            }
-                          }
-                          stopEdgeDrawing();
-                          return;
-                        }
-                      },
-                      onPanStart: (details) {
-                        if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
-                        for (var node in nodes) {
-                          if (isNodeHit(node, details.localPosition)) {
+                      }
+                    },
+                    child: GestureDetector(
+                        onTapUp: (details) {
+                          if (isInSelectionMode()) {
                             setState(() {
-                              nodeBeingDragged = node;
+                              selectedObject = hoveredObject;
                             });
-                            break;
+                          } else if (isInNodeCreationMode()) {
+                            setState(() {
+                              final randomId = Utils.generateRandomString(4);
+                              final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(randomId);
+                              final newNodePosition = Point(
+                                  details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
+
+                              final newNode = Node(randomId, newNodePosition, _drawingNodeType!);
+                              nodes.add(newNode);
+                              selectedObject = newNode;
+                              _drawingNodeType = null;
+                            });
                           }
-                        }
-                      },
-                      onPanUpdate: (details) {
-                        if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
-
-                        if (nodeBeingDragged != null) {
-                          var newX = nodeBeingDragged!.position.x + details.delta.dx;
-                          var newY = nodeBeingDragged!.position.y + details.delta.dy;
-
-                          final canvasWidth = MediaQuery.of(context).size.width - 175;
-                          final canvasHeight = MediaQuery.of(context).size.height;
-
-                          final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(nodeBeingDragged!.id);
-
-                          final isNewPositionValid = newX > 0 &&
-                              newX + nodeWidth < canvasWidth &&
-                              newY > 0 &&
-                              newY + nodeHeight < canvasHeight;
-
-                          if (!isNewPositionValid) {
+                        },
+                        onTapDown: (details) {
+                          if (isInEdgeDrawingMode()) {
+                            for (var node in nodes) {
+                              if (isNodeHit(node, details.localPosition)) {
+                                if (draggingStartPoint == null) {
+                                  // NOTE probably dont need here since its called on hover but ok
+                                  setState(() {
+                                    draggingStartPoint = details.localPosition;
+                                    nodeFromWhichDragging = node;
+                                  });
+                                } else {
+                                  if (nodeFromWhichDragging != null && _drawingEdgeType != null) {
+                                    try {
+                                      final newEdge = Edge(nodeFromWhichDragging!, node, _drawingEdgeType!);
+                                      final edgeExists = edges.any((edge) =>
+                                          edge.source == newEdge.source &&
+                                          edge.target == newEdge.target &&
+                                          edge.type == newEdge.type);
+                                      if (!edgeExists) {
+                                        setState(() {
+                                          edges.add(newEdge);
+                                        });
+                                      }
+                                    } on ArgumentError catch (e) {
+                                      SnackbarGlobal.show(e.message);
+                                    }
+                                  }
+                                  stopEdgeDrawing();
+                                }
+                                return;
+                              }
+                            }
+                            stopEdgeDrawing();
                             return;
                           }
+                        },
+                        onPanStart: (details) {
+                          if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
+                          for (var node in nodes) {
+                            if (isNodeHit(node, details.localPosition)) {
+                              setState(() {
+                                nodeBeingDragged = node;
+                              });
+                              break;
+                            }
+                          }
+                        },
+                        onPanUpdate: (details) {
+                          if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
 
-                          setState(() {
-                            nodeBeingDragged!.position = Point(newX, newY);
-                          });
-                        }
-                      },
-                      onPanEnd: (details) {
-                        nodeBeingDragged = null;
-                      },
-                      child: CustomPaint(
-                        painter: GraphPainter(
-                          nodes,
-                          edges,
-                          isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null
-                              ? (draggingStartPoint!, draggingEndPoint!) // TODO null safety
-                              : null,
-                          (newPathPerEdge) => pathPerEdge = newPathPerEdge,
-                          selectedObject,
-                        ),
-                      )),
+                          if (nodeBeingDragged != null) {
+                            var newX = nodeBeingDragged!.position.x + details.delta.dx;
+                            var newY = nodeBeingDragged!.position.y + details.delta.dy;
+
+                            final canvasWidth = MediaQuery.of(context).size.width - 175;
+                            final canvasHeight = MediaQuery.of(context).size.height;
+
+                            final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(nodeBeingDragged!.id);
+
+                            final isNewPositionValid = newX > 0 &&
+                                newX + nodeWidth < canvasWidth &&
+                                newY > 0 &&
+                                newY + nodeHeight < canvasHeight;
+
+                            if (!isNewPositionValid) {
+                              return;
+                            }
+
+                            setState(() {
+                              nodeBeingDragged!.position = Point(newX, newY);
+                            });
+                          }
+                        },
+                        onPanEnd: (details) {
+                          nodeBeingDragged = null;
+                        },
+                        child: CustomPaint(
+                          painter: GraphPainter(
+                            nodes,
+                            edges,
+                            isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null
+                                ? (draggingStartPoint!, draggingEndPoint!) // TODO null safety
+                                : null,
+                            (newPathPerEdge) => pathPerEdge = newPathPerEdge,
+                            selectedObject,
+                          ),
+                        )),
+                  ),
                 ),
               ),
             ),
