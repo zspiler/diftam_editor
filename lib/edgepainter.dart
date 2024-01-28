@@ -49,7 +49,7 @@ class EdgePainter {
   }
 
   static void drawCurvedEdge(Canvas canvas, Edge edge, Offset start, Offset end, EdgeShape shape) {
-    bool areNodesVerticallyAligned = (start.dx - end.dx).abs() < 10; // Define a small threshold value
+    bool areNodesVerticallyAligned = (start.dx - end.dx).abs() < 70; // Define a small threshold value
 
     Offset controlPoint;
     double displacementValue = 50;
