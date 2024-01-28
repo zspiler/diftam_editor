@@ -260,9 +260,15 @@ class _CanvasViewState extends State<CanvasView> {
                                 if (nodeFromWhichDragging != null) {
                                   try {
                                     final newEdge = Edge(nodeFromWhichDragging!, node, _drawingEdgeType);
-                                    setState(() {
-                                      edges.add(newEdge);
-                                    });
+                                    final edgeExists = edges.any((edge) =>
+                                        edge.source == newEdge.source &&
+                                        edge.target == newEdge.target &&
+                                        edge.type == newEdge.type);
+                                    if (!edgeExists) {
+                                      setState(() {
+                                        edges.add(newEdge);
+                                      });
+                                    }
                                   } on ArgumentError catch (e) {
                                     SnackbarGlobal.show(e.message);
                                   }
