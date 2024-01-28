@@ -21,7 +21,9 @@ enum EdgeType {
   const EdgeType(this.value);
 }
 
-class Node {
+abstract class GraphObject {}
+
+class Node implements GraphObject {
   String id;
   Point position;
   final NodeType type;
@@ -34,7 +36,7 @@ class Node {
   }
 }
 
-class Edge {
+class Edge implements GraphObject {
   final Node source;
   final Node target;
   EdgeType type;
