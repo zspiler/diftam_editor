@@ -8,6 +8,7 @@ import 'nodepainter.dart';
 import 'graphpainter.dart';
 import 'common.dart';
 import 'snackbar.dart';
+import 'menubar.dart';
 
 class CanvasView extends StatefulWidget {
   const CanvasView({
@@ -24,8 +25,6 @@ class _CanvasViewState extends State<CanvasView> {
   var nodes = <Node>[]; // TODO Set!
   var edges = <Edge>[]; // TODO Set!
 
-  bool isInEdgeDrawingMode = false;
-  bool isInNodeCreationMode = false;
   Offset? draggingStartPoint;
   Offset? draggingEndPoint;
   Node? nodeBeingDragged;
@@ -34,8 +33,8 @@ class _CanvasViewState extends State<CanvasView> {
   Offset canvasPosition = Offset.zero;
   double scale = 1.0;
 
-  EdgeType _drawingEdgeType = EdgeType.oblivious;
-  NodeType _drawingNodeType = NodeType.tag;
+  EdgeType? _drawingEdgeType; // TODO private?
+  NodeType? _drawingNodeType; // TODO private?
 
   @override
   void initState() {
@@ -64,6 +63,14 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
+  bool isInEdgeDrawingMode() {
+    return _drawingEdgeType != null;
+  }
+
+  bool isInNodeCreationMode() {
+    return _drawingNodeType != null;
+  }
+
   bool isHit(Node node, Offset offset) {
     final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(node.id);
 
@@ -78,7 +85,7 @@ class _CanvasViewState extends State<CanvasView> {
       nodeFromWhichDragging = null;
       draggingStartPoint = null;
       draggingEndPoint = null;
-      isInEdgeDrawingMode = false;
+      _drawingEdgeType = null;
     });
   }
 
@@ -110,230 +117,195 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
+  void enterEdgeDrawingMode(EdgeType edgeType) {
+    setState(() {
+      _drawingNodeType = null;
+      if (_drawingEdgeType == null || _drawingEdgeType != edgeType) {
+        _drawingEdgeType = edgeType;
+      } else {
+        _drawingEdgeType = null;
+      }
+    });
+  }
+
+  void enterNodeDrawingMode(NodeType nodeType) {
+    setState(() {
+      _drawingEdgeType = null;
+      if (_drawingNodeType == null || _drawingNodeType != nodeType) {
+        _drawingNodeType = nodeType;
+      } else {
+        _drawingNodeType = null;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      Container(
-        color: Colors.grey,
-        width: 175, // temp to prevent column resize when texty value changes
-        child: Column(
-          children: [
-            DropdownButton<EdgeType>(
-                value: _drawingEdgeType,
-                onChanged: (EdgeType? newValue) {
-                  setState(() {
-                    _drawingEdgeType = newValue!;
-                  });
-                },
-                items: EdgeType.values.map((EdgeType edgeType) {
-                  return DropdownMenuItem<EdgeType>(value: edgeType, child: Text(edgeType.value));
-                }).toList()),
-            SizedBox(height: 10),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: isInEdgeDrawingMode ? Colors.green : Colors.red,
-                elevation: 0,
-                minimumSize: Size(100, 70),
-              ),
-              onPressed: () {
-                setState(() {
-                  isInNodeCreationMode = false;
-                  if (isInEdgeDrawingMode) {
-                    stopEdgeDrawing();
-                  } else {
-                    isInEdgeDrawingMode = true;
-                  }
-                });
-              },
-              child: const Text("Edge drawing"),
-            ),
-            SizedBox(height: 10),
-            DropdownButton<NodeType>(
-                value: _drawingNodeType,
-                onChanged: (NodeType? newValue) {
-                  setState(() {
-                    _drawingNodeType = newValue!;
-                  });
-                },
-                items: NodeType.values.map((NodeType nodeType) {
-                  return DropdownMenuItem<NodeType>(value: nodeType, child: Text(nodeType.value));
-                }).toList()),
-            SizedBox(height: 10),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: isInNodeCreationMode ? Colors.green : Colors.red,
-                elevation: 0,
-                minimumSize: Size(100, 70),
-              ),
-              onPressed: () {
-                setState(() {
-                  stopEdgeDrawing();
-                  if (isInNodeCreationMode) {
-                    isInNodeCreationMode = false;
-                  } else {
-                    isInNodeCreationMode = true;
-                  }
-                });
-              },
-              child: const Text("Add node"),
-            ),
-          ],
-        ),
-      ),
-      Expanded(
-        child: Listener(
-          onPointerSignal: (pointerSignal) {
-            if (pointerSignal is! PointerScrollEvent) return;
+    return Stack(children: [
+      Listener(
+        onPointerSignal: (pointerSignal) {
+          if (pointerSignal is! PointerScrollEvent) return;
 
-            final isMetaPressed = RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.metaLeft);
+          final isMetaPressed = RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.metaLeft);
 
-            // TODO: Fix trackpad!
-            if (isMetaPressed) {
-              handleZoom(pointerSignal.scrollDelta);
-            } else {
-              handlePanning(pointerSignal.scrollDelta);
-            }
-          },
-          onPointerHover: (event) {
-            // TODO this is currently terrible - all mouse movement updates states and rerenders everything 🙈
-            setState(() {
-              /*
+          // TODO: Fix trackpad!
+          if (isMetaPressed) {
+            handleZoom(pointerSignal.scrollDelta);
+          } else {
+            handlePanning(pointerSignal.scrollDelta);
+          }
+        },
+        onPointerHover: (event) {
+          // TODO this is currently terrible - all mouse movement updates states and rerenders everything 🙈
+          setState(() {
+            /*
                 Because Listener is outside Transformation (since we want to scroll etc. even outside original canvas area). 
                 here the coordinates do not match transformd coordinates so we need to apply inverse transformation.
                */
-              Matrix4 inverseTransformation = Matrix4.identity()
-                ..translate(canvasPosition.dx, canvasPosition.dy)
-                ..scale(scale, scale)
-                ..invert();
+            Matrix4 inverseTransformation = Matrix4.identity()
+              ..translate(canvasPosition.dx, canvasPosition.dy)
+              ..scale(scale, scale)
+              ..invert();
 
-              vector.Vector3 transformedPositionVector =
-                  inverseTransformation.transform3(vector.Vector3(event.localPosition.dx, event.localPosition.dy, 0));
+            vector.Vector3 transformedPositionVector =
+                inverseTransformation.transform3(vector.Vector3(event.localPosition.dx, event.localPosition.dy, 0));
 
-              cursorPosition = Offset(transformedPositionVector.x, transformedPositionVector.y);
+            cursorPosition = Offset(transformedPositionVector.x, transformedPositionVector.y);
+          });
+
+          if (isInEdgeDrawingMode()) {
+            setState(() {
+              draggingEndPoint = cursorPosition;
             });
+          }
+        },
+        child: Container(
+          color: Colors.grey[200],
+          child: ClipRect(
+            child: Transform(
+              transform: Matrix4.identity()
+                ..translate(canvasPosition.dx, canvasPosition.dy)
+                ..scale(scale, scale),
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                color: darkBlue,
+                child: GestureDetector(
+                    onTapUp: (details) {
+                      if (isInNodeCreationMode()) {
+                        setState(() {
+                          final randomId = Utils.generateRandomString(4);
+                          final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(randomId);
+                          final newNodePosition = Point(
+                              details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
 
-            if (isInEdgeDrawingMode) {
-              setState(() {
-                draggingEndPoint = cursorPosition;
-              });
-            }
-          },
-          child: Container(
-            color: Colors.grey[200],
-            child: ClipRect(
-              child: Transform(
-                transform: Matrix4.identity()
-                  ..translate(canvasPosition.dx, canvasPosition.dy)
-                  ..scale(scale, scale),
-                child: Container(
-                  // NOTE width would do nothing here because Expanded above determines width
-                  height: MediaQuery.of(context).size.height,
-                  color: darkBlue,
-                  child: GestureDetector(
-                      onTapUp: (details) {
-                        if (isInNodeCreationMode) {
-                          setState(() {
-                            final randomId = Utils.generateRandomString(4);
-                            final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(randomId);
-                            final newNodePosition = Point(
-                                details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
-
-                            nodes.add(Node(randomId, newNodePosition, _drawingNodeType));
-                          });
-                          isInNodeCreationMode = false;
-                          return;
-                        }
-                      },
-                      onTapDown: (details) {
-                        if (isInEdgeDrawingMode) {
-                          for (var (i, node) in nodes.indexed) {
-                            if (isHit(node, details.localPosition)) {
-                              if (draggingStartPoint == null) {
-                                // NOTE probably dont need here since its called on hover but ok
-                                setState(() {
-                                  draggingStartPoint = details.localPosition;
-                                  nodeFromWhichDragging = node;
-                                });
-                              } else {
-                                if (nodeFromWhichDragging != null) {
-                                  try {
-                                    final newEdge = Edge(nodeFromWhichDragging!, node, _drawingEdgeType);
-                                    final edgeExists = edges.any((edge) =>
-                                        edge.source == newEdge.source &&
-                                        edge.target == newEdge.target &&
-                                        edge.type == newEdge.type);
-                                    if (!edgeExists) {
-                                      setState(() {
-                                        edges.add(newEdge);
-                                      });
-                                    }
-                                  } on ArgumentError catch (e) {
-                                    SnackbarGlobal.show(e.message);
-                                  }
-                                }
-                                stopEdgeDrawing();
-                              }
-                              return;
-                            }
-                          }
-                          stopEdgeDrawing();
-                          return;
-                        }
-                      },
-                      onPanStart: (details) {
-                        if (isInEdgeDrawingMode || isInNodeCreationMode) return;
+                          nodes.add(Node(randomId, newNodePosition, _drawingNodeType!));
+                        });
+                        _drawingNodeType = null;
+                        return;
+                      }
+                    },
+                    onTapDown: (details) {
+                      if (isInEdgeDrawingMode()) {
                         for (var (i, node) in nodes.indexed) {
                           if (isHit(node, details.localPosition)) {
-                            setState(() {
-                              nodeBeingDragged = node;
-                            });
-                            break;
-                          }
-                        }
-                      },
-                      onPanUpdate: (details) {
-                        if (isInEdgeDrawingMode || isInNodeCreationMode) return;
-
-                        if (nodeBeingDragged != null) {
-                          var newX = nodeBeingDragged!.position.x + details.delta.dx;
-                          var newY = nodeBeingDragged!.position.y + details.delta.dy;
-
-                          final canvasWidth = MediaQuery.of(context).size.width - 175;
-                          final canvasHeight = MediaQuery.of(context).size.height;
-
-                          final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(nodeBeingDragged!.id);
-
-                          final isNewPositionValid = newX > 0 &&
-                              newX + nodeWidth < canvasWidth &&
-                              newY > 0 &&
-                              newY + nodeHeight < canvasHeight;
-
-                          if (!isNewPositionValid) {
+                            if (draggingStartPoint == null) {
+                              // NOTE probably dont need here since its called on hover but ok
+                              setState(() {
+                                draggingStartPoint = details.localPosition;
+                                nodeFromWhichDragging = node;
+                              });
+                            } else {
+                              if (nodeFromWhichDragging != null && _drawingEdgeType != null) {
+                                try {
+                                  final newEdge = Edge(nodeFromWhichDragging!, node, _drawingEdgeType!);
+                                  final edgeExists = edges.any((edge) =>
+                                      edge.source == newEdge.source &&
+                                      edge.target == newEdge.target &&
+                                      edge.type == newEdge.type);
+                                  if (!edgeExists) {
+                                    setState(() {
+                                      edges.add(newEdge);
+                                    });
+                                  }
+                                } on ArgumentError catch (e) {
+                                  SnackbarGlobal.show(e.message);
+                                }
+                              }
+                              stopEdgeDrawing();
+                            }
                             return;
                           }
-
-                          setState(() {
-                            nodeBeingDragged!.position = Point(newX, newY);
-                          });
                         }
-                      },
-                      onPanEnd: (details) {
-                        nodeBeingDragged = null;
-                      },
-                      child: CustomPaint(
-                        painter: GraphPainter(
-                            nodes,
-                            edges,
-                            isInEdgeDrawingMode && draggingStartPoint != null && draggingEndPoint != null
-                                ? (draggingStartPoint!, draggingEndPoint!)
-                                : null), // TODO null safety 😬
-                      )),
-                ),
+                        stopEdgeDrawing();
+                        return;
+                      }
+                    },
+                    onPanStart: (details) {
+                      if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
+                      for (var (i, node) in nodes.indexed) {
+                        if (isHit(node, details.localPosition)) {
+                          setState(() {
+                            nodeBeingDragged = node;
+                          });
+                          break;
+                        }
+                      }
+                    },
+                    onPanUpdate: (details) {
+                      if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
+
+                      if (nodeBeingDragged != null) {
+                        var newX = nodeBeingDragged!.position.x + details.delta.dx;
+                        var newY = nodeBeingDragged!.position.y + details.delta.dy;
+
+                        final canvasWidth = MediaQuery.of(context).size.width - 175;
+                        final canvasHeight = MediaQuery.of(context).size.height;
+
+                        final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(nodeBeingDragged!.id);
+
+                        final isNewPositionValid =
+                            newX > 0 && newX + nodeWidth < canvasWidth && newY > 0 && newY + nodeHeight < canvasHeight;
+
+                        if (!isNewPositionValid) {
+                          return;
+                        }
+
+                        setState(() {
+                          nodeBeingDragged!.position = Point(newX, newY);
+                        });
+                      }
+                    },
+                    onPanEnd: (details) {
+                      nodeBeingDragged = null;
+                    },
+                    child: CustomPaint(
+                      painter: GraphPainter(
+                          nodes,
+                          edges,
+                          isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null
+                              ? (draggingStartPoint!, draggingEndPoint!)
+                              : null), // TODO null safety 😬
+                    )),
               ),
             ),
           ),
+        ),
+      ),
+      Positioned(
+        top: 16,
+        left: 0,
+        right: 0,
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: MyMenuBar(
+              onAwareConnectionPress: () => enterEdgeDrawingMode(EdgeType.aware),
+              onObliviousConnectionPress: () => enterEdgeDrawingMode(EdgeType.oblivious),
+              onEntryNodePress: () => enterNodeDrawingMode(NodeType.entry),
+              onExitNodePress: () => enterNodeDrawingMode(NodeType.exit),
+              onTagNodePress: () => enterNodeDrawingMode(NodeType.tag),
+              drawingEdgeType: _drawingEdgeType,
+              drawingNodeType: _drawingNodeType),
         ),
       ),
     ]);
