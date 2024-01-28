@@ -11,12 +11,14 @@ class NodePainter {
     return nodeType == NodeType.tag ? const Radius.circular(24) : const Radius.circular(2);
   }
 
-  static Paint getNodePaintStyle(NodeType nodeType) {
-    final color = switch (nodeType) {
-      NodeType.tag => Colors.lime,
-      NodeType.entry => Colors.grey,
-      NodeType.exit => const Color.fromARGB(255, 96, 96, 96),
-    };
+  static Paint getNodePaintStyle(NodeType nodeType, {bool isSelected = false}) {
+    final color = isSelected
+        ? Colors.white
+        : switch (nodeType) {
+            NodeType.tag => Colors.lime,
+            NodeType.entry => Colors.grey,
+            NodeType.exit => const Color.fromARGB(255, 96, 96, 96),
+          };
 
     return Paint()
       ..style = PaintingStyle.stroke
@@ -28,7 +30,7 @@ class NodePainter {
     ..style = PaintingStyle.stroke
     ..strokeWidth = strokeWidth;
 
-  static void drawNode(Canvas canvas, Node node, {bool snapToGrid = false}) {
+  static void drawNode(Canvas canvas, Node node, {bool snapToGrid = false, bool isSelected = false}) {
     var (x, y) = (node.position.x as double, node.position.y as double);
 
     if (snapToGrid) {
@@ -39,7 +41,7 @@ class NodePainter {
     final (boxWidth, boxHeight) = calculateNodeBoxSize(node.id);
 
     canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x, y, boxWidth, boxHeight), getNodeRadius(node.type)),
-        getNodePaintStyle(node.type));
+        getNodePaintStyle(node.type, isSelected: isSelected));
 
     drawText(canvas, x, y, node.id, node);
   }

@@ -27,8 +27,6 @@ class _CanvasViewState extends State<CanvasView> {
   var edges = <Edge>[]; // TODO Set!
   var pathPerEdge = <Edge, Path>{};
 
-  Node? selectedNode;
-  Edge? selectedEdge;
   Offset? draggingStartPoint;
   Offset? draggingEndPoint;
   Node? nodeBeingDragged;
@@ -36,6 +34,7 @@ class _CanvasViewState extends State<CanvasView> {
   Offset cursorPosition = Offset.zero;
   Offset canvasPosition = Offset.zero;
   GraphObject? hoveredObject;
+  GraphObject? selectedObject;
 
   double scale = 1.0;
 
@@ -64,6 +63,7 @@ class _CanvasViewState extends State<CanvasView> {
 
       edges.add(Edge(someLongId, tag2, EdgeType.oblivious));
       edges.add(Edge(someLongId, tag2, EdgeType.aware));
+      edges.add(Edge(someLongId, someLongId, EdgeType.oblivious));
       // edges.add(Edge(someLongId, tag3, EdgeType.oblivious));
       // edges.add(Edge(tag2, tag3, EdgeType.aware));
     });
@@ -250,15 +250,9 @@ class _CanvasViewState extends State<CanvasView> {
                       onTapUp: (details) {
                         if (isInSelectionMode()) {
                           if (hoveredObject != null) {
-                            if (hoveredObject is Node) {
-                              setState(() {
-                                selectedNode = hoveredObject as Node;
-                              });
-                            } else {
-                              setState(() {
-                                selectedEdge = hoveredObject as Edge;
-                              });
-                            }
+                            setState(() {
+                              selectedObject = hoveredObject;
+                            });
                           }
                         } else if (isInNodeCreationMode()) {
                           setState(() {
@@ -268,8 +262,8 @@ class _CanvasViewState extends State<CanvasView> {
                                 details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
 
                             nodes.add(Node(randomId, newNodePosition, _drawingNodeType!));
+                            _drawingNodeType = null;
                           });
-                          _drawingNodeType = null;
                         }
                       },
                       onTapDown: (details) {
@@ -350,12 +344,14 @@ class _CanvasViewState extends State<CanvasView> {
                       },
                       child: CustomPaint(
                         painter: GraphPainter(
-                            nodes,
-                            edges,
-                            isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null
-                                ? (draggingStartPoint!, draggingEndPoint!) // TODO null safety
-                                : null,
-                            (newPathPerEdge) => pathPerEdge = newPathPerEdge),
+                          nodes,
+                          edges,
+                          isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null
+                              ? (draggingStartPoint!, draggingEndPoint!) // TODO null safety
+                              : null,
+                          (newPathPerEdge) => pathPerEdge = newPathPerEdge,
+                          selectedObject,
+                        ),
                       )),
                 ),
               ),
@@ -379,16 +375,11 @@ class _CanvasViewState extends State<CanvasView> {
               drawingNodeType: _drawingNodeType),
         ),
       ),
-      if (selectedNode != null)
+      if (selectedObject != null)
         Positioned(
             bottom: 16,
             right: 0,
-            child: Align(alignment: Alignment.bottomCenter, child: InfoPanel(text: selectedNode.toString()))),
-      if (selectedEdge != null)
-        Positioned(
-            bottom: 16,
-            left: 0,
-            child: Align(alignment: Alignment.bottomCenter, child: InfoPanel(text: selectedEdge.toString())))
+            child: Align(alignment: Alignment.bottomCenter, child: InfoPanel(text: selectedObject.toString()))),
     ]);
   }
 }

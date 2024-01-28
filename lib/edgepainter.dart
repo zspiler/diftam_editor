@@ -13,8 +13,10 @@ enum EdgeShape {
 class EdgePainter {
   static const strokeWidth = 4.0;
 
-  static Paint getEdgePaintStyle(EdgeType edgeType) {
-    final color = edgeType == EdgeType.aware ? Colors.green.withAlpha(200) : Colors.red.withAlpha(200);
+  static Paint getEdgePaintStyle(EdgeType edgeType, {bool isSelected = false}) {
+    final color = isSelected
+        ? Colors.white.withAlpha(222)
+        : (edgeType == EdgeType.aware ? Colors.green.withAlpha(200) : Colors.red.withAlpha(200));
     return Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
@@ -32,7 +34,8 @@ class EdgePainter {
     drawArrowhead(canvas, toPoint, fromPoint, paintStyleFaded);
   }
 
-  static Path drawEdge(Canvas canvas, Edge edge, {shape = EdgeShape.straight, bool snapToGrid = false}) {
+  static Path drawEdge(Canvas canvas, Edge edge,
+      {shape = EdgeShape.straight, bool snapToGrid = false, bool isSelected = false}) {
     final (fromNode, toNode) = (edge.source, edge.target);
 
     List<Point> points = calculateIntersectionPoints(fromNode, toNode, snapToGrid: true);
@@ -40,16 +43,18 @@ class EdgePainter {
     Offset start = Offset(points[0].x as double, points[0].y as double);
     Offset end = Offset(points[1].x as double, points[1].y as double);
 
+    final paintStyle = getEdgePaintStyle(edge.type, isSelected: isSelected);
+
     if (shape == EdgeShape.straight) {
-      final path = drawStraightLine(canvas, start, end, getEdgePaintStyle(edge.type));
-      drawArrowhead(canvas, end, start, getEdgePaintStyle(edge.type));
+      final path = drawStraightLine(canvas, start, end, paintStyle);
+      drawArrowhead(canvas, end, start, paintStyle);
       return path;
     } else {
-      return drawCurvedEdge(canvas, edge, start, end, shape);
+      return drawCurvedEdge(canvas, edge, start, end, shape, paintStyle);
     }
   }
 
-  static Path drawCurvedEdge(Canvas canvas, Edge edge, Offset start, Offset end, EdgeShape shape) {
+  static Path drawCurvedEdge(Canvas canvas, Edge edge, Offset start, Offset end, EdgeShape shape, Paint paintStyle) {
     bool areNodesVerticallyAligned = (start.dx - end.dx).abs() < 70; // Define a small threshold value
 
     Offset controlPoint;
@@ -67,11 +72,11 @@ class EdgePainter {
     Path path = Path();
     path.moveTo(start.dx, start.dy);
     path.quadraticBezierTo(controlPoint.dx, controlPoint.dy, end.dx, end.dy);
-    canvas.drawPath(path, getEdgePaintStyle(edge.type));
+    canvas.drawPath(path, paintStyle);
 
     // draw  arrowhead
     Offset tangentDirection = Offset(end.dx - controlPoint.dx, end.dy - controlPoint.dy);
-    drawArrowhead(canvas, end, end - tangentDirection, getEdgePaintStyle(edge.type));
+    drawArrowhead(canvas, end, end - tangentDirection, paintStyle);
 
     return path;
   }
@@ -86,8 +91,9 @@ class EdgePainter {
   }
 
   // TODO: dynamic, avoid other edges
-  static Path drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool snapToGrid = false}) {
-    final paintStyle = getEdgePaintStyle(edgeType);
+  static Path drawLoop(Canvas canvas, Node node, EdgeType edgeType,
+      {bool small = false, bool snapToGrid = false, bool isSelected = false}) {
+    final paintStyle = getEdgePaintStyle(edgeType, isSelected: isSelected);
 
     final loopWidth = 60.0 / (small ? 1.5 : 1);
     final loopHeight = 70.0 / (small ? 1.5 : 1);
