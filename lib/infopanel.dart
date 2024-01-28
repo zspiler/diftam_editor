@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'common.dart';
 
 class InfoPanel extends StatelessWidget {
   final String text;

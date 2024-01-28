@@ -249,11 +249,9 @@ class _CanvasViewState extends State<CanvasView> {
                   child: GestureDetector(
                       onTapUp: (details) {
                         if (isInSelectionMode()) {
-                          if (hoveredObject != null) {
-                            setState(() {
-                              selectedObject = hoveredObject;
-                            });
-                          }
+                          setState(() {
+                            selectedObject = hoveredObject;
+                          });
                         } else if (isInNodeCreationMode()) {
                           setState(() {
                             final randomId = Utils.generateRandomString(4);
@@ -261,7 +259,9 @@ class _CanvasViewState extends State<CanvasView> {
                             final newNodePosition = Point(
                                 details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
 
-                            nodes.add(Node(randomId, newNodePosition, _drawingNodeType!));
+                            final newNode = Node(randomId, newNodePosition, _drawingNodeType!);
+                            nodes.add(newNode);
+                            selectedObject = newNode;
                             _drawingNodeType = null;
                           });
                         }
