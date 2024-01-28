@@ -8,13 +8,15 @@ class GraphPainter extends CustomPainter {
   final List<Node> nodes; // TODO set?
   final List<Edge> edges; // TODO set?
   final (Offset, Offset)? newEdge; // TODO check existing type for this?
+  final Function(Map<Edge, Path> pathPerEdge) emitPathPerEdge;
 
-  GraphPainter(this.nodes, this.edges, this.newEdge);
+  GraphPainter(this.nodes, this.edges, this.newEdge, this.emitPathPerEdge);
 
   @override
   void paint(Canvas canvas, Size size) {
     drawGrid(canvas, size);
-    drawEdges(canvas, edges);
+    final pathPerEdge = drawEdges(canvas, edges);
+    emitPathPerEdge(pathPerEdge);
 
     // NOTE widget rebuilt each time _CanvasViewState changes 😬
     for (var node in nodes) {
@@ -27,17 +29,27 @@ class GraphPainter extends CustomPainter {
     }
   }
 
-  void drawEdges(Canvas canvas, List<Edge> edges) {
+  /*
+    Draws edges and also returns map which contains the drawn path for each edge.
+    Because edges can be curved, we need the paths to detect whether an edgeis under cursor (for selection).
+   */
+  Map<Edge, Path> drawEdges(Canvas canvas, List<Edge> edges) {
+    final Map<Edge, Path> pathPerEdge = {};
+
     for (Edge edge1 in edges) {
       final (fromNode, toNode) = (edge1.source, edge1.target);
       if (fromNode == toNode) {
-        final loopEdgesOnNode = edges.where((edge2) => edge2.source == fromNode && edge2.target == fromNode);
+        final loopEdgesOnNode = edges.where((edge2) => edge2.source == fromNode && edge2.target == fromNode).toList();
         if (loopEdgesOnNode.length == 2) {
-          EdgePainter.drawLoop(canvas, fromNode, EdgeType.aware, snapToGrid: true);
-          EdgePainter.drawLoop(canvas, fromNode, EdgeType.oblivious, small: true, snapToGrid: true);
+          final loop1Path = EdgePainter.drawLoop(canvas, fromNode, EdgeType.aware, snapToGrid: true);
+          final loop2Path = EdgePainter.drawLoop(canvas, fromNode, EdgeType.oblivious, small: true, snapToGrid: true);
+          pathPerEdge[loopEdgesOnNode[0]] = loop1Path;
+          pathPerEdge[loopEdgesOnNode[1]] = loop2Path;
         } else {
-          EdgePainter.drawLoop(canvas, fromNode, edge1.type, snapToGrid: true);
+          final loopPath = EdgePainter.drawLoop(canvas, fromNode, edge1.type, snapToGrid: true);
+          pathPerEdge[edge1] = loopPath;
         }
+        // TODO loops!
       } else {
         var areEdgesOfDifferentTypesBetweenSameNodes = edges.any((edge2) =>
             edge1 != edge2 &&
@@ -49,9 +61,10 @@ class GraphPainter extends CustomPainter {
             ? (edge1.type == EdgeType.oblivious ? EdgeShape.curvedUp : EdgeShape.curvedDown)
             : EdgeShape.straight;
 
-        EdgePainter.drawEdge(canvas, edge1, shape: edgeShape, snapToGrid: true);
+        pathPerEdge[edge1] = EdgePainter.drawEdge(canvas, edge1, shape: edgeShape, snapToGrid: true);
       }
     }
+    return pathPerEdge;
   }
 
   @override

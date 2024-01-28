@@ -32,7 +32,7 @@ class EdgePainter {
     drawArrowhead(canvas, toPoint, fromPoint, paintStyleFaded);
   }
 
-  static void drawEdge(Canvas canvas, Edge edge, {shape = EdgeShape.straight, bool snapToGrid = false}) {
+  static Path drawEdge(Canvas canvas, Edge edge, {shape = EdgeShape.straight, bool snapToGrid = false}) {
     final (fromNode, toNode) = (edge.source, edge.target);
 
     List<Point> points = calculateIntersectionPoints(fromNode, toNode, snapToGrid: true);
@@ -41,14 +41,15 @@ class EdgePainter {
     Offset end = Offset(points[1].x as double, points[1].y as double);
 
     if (shape == EdgeShape.straight) {
-      canvas.drawLine(start, end, getEdgePaintStyle(edge.type));
+      final path = drawStraightLine(canvas, start, end, getEdgePaintStyle(edge.type));
       drawArrowhead(canvas, end, start, getEdgePaintStyle(edge.type));
+      return path;
     } else {
-      drawCurvedEdge(canvas, edge, start, end, shape);
+      return drawCurvedEdge(canvas, edge, start, end, shape);
     }
   }
 
-  static void drawCurvedEdge(Canvas canvas, Edge edge, Offset start, Offset end, EdgeShape shape) {
+  static Path drawCurvedEdge(Canvas canvas, Edge edge, Offset start, Offset end, EdgeShape shape) {
     bool areNodesVerticallyAligned = (start.dx - end.dx).abs() < 70; // Define a small threshold value
 
     Offset controlPoint;
@@ -71,10 +72,21 @@ class EdgePainter {
     // draw  arrowhead
     Offset tangentDirection = Offset(end.dx - controlPoint.dx, end.dy - controlPoint.dy);
     drawArrowhead(canvas, end, end - tangentDirection, getEdgePaintStyle(edge.type));
+
+    return path;
+  }
+
+  static Path drawStraightLine(Canvas canvas, Offset start, Offset end, Paint paintStyle) {
+    final Path path = Path();
+    path.moveTo(start.dx, start.dy);
+    path.lineTo(end.dx, end.dy);
+
+    canvas.drawPath(path, paintStyle);
+    return path;
   }
 
   // TODO: dynamic, avoid other edges
-  static void drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool snapToGrid = false}) {
+  static Path drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool snapToGrid = false}) {
     final paintStyle = getEdgePaintStyle(edgeType);
 
     final loopWidth = 60.0 / (small ? 1.5 : 1);
@@ -120,6 +132,8 @@ class EdgePainter {
 
     drawArrowhead(canvas, loopPoint, Offset(loopPoint.dx + cos(angle), loopPoint.dy + sin(angle)), paintStyle,
         arrowLength: 15);
+
+    return path;
   }
 
   static List<Point> calculateIntersectionPoints(Node node1, Node node2, {bool snapToGrid = false}) {
