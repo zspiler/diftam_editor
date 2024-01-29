@@ -239,6 +239,7 @@ class _CanvasViewState extends State<CanvasView> {
             setState(() {
               hoveredObject = null;
             });
+            // TODO getObjectAtPosition..
             for (var node in nodes) {
               if (isNodeHit(node, cursorPosition)) {
                 setState(() {
@@ -356,7 +357,7 @@ class _CanvasViewState extends State<CanvasView> {
                             var newX = nodeBeingDragged!.position.x + details.delta.dx;
                             var newY = nodeBeingDragged!.position.y + details.delta.dy;
 
-                            final canvasWidth = MediaQuery.of(context).size.width - 175;
+                            final canvasWidth = MediaQuery.of(context).size.width;
                             final canvasHeight = MediaQuery.of(context).size.height;
 
                             final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(nodeBeingDragged!.id);
