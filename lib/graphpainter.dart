@@ -45,7 +45,7 @@ class GraphPainter extends CustomPainter {
           final loop1Path = EdgePainter.drawLoop(canvas, fromNode, EdgeType.aware,
               isSelected: loopEdgesOnNode[0] == selectedObject, snapToGrid: true);
           final loop2Path = EdgePainter.drawLoop(canvas, fromNode, EdgeType.oblivious,
-              small: true, isSelected: loopEdgesOnNode[0] == selectedObject, snapToGrid: true);
+              small: true, isSelected: loopEdgesOnNode[1] == selectedObject, snapToGrid: true);
           pathPerEdge[loopEdgesOnNode[0]] = loop1Path;
           pathPerEdge[loopEdgesOnNode[1]] = loop2Path;
         } else {
