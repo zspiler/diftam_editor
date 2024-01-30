@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-import 'nodepainter.dart';
+import 'node_painter.dart';
 import 'common.dart';
 
 enum EdgeShape {
@@ -29,36 +29,35 @@ class EdgePainter {
       ..strokeWidth = strokeWidth
       ..color = Colors.lime.withOpacity(0.7);
 
-    final (fromPoint, toPoint) = points;
-    canvas.drawLine(fromPoint, toPoint, paintStyleFaded);
-    drawArrowhead(canvas, toPoint, fromPoint, paintStyleFaded);
+    final (sourcePoint, targetPoint) = points;
+    canvas.drawLine(sourcePoint, targetPoint, paintStyleFaded);
+    drawArrowhead(canvas, targetPoint, sourcePoint, paintStyleFaded);
   }
 
   static Path drawEdge(Canvas canvas, Edge edge, {shape = EdgeShape.straight, bool isSelected = false}) {
-    final (fromNode, toNode) = (edge.source, edge.target);
+    List<Offset> intersectionPoints = calculateIntersectionPoints(edge.source, edge.target);
 
-    List<Offset> points = calculateIntersectionPoints(fromNode, toNode);
-
-    Offset start = Offset(points[0].dx, points[0].dy);
-    Offset end = Offset(points[1].dx, points[1].dy);
+    Offset startPoint = intersectionPoints[0];
+    Offset endPoint = intersectionPoints[1];
 
     final paintStyle = getEdgePaintStyle(edge.type, isSelected: isSelected);
 
-    if (shape == EdgeShape.straight) {
-      final path = drawStraightLine(canvas, start, end, paintStyle);
-      drawArrowhead(canvas, end, start, paintStyle);
-      return path;
-    } else {
-      return drawCurvedEdge(canvas, edge, start, end, shape, paintStyle);
+    if (shape != EdgeShape.straight) {
+      return drawCurvedEdge(canvas, edge, startPoint, endPoint, shape, paintStyle);
     }
+
+    final path = drawStraightLine(canvas, startPoint, endPoint, paintStyle);
+    drawArrowhead(canvas, endPoint, startPoint, paintStyle);
+    return path;
   }
 
   static Path drawCurvedEdge(Canvas canvas, Edge edge, Offset start, Offset end, EdgeShape shape, Paint paintStyle) {
-    bool areNodesVerticallyAligned = (start.dx - end.dx).abs() < 70; // Define a small threshold value
+    const verticalAlignmentThreshold = 70;
+    bool areNodesVerticallyAligned = (start.dx - end.dx).abs() < verticalAlignmentThreshold;
+
+    const displacementValue = 50.0;
 
     Offset controlPoint;
-    double displacementValue = 50;
-
     if (areNodesVerticallyAligned) {
       double horizontalDisplacement = shape == EdgeShape.curvedUp ? -displacementValue : displacementValue;
       controlPoint = Offset((start.dx + end.dx) / 2 + horizontalDisplacement, (start.dy + end.dy) / 2);
@@ -126,35 +125,29 @@ class EdgePainter {
 
     canvas.drawPath(path, paintStyle);
 
-    // arrow is rotated by 90 degrees to make the arrow point downwards
     final double angle = atan2(controlPoint2.dy - loopPoint.dy, controlPoint2.dx - loopPoint.dx) + pi / 2;
-
-    drawArrowhead(canvas, loopPoint, Offset(loopPoint.dx + cos(angle), loopPoint.dy + sin(angle)), paintStyle,
-        arrowLength: 15);
+    drawArrowhead(canvas, loopPoint, Offset(loopPoint.dx + cos(angle), loopPoint.dy + sin(angle)), paintStyle, arrowLength: 15);
 
     return path;
   }
 
   static List<Offset> calculateIntersectionPoints(Node node1, Node node2) {
-    var (fromX, fromY) = (node1.position.dx, node1.position.dy);
-    var (toX, toY) = (node2.position.dx, node2.position.dy);
+    final x1 = Utils.snapToGrid(node1.position.dx, gridSize);
+    final y1 = Utils.snapToGrid(node1.position.dy, gridSize);
+    final x2 = Utils.snapToGrid(node2.position.dx, gridSize);
+    final y2 = Utils.snapToGrid(node2.position.dy, gridSize);
 
-    fromX = Utils.snapToGrid(fromX, gridSize);
-    fromY = Utils.snapToGrid(fromY, gridSize);
-    toX = Utils.snapToGrid(toX, gridSize);
-    toY = Utils.snapToGrid(toY, gridSize);
+    final (node1Width, node1Height) = NodePainter.calculateNodeBoxSize(node1.id);
+    final (node2Width, node2Height) = NodePainter.calculateNodeBoxSize(node2.id);
 
-    final (fromNodeWidth, fromNodeHeight) = NodePainter.calculateNodeBoxSize(node1.id);
-    final (toNodeWidth, toNodeHeight) = NodePainter.calculateNodeBoxSize(node2.id);
+    final node1Offset = Offset(x1 + node1Width / 2, y1 + node1Height / 2);
+    final node2Offset = Offset(x2 + node2Width / 2, y2 + node2Height / 2);
 
-    final fromOffset = Offset(fromX + fromNodeWidth / 2, fromY + fromNodeHeight / 2);
-    final toOffset = Offset(toX + toNodeWidth / 2, toY + toNodeHeight / 2);
+    final node1Center = Offset(node1Offset.dx, node1Offset.dy);
+    final node2Center = Offset(node2Offset.dx, node2Offset.dy);
 
-    final node1Center = Offset(fromOffset.dx, fromOffset.dy);
-    final node2Center = Offset(toOffset.dx, toOffset.dy);
-
-    Offset intersect1 = intersectionPoint(node1Center, node2Center, fromNodeWidth, fromNodeHeight);
-    Offset intersect2 = intersectionPoint(node2Center, node1Center, toNodeWidth, toNodeHeight);
+    Offset intersect1 = intersectionPoint(node1Center, node2Center, node1Width, node1Height);
+    Offset intersect2 = intersectionPoint(node2Center, node1Center, node2Width, node2Height);
 
     return [intersect1, intersect2];
   }
@@ -166,10 +159,8 @@ class EdgePainter {
     double absDx = dx.abs();
     double absDy = dy.abs();
 
-    double scaleX = 1.0, scaleY = 1.0;
-
-    if (absDx > 0) scaleX = (width / 2) / absDx;
-    if (absDy > 0) scaleY = (height / 2) / absDy;
+    double scaleX = absDx > 0 ? (width / 2) / absDx : 1.0;
+    double scaleY = absDy > 0 ? (height / 2) / absDy : 1.0;
 
     double scale = min(scaleX, scaleY);
 
