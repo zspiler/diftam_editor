@@ -43,8 +43,7 @@ class MyMenuBar extends StatelessWidget {
               child: IconButton(
                 icon: Icon(Icons.arrow_forward, color: Colors.red),
                 onPressed: onObliviousConnectionPress,
-                style:
-                    IconButton.styleFrom(backgroundColor: drawingEdgeType == EdgeType.oblivious ? Colors.white : null),
+                style: IconButton.styleFrom(backgroundColor: drawingEdgeType == EdgeType.oblivious ? Colors.white : null),
               )),
           Tooltip(
               message: "Tag node",
