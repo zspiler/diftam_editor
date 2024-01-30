@@ -34,11 +34,10 @@ class EdgePainter {
     drawArrowhead(canvas, toPoint, fromPoint, paintStyleFaded);
   }
 
-  static Path drawEdge(Canvas canvas, Edge edge,
-      {shape = EdgeShape.straight, bool snapToGrid = false, bool isSelected = false}) {
+  static Path drawEdge(Canvas canvas, Edge edge, {shape = EdgeShape.straight, bool isSelected = false}) {
     final (fromNode, toNode) = (edge.source, edge.target);
 
-    List<Point> points = calculateIntersectionPoints(fromNode, toNode, snapToGrid: true);
+    List<Point> points = calculateIntersectionPoints(fromNode, toNode);
 
     Offset start = Offset(points[0].x as double, points[0].y as double);
     Offset end = Offset(points[1].x as double, points[1].y as double);
@@ -91,20 +90,14 @@ class EdgePainter {
   }
 
   // TODO: dynamic, avoid other edges
-  static Path drawLoop(Canvas canvas, Node node, EdgeType edgeType,
-      {bool small = false, bool snapToGrid = false, bool isSelected = false}) {
+  static Path drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool isSelected = false}) {
     final paintStyle = getEdgePaintStyle(edgeType, isSelected: isSelected);
 
     final loopWidth = 60.0 / (small ? 1.5 : 1);
     final loopHeight = 70.0 / (small ? 1.5 : 1);
 
-    var nodeX = node.position.x as double;
-    var nodeY = node.position.y as double;
-
-    if (snapToGrid) {
-      nodeX = Utils.snapToGrid(nodeX, gridSize);
-      nodeY = Utils.snapToGrid(nodeY, gridSize);
-    }
+    final nodeX = Utils.snapToGrid(node.position.x as double, gridSize);
+    final nodeY = Utils.snapToGrid(node.position.y as double, gridSize);
 
     final (nodeWidth, _) = NodePainter.calculateNodeBoxSize(node.id);
 
@@ -142,16 +135,14 @@ class EdgePainter {
     return path;
   }
 
-  static List<Point> calculateIntersectionPoints(Node node1, Node node2, {bool snapToGrid = false}) {
+  static List<Point> calculateIntersectionPoints(Node node1, Node node2) {
     var (fromX, fromY) = (node1.position.x as double, node1.position.y as double);
     var (toX, toY) = (node2.position.x as double, node2.position.y as double);
 
-    if (snapToGrid) {
-      fromX = Utils.snapToGrid(fromX, gridSize);
-      fromY = Utils.snapToGrid(fromY, gridSize);
-      toX = Utils.snapToGrid(toX, gridSize);
-      toY = Utils.snapToGrid(toY, gridSize);
-    }
+    fromX = Utils.snapToGrid(fromX, gridSize);
+    fromY = Utils.snapToGrid(fromY, gridSize);
+    toX = Utils.snapToGrid(toX, gridSize);
+    toY = Utils.snapToGrid(toY, gridSize);
 
     final (fromNodeWidth, fromNodeHeight) = NodePainter.calculateNodeBoxSize(node1.id);
     final (toNodeWidth, toNodeHeight) = NodePainter.calculateNodeBoxSize(node2.id);

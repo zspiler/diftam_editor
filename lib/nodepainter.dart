@@ -26,17 +26,11 @@ class NodePainter {
       ..color = color;
   }
 
-  static final paintStyle = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = strokeWidth;
-
-  static void drawNode(Canvas canvas, Node node, {bool snapToGrid = false, bool isSelected = false}) {
+  static void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
     var (x, y) = (node.position.x as double, node.position.y as double);
 
-    if (snapToGrid) {
-      x = Utils.snapToGrid(x, gridSize);
-      y = Utils.snapToGrid(y, gridSize);
-    }
+    x = Utils.snapToGrid(x, gridSize);
+    y = Utils.snapToGrid(y, gridSize);
 
     final (boxWidth, boxHeight) = calculateNodeBoxSize(node.id);
 
@@ -57,15 +51,12 @@ class NodePainter {
     return textPainter;
   }
 
-  static (double width, double height) calculateNodeBoxSize(String nodeId, {bool snapToGrid = true}) {
-    // TODO snapToGrid=false should be by default? 🤔
+  static (double width, double height) calculateNodeBoxSize(String nodeId) {
     var boxWidth = min(getNodeTextPainter(nodeId).width, 100) + 50 as double;
     var boxHeight = 75 as double;
-    if (snapToGrid) {
-      boxWidth = Utils.snapToGrid(boxWidth, gridSize);
-      boxHeight = Utils.snapToGrid(boxHeight, gridSize);
-    }
 
+    boxWidth = Utils.snapToGrid(boxWidth, gridSize);
+    boxHeight = Utils.snapToGrid(boxHeight, gridSize);
     return (boxWidth, boxHeight);
   }
 
