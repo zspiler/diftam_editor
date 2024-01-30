@@ -50,12 +50,12 @@ class _CanvasViewState extends State<CanvasView> {
     // TODO why cant just do this above?
     setState(() {
       // TODO ensure unique IDS?
-      final someLongId = Node("some long id", Point(100, 100), NodeType.tag);
-      final tag2 = Node("tag 2", Point(300, 300), NodeType.tag);
-      // final tag3 = Node("tag 3", Point(500, 150), NodeType.tag);
-      // final stdin = Node("stdin", Point(600, 150), NodeType.entry);
-      // final stdout = Node("stdout", Point(800, 150), NodeType.exit);
-      // final someVeryVeryVeryLongId = Node("some very very very long id", Point(500, 100), NodeType.tag);
+      final someLongId = Node("some long id", Offset(100, 100), NodeType.tag);
+      final tag2 = Node("tag 2", Offset(300, 300), NodeType.tag);
+      // final tag3 = Node("tag 3", Offset(500, 150), NodeType.tag);
+      // final stdin = Node("stdin", Offset(600, 150), NodeType.entry);
+      // final stdout = Node("stdout", Offset(800, 150), NodeType.exit);
+      // final someVeryVeryVeryLongId = Node("some very very very long id", Offset(500, 100), NodeType.tag);
 
       nodes.add(someLongId);
       nodes.add(tag2);
@@ -93,10 +93,10 @@ class _CanvasViewState extends State<CanvasView> {
   bool isNodeHit(Node node, Offset offset) {
     final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(node.id);
 
-    return node.position.x < offset.dx &&
-        node.position.x + nodeWidth > offset.dx &&
-        node.position.y < offset.dy &&
-        node.position.y + nodeHeight > offset.dy;
+    return node.position.dx < offset.dx &&
+        node.position.dx + nodeWidth > offset.dx &&
+        node.position.dy < offset.dy &&
+        node.position.dy + nodeHeight > offset.dy;
   }
 
   bool isEdgeHit(Edge edge, Offset offset) {
@@ -293,7 +293,7 @@ class _CanvasViewState extends State<CanvasView> {
                             setState(() {
                               final randomId = Utils.generateRandomString(4);
                               final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(randomId);
-                              final newNodePosition = Point(
+                              final newNodePosition = Offset(
                                   details.localPosition.dx - nodeWidth / 2, details.localPosition.dy - nodeHeight / 2);
 
                               final newNode = Node(randomId, newNodePosition, _drawingNodeType!);
@@ -354,8 +354,8 @@ class _CanvasViewState extends State<CanvasView> {
                           if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
 
                           if (nodeBeingDragged != null) {
-                            var newX = nodeBeingDragged!.position.x + details.delta.dx;
-                            var newY = nodeBeingDragged!.position.y + details.delta.dy;
+                            var newX = nodeBeingDragged!.position.dx + details.delta.dx;
+                            var newY = nodeBeingDragged!.position.dy + details.delta.dy;
 
                             final canvasWidth = MediaQuery.of(context).size.width;
                             final canvasHeight = MediaQuery.of(context).size.height;
@@ -372,7 +372,7 @@ class _CanvasViewState extends State<CanvasView> {
                             }
 
                             setState(() {
-                              nodeBeingDragged!.position = Point(newX, newY);
+                              nodeBeingDragged!.position = Offset(newX, newY);
                             });
                           }
                         },
