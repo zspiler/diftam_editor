@@ -27,7 +27,7 @@ class NodePainter {
   }
 
   static void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
-    var (x, y) = (node.position.x as double, node.position.y as double);
+    var (x, y) = (node.position.dx, node.position.dy);
 
     x = Utils.snapToGrid(x, gridSize);
     y = Utils.snapToGrid(y, gridSize);
@@ -52,8 +52,8 @@ class NodePainter {
   }
 
   static (double width, double height) calculateNodeBoxSize(String nodeId) {
-    var boxWidth = min(getNodeTextPainter(nodeId).width, 100) + 50 as double;
-    var boxHeight = 75 as double;
+    var boxWidth = min(getNodeTextPainter(nodeId).width, 100) + 50.0;
+    var boxHeight = 75.0;
 
     boxWidth = Utils.snapToGrid(boxWidth, gridSize);
     boxHeight = Utils.snapToGrid(boxHeight, gridSize);

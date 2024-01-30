@@ -37,10 +37,10 @@ class EdgePainter {
   static Path drawEdge(Canvas canvas, Edge edge, {shape = EdgeShape.straight, bool isSelected = false}) {
     final (fromNode, toNode) = (edge.source, edge.target);
 
-    List<Point> points = calculateIntersectionPoints(fromNode, toNode);
+    List<Offset> points = calculateIntersectionPoints(fromNode, toNode);
 
-    Offset start = Offset(points[0].x as double, points[0].y as double);
-    Offset end = Offset(points[1].x as double, points[1].y as double);
+    Offset start = Offset(points[0].dx, points[0].dy);
+    Offset end = Offset(points[1].dx, points[1].dy);
 
     final paintStyle = getEdgePaintStyle(edge.type, isSelected: isSelected);
 
@@ -96,8 +96,8 @@ class EdgePainter {
     final loopWidth = 60.0 / (small ? 1.5 : 1);
     final loopHeight = 70.0 / (small ? 1.5 : 1);
 
-    final nodeX = Utils.snapToGrid(node.position.x as double, gridSize);
-    final nodeY = Utils.snapToGrid(node.position.y as double, gridSize);
+    final nodeX = Utils.snapToGrid(node.position.dx, gridSize);
+    final nodeY = Utils.snapToGrid(node.position.dy, gridSize);
 
     final (nodeWidth, _) = NodePainter.calculateNodeBoxSize(node.id);
 
@@ -135,9 +135,9 @@ class EdgePainter {
     return path;
   }
 
-  static List<Point> calculateIntersectionPoints(Node node1, Node node2) {
-    var (fromX, fromY) = (node1.position.x as double, node1.position.y as double);
-    var (toX, toY) = (node2.position.x as double, node2.position.y as double);
+  static List<Offset> calculateIntersectionPoints(Node node1, Node node2) {
+    var (fromX, fromY) = (node1.position.dx, node1.position.dy);
+    var (toX, toY) = (node2.position.dx, node2.position.dy);
 
     fromX = Utils.snapToGrid(fromX, gridSize);
     fromY = Utils.snapToGrid(fromY, gridSize);
@@ -150,18 +150,18 @@ class EdgePainter {
     final fromOffset = Offset(fromX + fromNodeWidth / 2, fromY + fromNodeHeight / 2);
     final toOffset = Offset(toX + toNodeWidth / 2, toY + toNodeHeight / 2);
 
-    final node1Center = Point(fromOffset.dx, fromOffset.dy);
-    final node2Center = Point(toOffset.dx, toOffset.dy);
+    final node1Center = Offset(fromOffset.dx, fromOffset.dy);
+    final node2Center = Offset(toOffset.dx, toOffset.dy);
 
-    Point intersect1 = intersectionPoint(node1Center, node2Center, fromNodeWidth, fromNodeHeight);
-    Point intersect2 = intersectionPoint(node2Center, node1Center, toNodeWidth, toNodeHeight);
+    Offset intersect1 = intersectionPoint(node1Center, node2Center, fromNodeWidth, fromNodeHeight);
+    Offset intersect2 = intersectionPoint(node2Center, node1Center, toNodeWidth, toNodeHeight);
 
     return [intersect1, intersect2];
   }
 
-  static Point intersectionPoint(Point center1, Point center2, double width, double height) {
-    double dx = center2.x - center1.x as double;
-    double dy = center2.y - center1.y as double;
+  static Offset intersectionPoint(Offset center1, Offset center2, double width, double height) {
+    double dx = center2.dx - center1.dx;
+    double dy = center2.dy - center1.dy;
 
     double absDx = dx.abs();
     double absDy = dy.abs();
@@ -173,7 +173,7 @@ class EdgePainter {
 
     double scale = min(scaleX, scaleY);
 
-    return Point(center1.x + dx * scale, center1.y + dy * scale);
+    return Offset(center1.dx + dx * scale, center1.dy + dy * scale);
   }
 
   static void drawArrowhead(Canvas canvas, Offset point, Offset direction, Paint paint, {double arrowLength = 20}) {

@@ -26,7 +26,7 @@ abstract class GraphObject {}
 
 class Node implements GraphObject {
   String id;
-  Point position;
+  Offset position;
   final NodeType type;
 
   Node(this.id, this.position, this.type);
