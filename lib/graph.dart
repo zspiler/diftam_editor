@@ -397,7 +397,7 @@ class _CanvasViewState extends State<CanvasView> {
         child: MouseRegion(
           cursor: hoveredObject != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
           child: Container(
-            color: Colors.grey[200],
+            color: Color.fromARGB(255, 219, 219, 219),
             child: ClipRect(
               child: Transform(
                 transform: Matrix4.identity()
