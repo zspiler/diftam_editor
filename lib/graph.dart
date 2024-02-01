@@ -7,10 +7,11 @@ import 'package:vector_math/vector_math_64.dart' as vector;
 import 'node_painter.dart';
 import 'graph_painter.dart';
 import 'common.dart';
-import 'ui/snackbar.dart';
 import 'menu_bar.dart';
+import 'utils.dart';
 import 'ui/info_panel.dart';
-import 'ui/confirmation_dialog.dart';
+import 'ui/custom_dialog.dart';
+import 'ui/snackbar.dart';
 
 class CanvasView extends StatefulWidget {
   const CanvasView({
@@ -22,6 +23,8 @@ class CanvasView extends StatefulWidget {
 }
 
 const darkBlue = Color.fromARGB(255, 20, 54, 91);
+
+const testDescriptors = ['stdin', 'stdout'];
 
 class _CanvasViewState extends State<CanvasView> {
   var nodes = <Node>[];
@@ -51,8 +54,10 @@ class _CanvasViewState extends State<CanvasView> {
     // TODO why cant just do this above?
     setState(() {
       // TODO ensure unique IDS?
-      final someLongId = Node("some long id", Offset(100, 100), NodeType.tag);
-      final tag2 = Node("tag 2", Offset(300, 300), NodeType.tag);
+      final someLongId = TagNode(Offset(100, 100), 'some long id', 'some label');
+      final tag2 = TagNode(Offset(500, 150), 'tag 2', 'some tag2 label');
+      final tag3 = TagNode(Offset(600, 150), 'tagWithOutLabel');
+
       // final tag3 = Node("tag 3", Offset(500, 150), NodeType.tag);
       // final stdin = Node("stdin", Offset(600, 150), NodeType.entry);
       // final stdout = Node("stdout", Offset(800, 150), NodeType.exit);
@@ -60,6 +65,7 @@ class _CanvasViewState extends State<CanvasView> {
 
       nodes.add(someLongId);
       nodes.add(tag2);
+      nodes.add(tag3);
       // nodes.add(tag3);
       // nodes.add(stdin);
       // nodes.add(stdout);
@@ -92,7 +98,7 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   bool isNodeHit(Node node, Offset offset) {
-    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(node.id);
+    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(node);
 
     return node.position.dx < offset.dx &&
         node.position.dx + nodeWidth > offset.dx &&
@@ -170,8 +176,8 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void deleteObject(GraphObject object) {
-    ConfirmationDialog.show(context, confirmButtonText: 'Delete', title: 'Are you sure you want to delete this object?',
-        onConfirm: () {
+    CustomDialog.showConfirmationDialog(context,
+        confirmButtonText: 'Delete', title: 'Are you sure you want to delete this object?', onConfirm: () {
       if (object is Node) {
         setState(() {
           nodes.remove(object);
@@ -256,43 +262,90 @@ class _CanvasViewState extends State<CanvasView> {
         selectedObject = hoveredObject;
       });
     } else if (isInNodeCreationMode()) {
-      createNode(position, _drawingNodeType!);
-      _drawingNodeType = null;
+      if (_drawingNodeType == null) {
+        // TODO
+        return;
+      }
+      if (_drawingNodeType == NodeType.tag) {
+        CustomDialog.showInputDialog(context, title: 'Create new tag', hint: 'Enter tag name (optional)',
+            onConfirm: (String text) {
+          if (text.isEmpty) {
+            createNode(position, NodeType.tag);
+          } else {
+            createNode(position, NodeType.tag, nameOrDescriptor: text);
+          }
+          _drawingNodeType = null;
+        });
+      } else {
+        CustomDialog.showDropdownInputDialog(context,
+            title: 'Create new ${_drawingNodeType!.value} node',
+            hint: 'Select descriptor',
+            options: testDescriptors, onConfirm: (String descriptor) {
+          if (_drawingNodeType == NodeType.entry && !canCreateEntryNodeWithDescriptor(descriptor) ||
+              _drawingNodeType == NodeType.exit && !canCreateExitNodeWithDescriptor(descriptor)) {
+            SnackbarGlobal.show('$_drawingNodeType node with descriptor $descriptor already exists!');
+          } else {
+            createNode(position, _drawingNodeType!, nameOrDescriptor: descriptor);
+          }
+          setState(() {
+            _drawingNodeType = null;
+          });
+        });
+      }
     }
   }
 
-  void createNode(Offset position, NodeType nodeType) {
-    final randomId = Utils.generateRandomString(4);
-    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(randomId);
-    final newNodePosition = Offset(position.dx - nodeWidth / 2, position.dy - nodeHeight / 2);
+  bool canCreateEntryNodeWithDescriptor(String descriptor) {
+    return !nodes.any((node) => node is EntryNode && node.descriptor == descriptor);
+  }
 
-    final newNode = Node(randomId, newNodePosition, nodeType);
+  bool canCreateExitNodeWithDescriptor(String descriptor) {
+    return !nodes.any((node) => node is ExitNode && node.descriptor == descriptor);
+  }
+
+  void createNode(Offset position, NodeType nodeType, {String? nameOrDescriptor}) {
+    // TODO refactor (nameOrDescriptor 😬)
+    final randomId = Utils.generateRandomString(4);
+
+    final tempPosition = Offset(0, 0);
+    late final Node newNode;
+    if (nodeType == NodeType.tag) {
+      newNode = TagNode(tempPosition, randomId, nameOrDescriptor);
+    } else {
+      if (nodeType == NodeType.entry) {
+        newNode = EntryNode(tempPosition, nameOrDescriptor!);
+      } else {
+        newNode = ExitNode(tempPosition, nameOrDescriptor!);
+      }
+    }
+
+    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(newNode);
+    newNode.position = Offset(position.dx - nodeWidth / 2, position.dy - nodeHeight / 2);
+
     setState(() {
       nodes.add(newNode);
     });
   }
 
   void onPanUpdate(Offset delta) {
-    if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
+    if (isInEdgeDrawingMode() || isInNodeCreationMode() || draggedNode == null) return; // TODO null handling
 
-    if (draggedNode != null) {
-      var newX = draggedNode!.position.dx + delta.dx;
-      var newY = draggedNode!.position.dy + delta.dy;
+    var newX = draggedNode!.position.dx + delta.dx;
+    var newY = draggedNode!.position.dy + delta.dy;
 
-      final canvasWidth = MediaQuery.of(context).size.width;
-      final canvasHeight = MediaQuery.of(context).size.height;
+    final canvasWidth = MediaQuery.of(context).size.width;
+    final canvasHeight = MediaQuery.of(context).size.height;
 
-      final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(draggedNode!.id);
+    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(draggedNode!);
 
-      final isNewPositionInvalid = newX < 0 && newX + nodeWidth > canvasWidth && newY < 0 && newY + nodeHeight > canvasHeight;
-      if (isNewPositionInvalid) {
-        return;
-      }
-
-      setState(() {
-        draggedNode!.position = Offset(newX, newY);
-      });
+    final isNewPositionInvalid = newX < 0 && newX + nodeWidth > canvasWidth && newY < 0 && newY + nodeHeight > canvasHeight;
+    if (isNewPositionInvalid) {
+      return;
     }
+
+    setState(() {
+      draggedNode!.position = Offset(newX, newY);
+    });
   }
 
   @override
