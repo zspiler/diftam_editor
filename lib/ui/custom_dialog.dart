@@ -69,7 +69,7 @@ class CustomDialog {
                 onPressed: () {
                   if (!acceptEmptyInput && textEditingController.text.isEmpty) {
                     setState(() {
-                      displayedError = 'Please enter some text';
+                      displayedError = 'Field must not be empty';
                     });
                     return;
                   }
