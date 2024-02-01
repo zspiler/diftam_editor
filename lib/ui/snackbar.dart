@@ -7,6 +7,11 @@ class SnackbarGlobal {
   static void show(String message) {
     key.currentState!
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+      ..showSnackBar(SnackBar(
+          backgroundColor: Color.fromARGB(255, 47, 47, 47),
+          content: Text(
+            message,
+            style: TextStyle(color: Colors.white),
+          )));
   }
 }
