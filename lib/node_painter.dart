@@ -1,29 +1,33 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-
 import 'common.dart';
+import 'utils.dart';
 
 class NodePainter {
   static const strokeWidth = 4.0;
   static const textStyle = TextStyle(color: Colors.white, fontSize: 18);
 
-  static Radius getNodeRadius(NodeType nodeType) {
-    return nodeType == NodeType.tag ? const Radius.circular(24) : const Radius.circular(2);
+  static Radius getNodeRadius(Node node) {
+    return node.runtimeType == TagNode ? const Radius.circular(24) : const Radius.circular(2);
   }
 
-  static Paint getNodePaintStyle(NodeType nodeType, {bool isSelected = false}) {
-    final color = isSelected
-        ? Colors.white
-        : switch (nodeType) {
-            NodeType.tag => Colors.lime,
-            NodeType.entry => Colors.grey,
-            NodeType.exit => const Color.fromARGB(255, 96, 96, 96),
-          };
+  static Color getNodeColor(Node node) {
+    final Color nodeColor;
+    if (node.runtimeType == TagNode) {
+      nodeColor = Colors.lime;
+    } else if (node.runtimeType == EntryNode) {
+      nodeColor = Colors.grey;
+    } else {
+      nodeColor = const Color.fromARGB(255, 96, 96, 96);
+    }
+    return nodeColor;
+  }
 
+  static Paint getNodePaintStyle(Node node, {bool isSelected = false}) {
     return Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
-      ..color = color;
+      ..color = isSelected ? Colors.white : getNodeColor(node);
   }
 
   static void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
@@ -32,12 +36,12 @@ class NodePainter {
     x = Utils.snapToGrid(x, gridSize);
     y = Utils.snapToGrid(y, gridSize);
 
-    final (boxWidth, boxHeight) = calculateNodeBoxSize(node.id);
+    final (boxWidth, boxHeight) = calculateNodeBoxSize(node);
 
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x, y, boxWidth, boxHeight), getNodeRadius(node.type)),
-        getNodePaintStyle(node.type, isSelected: isSelected));
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x, y, boxWidth, boxHeight), getNodeRadius(node)),
+        getNodePaintStyle(node, isSelected: isSelected));
 
-    drawText(canvas, x, y, node.id, node);
+    drawText(canvas, x, y, node.label, node);
   }
 
   static TextPainter getNodeTextPainter(String nodeId) {
@@ -51,8 +55,8 @@ class NodePainter {
     return textPainter;
   }
 
-  static (double width, double height) calculateNodeBoxSize(String nodeId) {
-    var boxWidth = min(getNodeTextPainter(nodeId).width, 100) + 50.0;
+  static (double width, double height) calculateNodeBoxSize(Node node) {
+    var boxWidth = min(getNodeTextPainter(node.label).width, 100) + 50.0;
     var boxHeight = 75.0;
 
     boxWidth = Utils.snapToGrid(boxWidth, gridSize);
@@ -61,11 +65,10 @@ class NodePainter {
   }
 
   static void drawText(Canvas canvas, double x, double y, String text, Node node) {
-    final (boxWidth, boxHeight) = calculateNodeBoxSize(node.id);
+    final (boxWidth, boxHeight) = calculateNodeBoxSize(node);
 
-    final textPainter = getNodeTextPainter(node.id);
+    final textPainter = getNodeTextPainter(text);
 
-    textPainter.paint(
-        canvas, Offset(x + boxWidth / 2 - textPainter.width * 0.5, y + boxHeight / 2 - textPainter.height * 0.5));
+    textPainter.paint(canvas, Offset(x + boxWidth / 2 - textPainter.width * 0.5, y + boxHeight / 2 - textPainter.height * 0.5));
   }
 }

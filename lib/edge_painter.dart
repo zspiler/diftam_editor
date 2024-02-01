@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'node_painter.dart';
 import 'common.dart';
+import 'utils.dart';
 
 enum EdgeShape {
   straight,
@@ -98,7 +99,7 @@ class EdgePainter {
     final nodeX = Utils.snapToGrid(node.position.dx, gridSize);
     final nodeY = Utils.snapToGrid(node.position.dy, gridSize);
 
-    final (nodeWidth, _) = NodePainter.calculateNodeBoxSize(node.id);
+    final (nodeWidth, _) = NodePainter.calculateNodeBoxSize(node);
 
     final boxTopCenterX = nodeX + nodeWidth / 2;
     final boxTopCenterY = nodeY;
@@ -137,8 +138,8 @@ class EdgePainter {
     final x2 = Utils.snapToGrid(node2.position.dx, gridSize);
     final y2 = Utils.snapToGrid(node2.position.dy, gridSize);
 
-    final (node1Width, node1Height) = NodePainter.calculateNodeBoxSize(node1.id);
-    final (node2Width, node2Height) = NodePainter.calculateNodeBoxSize(node2.id);
+    final (node1Width, node1Height) = NodePainter.calculateNodeBoxSize(node1);
+    final (node2Width, node2Height) = NodePainter.calculateNodeBoxSize(node2);
 
     final node1Offset = Offset(x1 + node1Width / 2, y1 + node1Height / 2);
     final node2Offset = Offset(x2 + node2Width / 2, y2 + node2Height / 2);
