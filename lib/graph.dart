@@ -24,8 +24,6 @@ class CanvasView extends StatefulWidget {
 
 const darkBlue = Color.fromARGB(255, 20, 54, 91);
 
-const testDescriptors = ['stdin', 'stdout'];
-
 class _CanvasViewState extends State<CanvasView> {
   var nodes = <Node>[];
   var edges = <Edge>[];
@@ -267,30 +265,34 @@ class _CanvasViewState extends State<CanvasView> {
         return;
       }
       if (_drawingNodeType == NodeType.tag) {
-        CustomDialog.showInputDialog(context, title: 'Create new tag', hint: 'Enter tag name (optional)',
-            onConfirm: (String text) {
-          if (text.isEmpty) {
+        CustomDialog.showInputDialog(context, title: 'Create new tag', hint: 'Enter tag name (optional)', acceptEmptyInput: true,
+            onConfirm: (String inputText) {
+          if (inputText.isEmpty) {
             createNode(position, NodeType.tag);
           } else {
-            createNode(position, NodeType.tag, nameOrDescriptor: text);
+            createNode(position, NodeType.tag, nameOrDescriptor: inputText);
           }
           _drawingNodeType = null;
         });
       } else {
-        CustomDialog.showDropdownInputDialog(context,
+        CustomDialog.showInputDialog(context,
             title: 'Create new ${_drawingNodeType!.value} node',
-            hint: 'Select descriptor',
-            options: testDescriptors, onConfirm: (String descriptor) {
-          if (_drawingNodeType == NodeType.entry && !canCreateEntryNodeWithDescriptor(descriptor) ||
-              _drawingNodeType == NodeType.exit && !canCreateExitNodeWithDescriptor(descriptor)) {
-            SnackbarGlobal.show('$_drawingNodeType node with descriptor $descriptor already exists!');
-          } else {
-            createNode(position, _drawingNodeType!, nameOrDescriptor: descriptor);
-          }
-          setState(() {
-            _drawingNodeType = null;
-          });
-        });
+            hint: 'Enter descriptor',
+            onConfirm: (String inputText) {
+              if (_drawingNodeType == NodeType.entry && !canCreateEntryNodeWithDescriptor(inputText) ||
+                  _drawingNodeType == NodeType.exit && !canCreateExitNodeWithDescriptor(inputText)) {
+                SnackbarGlobal.show('$_drawingNodeType node with descriptor $inputText already exists!');
+              } else {
+                createNode(position, _drawingNodeType!, nameOrDescriptor: inputText);
+              }
+              setState(() {
+                _drawingNodeType = null;
+              });
+            },
+            isInputValid: (String inputText) =>
+                inputText.isNotEmpty && _drawingNodeType == NodeType.entry && canCreateEntryNodeWithDescriptor(inputText) ||
+                _drawingNodeType == NodeType.exit && canCreateExitNodeWithDescriptor(inputText),
+            errorMessage: '${_drawingNodeType!.value} node with this descriptor already exists!');
       }
     }
   }
