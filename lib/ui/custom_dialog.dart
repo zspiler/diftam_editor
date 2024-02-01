@@ -39,98 +39,79 @@ class CustomDialog {
       String? description,
       String? hint,
       required String title,
-      required Function(String text) onConfirm}) {
+      required Function(String text) onConfirm,
+      bool Function(String)? isInputValid, // Validation function parameter
+      bool acceptEmptyInput = false,
+      String? errorMessage}) {
     TextEditingController textEditingController = TextEditingController();
 
-    Widget continueButton = TextButton(
-      child: Text(confirmButtonText ?? "OK"),
-      onPressed: () {
-        onConfirm(textEditingController.text);
-        Navigator.of(context).pop();
-      },
-    );
+    String? displayedError;
 
-    Widget cancelButton = TextButton(
-      child: Text(cancelButtonText ?? "Cancel"),
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-    );
-
+    // TODO AlertDialog useless? (we're not using actions)
     AlertDialog alert = AlertDialog(
-      title: Text(title ?? "Input"),
-      content: TextField(
-        controller: textEditingController,
-        decoration: InputDecoration(
-          border: OutlineInputBorder(),
-          labelText: hint,
+      title: Text(title),
+      content: Container(
+        // TODO responsive
+        height: 150,
+        width: 300,
+        child: Center(
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              Widget cancelButton = TextButton(
+                child: Text(cancelButtonText ?? "Cancel"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              );
+
+              Widget continueButton = TextButton(
+                child: Text(confirmButtonText ?? "OK"),
+                onPressed: () {
+                  if (!acceptEmptyInput && textEditingController.text.isEmpty) {
+                    setState(() {
+                      displayedError = 'Please enter some text';
+                    });
+                    return;
+                  }
+                  if (isInputValid != null && !isInputValid(textEditingController.text)) {
+                    setState(() {
+                      displayedError = errorMessage ?? 'Invalid input';
+                    });
+                    return;
+                  }
+                  // If validation passes or not provided
+                  onConfirm(textEditingController.text);
+                  Navigator.of(context).pop();
+                },
+              );
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: textEditingController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: hint,
+                      errorText: displayedError, // Display the error message if not null
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [cancelButton, continueButton], // Place 'continueButton' inside the Row
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
-      actions: [
-        cancelButton,
-        continueButton,
-      ],
     );
 
     showDialog(
       context: context,
       builder: (BuildContext context) => alert,
-    );
-  }
-
-  static void showDropdownInputDialog(
-    BuildContext context, {
-    String? confirmButtonText,
-    String? cancelButtonText,
-    String? description,
-    String? hint,
-    required String title,
-    required List<String> options,
-    required Function(String text) onConfirm,
-  }) {
-    var selectedValue = options[0];
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // NOTE need StatefulBuilder since we need reactive selectedValue!
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(title),
-              content: DropdownButton<String>(
-                value: selectedValue,
-                items: options.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedValue = newValue!;
-                  });
-                },
-              ),
-              actions: [
-                TextButton(
-                  child: Text(cancelButtonText ?? "Cancel"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: Text(confirmButtonText ?? "OK"),
-                  onPressed: () {
-                    onConfirm(selectedValue);
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
     );
   }
 }
