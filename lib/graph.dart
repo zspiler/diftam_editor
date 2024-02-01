@@ -52,16 +52,16 @@ class _CanvasViewState extends State<CanvasView> {
     // TODO why cant just do this above?
     setState(() {
       // TODO ensure unique IDS?
-      final someLongId = TagNode(Offset(100, 100), 'some long id', 'some label');
-      final tag2 = TagNode(Offset(500, 150), 'tag 2', 'some tag2 label');
-      final tag3 = TagNode(Offset(600, 150), 'tagWithOutLabel');
+      // final someLongId = TagNode(Offset(100, 100), 'some long id', 'some label');
+      final tag2 = TagNode(Offset(500, 350), 'randomId', 'priv');
+      final tag3 = TagNode(Offset(700, 350), 'randomId2', 'pub');
 
       // final tag3 = Node("tag 3", Offset(500, 150), NodeType.tag);
       // final stdin = Node("stdin", Offset(600, 150), NodeType.entry);
       // final stdout = Node("stdout", Offset(800, 150), NodeType.exit);
       // final someVeryVeryVeryLongId = Node("some very very very long id", Offset(500, 100), NodeType.tag);
 
-      nodes.add(someLongId);
+      // nodes.add(someLongId);
       nodes.add(tag2);
       nodes.add(tag3);
       // nodes.add(tag3);
@@ -69,11 +69,11 @@ class _CanvasViewState extends State<CanvasView> {
       // nodes.add(stdout);
       // nodes.add(someVeryVeryVeryLongId);
 
-      edges.add(Edge(someLongId, tag2, EdgeType.oblivious));
-      edges.add(Edge(someLongId, tag2, EdgeType.aware));
-      edges.add(Edge(someLongId, someLongId, EdgeType.oblivious));
+      // edges.add(Edge(someLongId, tag2, EdgeType.oblivious));
+      // edges.add(Edge(someLongId, tag2, EdgeType.aware));
+      // edges.add(Edge(someLongId, someLongId, EdgeType.oblivious));
       // edges.add(Edge(someLongId, tag3, EdgeType.oblivious));
-      // edges.add(Edge(tag2, tag3, EdgeType.aware));
+      edges.add(Edge(tag2, tag3, EdgeType.aware));
     });
   }
 
