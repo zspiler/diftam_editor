@@ -158,6 +158,32 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
+  void zoom({bool zoomIn = true}) {
+    final oldScale = scale;
+
+    final zoomFactor = zoomIn ? 1.1 : 0.9;
+
+    setState(() {
+      scale *= zoomFactor;
+    });
+
+    final scaleChange = scale - oldScale;
+
+    final offsetX = -(cursorPosition.dx * scaleChange);
+    final offsetY = -(cursorPosition.dy * scaleChange);
+
+    setState(() {
+      canvasPosition += Offset(offsetX, offsetY);
+    });
+  }
+
+  void resetZoomAndPosition() {
+    setState(() {
+      canvasPosition = Offset(0, 0);
+      scale = 1.0;
+    });
+  }
+
   void enterSelectionMode() {
     stopEdgeDrawing();
     stopNodeDrawing();
@@ -367,8 +393,8 @@ class _CanvasViewState extends State<CanvasView> {
         onPointerSignal: (pointerSignal) {
           if (pointerSignal is! PointerScrollEvent) return;
 
-          if (KeyboardShortcutManager.isZoomKeypressed(RawKeyboard.instance)) {
-            handleZoom(pointerSignal.scrollDelta);
+          if (KeyboardShortcutManager.isScrollKeyPresseed(RawKeyboard.instance)) {
+            zoom(zoomIn: pointerSignal.scrollDelta.dy < 0);
           } else {
             handlePanning(pointerSignal.scrollDelta);
           }
@@ -439,6 +465,24 @@ class _CanvasViewState extends State<CanvasView> {
                           stopNodeDrawing();
                           stopEdgeDrawing();
                         }
+                      }
+
+                      if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) &&
+                              event.logicalKey == LogicalKeyboardKey.equal ||
+                          event.logicalKey == LogicalKeyboardKey.add ||
+                          event.logicalKey == LogicalKeyboardKey.numpadAdd) {
+                        zoom();
+                      }
+
+                      if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) &&
+                              event.logicalKey == LogicalKeyboardKey.minus ||
+                          event.logicalKey == LogicalKeyboardKey.numpadSubtract) {
+                        zoom(zoomIn: false);
+                      }
+
+                      if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) &&
+                          event.logicalKey == LogicalKeyboardKey.digit0) {
+                        resetZoomAndPosition();
                       }
                     },
                     child: GestureDetector(
