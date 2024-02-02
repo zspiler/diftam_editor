@@ -411,11 +411,11 @@ class _CanvasViewState extends State<CanvasView> {
                     focusNode: focusNode,
                     autofocus: true,
                     onKeyEvent: (event) {
-                      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace ||
-                          event.logicalKey == LogicalKeyboardKey.delete) {
-                        if (selectedObject != null) {
-                          deleteObject(selectedObject!);
-                        }
+                      if (event is! KeyDownEvent) {
+                        return;
+                      }
+                      if (selectedObject != null && KeyboardShortcutManager.isDeleteKeyPressed(RawKeyboard.instance)) {
+                        deleteObject(selectedObject!);
                       }
                     },
                     child: GestureDetector(
