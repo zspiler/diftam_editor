@@ -158,6 +158,11 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
+  void enterSelectionMode() {
+    stopEdgeDrawing();
+    stopNodeDrawing();
+  }
+
   void enterEdgeDrawingMode(EdgeType edgeType) {
     stopNodeDrawing();
     setState(() {
@@ -469,13 +474,15 @@ class _CanvasViewState extends State<CanvasView> {
         child: Align(
           alignment: Alignment.topCenter,
           child: MyMenuBar(
+              onSelectionPress: () => enterSelectionMode(),
               onAwareConnectionPress: () => enterEdgeDrawingMode(EdgeType.aware),
               onObliviousConnectionPress: () => enterEdgeDrawingMode(EdgeType.oblivious),
               onEntryNodePress: () => enterNodeDrawingMode(NodeType.entry),
               onExitNodePress: () => enterNodeDrawingMode(NodeType.exit),
               onTagNodePress: () => enterNodeDrawingMode(NodeType.tag),
               drawingEdgeType: _drawingEdgeType,
-              drawingNodeType: _drawingNodeType),
+              drawingNodeType: _drawingNodeType,
+              isInSelectionMode: isInSelectionMode()),
         ),
       ),
       if (selectedObject != null)

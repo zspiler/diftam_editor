@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'common.dart';
 
 class MyMenuBar extends StatelessWidget {
+  final VoidCallback onSelectionPress;
   final VoidCallback onObliviousConnectionPress;
   final VoidCallback onAwareConnectionPress;
   final VoidCallback onEntryNodePress;
@@ -9,9 +10,11 @@ class MyMenuBar extends StatelessWidget {
   final VoidCallback onTagNodePress;
   final EdgeType? drawingEdgeType;
   final NodeType? drawingNodeType;
+  final bool isInSelectionMode;
 
   const MyMenuBar({
     super.key,
+    required this.onSelectionPress,
     required this.onObliviousConnectionPress,
     required this.onAwareConnectionPress,
     required this.onEntryNodePress,
@@ -19,6 +22,7 @@ class MyMenuBar extends StatelessWidget {
     required this.onTagNodePress,
     required this.drawingEdgeType,
     required this.drawingNodeType,
+    required this.isInSelectionMode,
   });
 
   @override
@@ -31,6 +35,13 @@ class MyMenuBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          Tooltip(
+              message: "Selection",
+              child: IconButton(
+                icon: Icon(Icons.ads_click),
+                onPressed: onSelectionPress,
+                style: IconButton.styleFrom(backgroundColor: isInSelectionMode ? Colors.white : null),
+              )),
           Tooltip(
               message: "Aware connection",
               child: IconButton(
