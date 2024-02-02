@@ -54,6 +54,13 @@
         }
       });
     });
+
+    // Prevent default zoom in/out via shortcuts
+    window.addEventListener('keydown', function(e) {
+      if (e.ctrlKey || e.metaKey && (e.key === '+' || e.key === '-' || e.key === '=')) {
+          e.preventDefault();
+      }
+    });
   </script>
 </body>
 </html>
