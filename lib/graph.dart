@@ -124,6 +124,12 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
+  void stopNodeDrawing() {
+    setState(() {
+      _drawingNodeType = null;
+    });
+  }
+
   void handlePanning(Offset scrollDelta) {
     setState(() {
       canvasPosition -= scrollDelta / 1.5;
@@ -153,8 +159,8 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void enterEdgeDrawingMode(EdgeType edgeType) {
+    stopNodeDrawing();
     setState(() {
-      _drawingNodeType = null;
       if (_drawingEdgeType == null || _drawingEdgeType != edgeType) {
         _drawingEdgeType = edgeType;
       } else {
@@ -169,7 +175,7 @@ class _CanvasViewState extends State<CanvasView> {
       if (_drawingNodeType == null || _drawingNodeType != nodeType) {
         _drawingNodeType = nodeType;
       } else {
-        _drawingNodeType = null;
+        stopNodeDrawing();
       }
     });
   }
@@ -273,7 +279,7 @@ class _CanvasViewState extends State<CanvasView> {
           } else {
             createNode(position, NodeType.tag, nameOrDescriptor: inputText);
           }
-          _drawingNodeType = null;
+          stopNodeDrawing();
         });
       } else {
         CustomDialog.showInputDialog(context,
@@ -286,9 +292,7 @@ class _CanvasViewState extends State<CanvasView> {
               } else {
                 createNode(position, _drawingNodeType!, nameOrDescriptor: inputText);
               }
-              setState(() {
-                _drawingNodeType = null;
-              });
+              stopNodeDrawing();
             },
             isInputValid: (String inputText) =>
                 inputText.isNotEmpty && _drawingNodeType == NodeType.entry && canCreateEntryNodeWithDescriptor(inputText) ||
@@ -414,8 +418,22 @@ class _CanvasViewState extends State<CanvasView> {
                       if (event is! KeyDownEvent) {
                         return;
                       }
-                      if (selectedObject != null && KeyboardShortcutManager.isDeleteKeyPressed(RawKeyboard.instance)) {
-                        deleteObject(selectedObject!);
+
+                      if (selectedObject != null) {
+                        if (KeyboardShortcutManager.isDeleteKeyPressed(RawKeyboard.instance)) {
+                          deleteObject(selectedObject!);
+                        } else if (KeyboardShortcutManager.isDeselectKeyPressed(RawKeyboard.instance)) {
+                          setState(() {
+                            selectedObject = null;
+                          });
+                        }
+                      }
+
+                      if (!isInSelectionMode()) {
+                        if (KeyboardShortcutManager.isCancelDrawingKeyPressed(RawKeyboard.instance)) {
+                          stopNodeDrawing();
+                          stopEdgeDrawing();
+                        }
                       }
                     },
                     child: GestureDetector(
