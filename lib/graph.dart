@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:poc/keyboard_shortcuts.dart';
 
 import 'package:vector_math/vector_math_64.dart' as vector;
 
@@ -357,14 +358,13 @@ class _CanvasViewState extends State<CanvasView> {
         onPointerSignal: (pointerSignal) {
           if (pointerSignal is! PointerScrollEvent) return;
 
-          final isMetaPressed = RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.metaLeft);
-
-          // TODO: Fix trackpad!
-          if (isMetaPressed) {
+          if (KeyboardShortcutManager.isZoomKeypressed(RawKeyboard.instance)) {
             handleZoom(pointerSignal.scrollDelta);
           } else {
             handlePanning(pointerSignal.scrollDelta);
           }
+
+          // TODO: Fix trackpad!
         },
         onPointerHover: (event) {
           // TODO this is currently terrible - all mouse movement updates states and rerenders everything 🙈
