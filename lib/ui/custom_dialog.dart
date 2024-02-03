@@ -33,17 +33,23 @@ class CustomDialog {
     );
   }
 
-  static void showInputDialog(BuildContext context,
-      {String? confirmButtonText,
-      String? cancelButtonText,
-      String? description,
-      String? hint,
-      required String title,
-      required Function(String text) onConfirm,
-      bool Function(String)? isInputValid, // Validation function parameter
-      bool acceptEmptyInput = false,
-      String? errorMessage}) {
+  static void showInputDialog(
+    BuildContext context, {
+    required String title,
+    required Function(String text) onConfirm,
+    String? confirmButtonText,
+    String? cancelButtonText,
+    String? description,
+    String? hint,
+    bool Function(String)? isInputValid, // Validation function parameter
+    bool acceptEmptyInput = false,
+    String? errorMessage,
+    String? initialText,
+  }) {
     TextEditingController textEditingController = TextEditingController();
+    if (initialText != null) {
+      textEditingController.text = initialText;
+    }
 
     String? displayedError;
 

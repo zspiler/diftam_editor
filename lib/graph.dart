@@ -11,6 +11,7 @@ import 'common.dart';
 import 'menu_bar.dart';
 import 'utils.dart';
 import 'ui/edge_info_panel.dart';
+import 'ui/tag_node_info_panel.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
 
@@ -536,6 +537,34 @@ class _CanvasViewState extends State<CanvasView> {
                     });
                   })),
         ),
+      if (selectedObject is TagNode)
+        // TODO reuse panel + positions
+        Positioned(
+            top: 0,
+            bottom: 0,
+            right: 16,
+            child: Align(
+                alignment: Alignment.centerRight,
+                child: TagNodeInfoPanel(
+                  node: selectedObject as TagNode,
+                  deleteObject: deleteObject,
+                  editLabel: () {
+                    CustomDialog.showInputDialog(
+                      context,
+                      title: 'Edit label',
+                      hint: 'Enter new label',
+                      initialText: (selectedObject as TagNode).name,
+                      onConfirm: (String inputText) {
+                        setState(() {
+                          (selectedObject as TagNode).name = inputText;
+                        });
+                      },
+                      isInputValid: (String inputText) =>
+                          !nodes.any((node) => node != selectedObject && node is TagNode && node.name == inputText),
+                      errorMessage: 'Please choose a unique tag label',
+                    );
+                  },
+                ))),
     ]);
   }
 }
