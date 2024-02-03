@@ -1,68 +1,69 @@
 import 'package:poc/common.dart';
 import 'package:flutter/material.dart';
 
-class EdgeInfoPanel extends StatelessWidget {
-  final Edge edge;
+class TagNodeInfoPanel extends StatelessWidget {
+  final TagNode node;
   final void Function(GraphObject object) deleteObject;
-  final void Function(EdgeType newEdgeType) changeEdgeType;
+  final void Function() editLabel;
 
-  const EdgeInfoPanel({super.key, required this.edge, required this.deleteObject, required this.changeEdgeType});
+  const TagNodeInfoPanel({super.key, required this.node, required this.deleteObject, required this.editLabel});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(color: Colors.black.withAlpha(75), borderRadius: BorderRadius.all(Radius.circular(20))),
       width: 400,
-      height: 300, // TODO responsive / adjust to screen?
+      height: 260, // TODO responsive / adjust to screen?
       child: Padding(
         padding: const EdgeInsetsDirectional.symmetric(horizontal: 64.0, vertical: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              'Edge',
+              'Tag node',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             SizedBox(height: 8.0),
             Table(
               columnWidths: const {
                 0: FlexColumnWidth(1),
-                1: FlexColumnWidth(2),
+                1: FlexColumnWidth(1),
+                2: FlexColumnWidth(1),
               },
               children: [
                 TableRow(
                   children: [
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('From:'),
+                      child: Text('ID:'),
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('${edge.source}'),
+                      child: Text('${node.id}'),
                     ),
+                    Container() //
                   ],
                 ),
                 TableRow(
                   children: [
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('To:'),
+                      child: Text('Label:'),
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('${edge.target}'),
+                      child: Text('${node.name ?? '/'}'),
                     ),
-                  ],
-                ),
-                TableRow(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('Type:'),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('${edge.type.value}'),
+                    Tooltip(
+                      message: 'Edit label',
+                      child: Align(
+                        alignment: Alignment.centerLeft, // Adjust alignment as needed
+                        child: IconButton(
+                          padding: EdgeInsets.zero, // Minimize padding
+                          icon: Icon(Icons.edit, size: 16.0), // Adjust icon size as needed
+                          onPressed: editLabel,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -71,25 +72,13 @@ class EdgeInfoPanel extends StatelessWidget {
             SizedBox(height: 16.0),
             Column(
               children: [
-                SizedBox(width: 8.0),
-                Tooltip(
-                    message: "Change edge type",
-                    child: IconButton(
-                      icon: Icon(Icons.arrow_circle_right_outlined),
-                      // color: edge.type == EdgeType.oblivious ? Colors.green : Colors.red),
-                      onPressed: () {
-                        final newEdgeType = edge.type == EdgeType.oblivious ? EdgeType.aware : EdgeType.oblivious;
-                        changeEdgeType(newEdgeType);
-                      },
-                      // style: IconButton.styleFrom(backgroundColor: edge.type == EdgeType.oblivious ? Colors.white : null),
-                    )),
                 SizedBox(width: 16.0),
                 Tooltip(
-                    message: "Delete edge",
+                    message: "Delete tag",
                     child: IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        deleteObject(edge);
+                        deleteObject(node);
                       },
                     )),
               ],
