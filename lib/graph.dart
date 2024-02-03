@@ -554,10 +554,11 @@ class _CanvasViewState extends State<CanvasView> {
                       context,
                       title: 'Edit label',
                       hint: 'Enter new label',
+                      acceptEmptyInput: true,
                       initialText: (selectedObject as TagNode).name,
                       onConfirm: (String inputText) {
                         setState(() {
-                          (selectedObject as TagNode).name = inputText;
+                          (selectedObject as TagNode).name = inputText.isNotEmpty ? inputText : null;
                         });
                       },
                       isInputValid: (String inputText) =>
