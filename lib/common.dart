@@ -47,7 +47,7 @@ class TagNode extends Node {
 
   @override
   String toNodeString() {
-    return 'TagNode{$id, $label}';
+    return 'Tag ($id, $label)';
   }
 }
 

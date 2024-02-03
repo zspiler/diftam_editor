@@ -15,9 +15,9 @@ class EdgePainter {
   static const strokeWidth = 4.0;
 
   static Paint getEdgePaintStyle(EdgeType edgeType, {bool isSelected = false}) {
-    final color = isSelected
-        ? Colors.white.withAlpha(222)
-        : (edgeType == EdgeType.aware ? Colors.green.withAlpha(200) : Colors.red.withAlpha(200));
+    final obliviousColor = isSelected ? const Color.fromARGB(255, 255, 192, 188) : Colors.red.withOpacity(0.7);
+    final awareColor = isSelected ? Color.fromARGB(255, 201, 255, 203) : Colors.green.withOpacity(0.7);
+    final color = edgeType == EdgeType.oblivious ? obliviousColor : awareColor;
     return Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth

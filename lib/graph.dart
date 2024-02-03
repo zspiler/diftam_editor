@@ -10,7 +10,7 @@ import 'graph_painter.dart';
 import 'common.dart';
 import 'menu_bar.dart';
 import 'utils.dart';
-import 'ui/info_panel.dart';
+import 'ui/edge_info_panel.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
 
@@ -200,6 +200,11 @@ class _CanvasViewState extends State<CanvasView> {
       } else {
         setState(() {
           edges.remove(object);
+        });
+      }
+      if (selectedObject == object) {
+        setState(() {
+          selectedObject = null;
         });
       }
     });
@@ -515,11 +520,22 @@ class _CanvasViewState extends State<CanvasView> {
               isInSelectionMode: isInSelectionMode()),
         ),
       ),
-      if (selectedObject != null)
+      if (selectedObject is Edge)
         Positioned(
-            bottom: 16,
-            right: 0,
-            child: Align(alignment: Alignment.bottomCenter, child: InfoPanel(text: selectedObject.toString()))),
+          top: 0,
+          bottom: 0,
+          right: 16,
+          child: Align(
+              alignment: Alignment.centerRight,
+              child: EdgeInfoPanel(
+                  edge: selectedObject as Edge,
+                  deleteObject: deleteObject,
+                  changeEdgeType: (newEdgeType) {
+                    setState(() {
+                      (selectedObject as Edge).type = newEdgeType;
+                    });
+                  })),
+        ),
     ]);
   }
 }
