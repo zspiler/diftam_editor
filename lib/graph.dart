@@ -220,29 +220,6 @@ class _CanvasViewState extends State<CanvasView> {
     return null;
   }
 
-  void onTapDown(Offset position) {
-    if (isInEdgeDrawingMode()) {
-      for (var node in nodes) {
-        if (isNodeHit(node, position)) {
-          if (draggingStartPoint == null) {
-            // NOTE probably dont need here since its called on hover but ok
-            setState(() {
-              draggingStartPoint = position;
-              newEdgeSourceNode = node;
-            });
-          } else {
-            if (newEdgeSourceNode != null && _drawingEdgeType != null) {
-              createEdge(newEdgeSourceNode!, node, _drawingEdgeType!);
-            }
-            stopEdgeDrawing();
-          }
-          return;
-        }
-      }
-      stopEdgeDrawing();
-    }
-  }
-
   void createEdge(Node sourceNode, Node targetNode, EdgeType edgeType) {
     try {
       final newEdge = Edge(sourceNode, targetNode, edgeType);
@@ -258,19 +235,41 @@ class _CanvasViewState extends State<CanvasView> {
     }
   }
 
-  void onPanStart(Offset position) {
-    if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
-    for (var node in nodes) {
-      if (isNodeHit(node, position)) {
-        setState(() {
-          draggedNode = node;
-        });
-        break;
+  void createNode(Offset position, NodeType nodeType, {String? nameOrDescriptor}) {
+    // TODO refactor (nameOrDescriptor 😬)
+    final randomId = Utils.generateRandomString(4);
+
+    final tempPosition = Offset(0, 0);
+    late final Node newNode;
+    if (nodeType == NodeType.tag) {
+      newNode = TagNode(tempPosition, randomId, nameOrDescriptor);
+    } else {
+      if (nodeType == NodeType.entry) {
+        newNode = EntryNode(tempPosition, nameOrDescriptor!);
+      } else {
+        newNode = ExitNode(tempPosition, nameOrDescriptor!);
       }
     }
+
+    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(newNode);
+    newNode.position = Offset(position.dx - nodeWidth / 2, position.dy - nodeHeight / 2);
+
+    setState(() {
+      nodes.add(newNode);
+    });
   }
 
-  void onTapUp(Offset position) {
+  bool canCreateEntryNodeWithDescriptor(String descriptor) {
+    return !nodes.any((node) => node is EntryNode && node.descriptor == descriptor);
+  }
+
+  bool canCreateExitNodeWithDescriptor(String descriptor) {
+    return !nodes.any((node) => node is ExitNode && node.descriptor == descriptor);
+  }
+
+  void onTapUp(TapUpDetails details) {
+    final position = details.localPosition;
+
     if (isInSelectionMode()) {
       setState(() {
         selectedObject = hoveredObject;
@@ -311,39 +310,48 @@ class _CanvasViewState extends State<CanvasView> {
     }
   }
 
-  bool canCreateEntryNodeWithDescriptor(String descriptor) {
-    return !nodes.any((node) => node is EntryNode && node.descriptor == descriptor);
+  void onTapDown(TapDownDetails details) {
+    final position = details.localPosition;
+
+    if (isInEdgeDrawingMode()) {
+      for (var node in nodes) {
+        if (isNodeHit(node, position)) {
+          if (draggingStartPoint == null) {
+            // NOTE probably dont need here since its called on hover but ok
+            setState(() {
+              draggingStartPoint = position;
+              newEdgeSourceNode = node;
+            });
+          } else {
+            if (newEdgeSourceNode != null && _drawingEdgeType != null) {
+              createEdge(newEdgeSourceNode!, node, _drawingEdgeType!);
+            }
+            stopEdgeDrawing();
+          }
+          return;
+        }
+      }
+      stopEdgeDrawing();
+    }
   }
 
-  bool canCreateExitNodeWithDescriptor(String descriptor) {
-    return !nodes.any((node) => node is ExitNode && node.descriptor == descriptor);
-  }
+  void onPanStart(DragStartDetails details) {
+    final position = details.localPosition;
 
-  void createNode(Offset position, NodeType nodeType, {String? nameOrDescriptor}) {
-    // TODO refactor (nameOrDescriptor 😬)
-    final randomId = Utils.generateRandomString(4);
-
-    final tempPosition = Offset(0, 0);
-    late final Node newNode;
-    if (nodeType == NodeType.tag) {
-      newNode = TagNode(tempPosition, randomId, nameOrDescriptor);
-    } else {
-      if (nodeType == NodeType.entry) {
-        newNode = EntryNode(tempPosition, nameOrDescriptor!);
-      } else {
-        newNode = ExitNode(tempPosition, nameOrDescriptor!);
+    if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
+    for (var node in nodes) {
+      if (isNodeHit(node, position)) {
+        setState(() {
+          draggedNode = node;
+        });
+        break;
       }
     }
-
-    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(newNode);
-    newNode.position = Offset(position.dx - nodeWidth / 2, position.dy - nodeHeight / 2);
-
-    setState(() {
-      nodes.add(newNode);
-    });
   }
 
-  void onPanUpdate(Offset delta) {
+  void onPanUpdate(DragUpdateDetails details) {
+    final delta = details.delta;
+
     if (isInEdgeDrawingMode() || isInNodeCreationMode() || draggedNode == null) return; // TODO null handling
 
     var newX = draggedNode!.position.dx + delta.dx;
@@ -464,10 +472,10 @@ class _CanvasViewState extends State<CanvasView> {
                       }
                     },
                     child: GestureDetector(
-                        onTapUp: (details) => onTapUp(details.localPosition),
-                        onTapDown: (details) => onTapDown(details.localPosition),
-                        onPanStart: (details) => onPanStart(details.localPosition),
-                        onPanUpdate: (details) => onPanUpdate(details.delta),
+                        onTapUp: onTapUp,
+                        onTapDown: onTapDown,
+                        onPanStart: onPanStart,
+                        onPanUpdate: onPanUpdate,
                         onPanEnd: (details) {
                           draggedNode = null;
                         },
