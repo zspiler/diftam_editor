@@ -136,28 +136,6 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
-  void handleZoom(Offset scrollDelta) {
-    final oldScale = scale;
-
-    if (scrollDelta.dy < 0) {
-      setState(() {
-        scale *= 1.1;
-      });
-    } else {
-      setState(() {
-        scale *= 0.9;
-      });
-    }
-
-    final scaleChange = scale - oldScale;
-    final offsetX = -(cursorPosition.dx * scaleChange);
-    final offsetY = -(cursorPosition.dy * scaleChange);
-
-    setState(() {
-      canvasPosition += Offset(offsetX, offsetY);
-    });
-  }
-
   void zoom({bool zoomIn = true}) {
     final oldScale = scale;
 
