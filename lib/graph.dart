@@ -12,6 +12,7 @@ import 'menu_bar.dart';
 import 'utils.dart';
 import 'ui/edge_info_panel.dart';
 import 'ui/tag_node_info_panel.dart';
+import 'ui/boundary_node_info_panel.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
 
@@ -265,12 +266,12 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
-  bool canCreateEntryNodeWithDescriptor(String descriptor) {
-    return !nodes.any((node) => node is EntryNode && node.descriptor == descriptor);
+  bool entryNodeWithDescriptorExists(String descriptor) {
+    return nodes.any((node) => node is EntryNode && node.descriptor == descriptor);
   }
 
-  bool canCreateExitNodeWithDescriptor(String descriptor) {
-    return !nodes.any((node) => node is ExitNode && node.descriptor == descriptor);
+  bool exitNodeWithDescriptorExists(String descriptor) {
+    return nodes.any((node) => node is ExitNode && node.descriptor == descriptor);
   }
 
   void onTapUp(TapUpDetails details) {
@@ -300,8 +301,8 @@ class _CanvasViewState extends State<CanvasView> {
             title: 'Create new ${_drawingNodeType!.value} node',
             hint: 'Enter descriptor',
             onConfirm: (String inputText) {
-              if (_drawingNodeType == NodeType.entry && !canCreateEntryNodeWithDescriptor(inputText) ||
-                  _drawingNodeType == NodeType.exit && !canCreateExitNodeWithDescriptor(inputText)) {
+              if (_drawingNodeType == NodeType.entry && entryNodeWithDescriptorExists(inputText) ||
+                  _drawingNodeType == NodeType.exit && exitNodeWithDescriptorExists(inputText)) {
                 SnackbarGlobal.show('$_drawingNodeType node with descriptor $inputText already exists!');
               } else {
                 createNode(position, _drawingNodeType!, nameOrDescriptor: inputText);
@@ -309,8 +310,8 @@ class _CanvasViewState extends State<CanvasView> {
               stopNodeDrawing();
             },
             isInputValid: (String inputText) =>
-                inputText.isNotEmpty && _drawingNodeType == NodeType.entry && canCreateEntryNodeWithDescriptor(inputText) ||
-                _drawingNodeType == NodeType.exit && canCreateExitNodeWithDescriptor(inputText),
+                inputText.isNotEmpty && _drawingNodeType == NodeType.entry && !entryNodeWithDescriptorExists(inputText) ||
+                _drawingNodeType == NodeType.exit && !exitNodeWithDescriptorExists(inputText),
             errorMessage: '${_drawingNodeType!.value} node with this descriptor already exists!');
       }
     }
@@ -563,6 +564,33 @@ class _CanvasViewState extends State<CanvasView> {
                           !nodes.any((node) => node != selectedObject && node is TagNode && node.name == inputText),
                       errorMessage: 'Please choose a unique tag label',
                     );
+                  },
+                ))),
+      if (selectedObject is BoundaryNode)
+        Positioned(
+            top: 0,
+            bottom: 0,
+            right: 16,
+            child: Align(
+                alignment: Alignment.centerRight,
+                child: BoundaryNodeInfoPanel(
+                  node: selectedObject as BoundaryNode,
+                  deleteObject: deleteObject,
+                  editDescriptor: () {
+                    CustomDialog.showInputDialog(context,
+                        title: 'Edit descriptor',
+                        hint: 'Enter new descriptor',
+                        initialText: (selectedObject as BoundaryNode).descriptor,
+                        onConfirm: (String inputText) {
+                          setState(() {
+                            (selectedObject as BoundaryNode).descriptor = inputText;
+                          });
+                        },
+                        isInputValid: (String inputText) =>
+                            inputText.isNotEmpty && selectedObject is EntryNode && !entryNodeWithDescriptorExists(inputText) ||
+                            selectedObject is ExitNode && !exitNodeWithDescriptorExists(inputText),
+                        errorMessage:
+                            '${selectedObject is EntryNode ? 'Entry' : 'Exit'} node with this descriptor already exists!');
                   },
                 ))),
     ]);

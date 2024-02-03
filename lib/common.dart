@@ -51,14 +51,22 @@ class TagNode extends Node {
   }
 }
 
-// TODO combine EntryNode, ExitNode?
-class EntryNode extends Node {
+abstract class BoundaryNode extends Node {
   String descriptor;
 
-  EntryNode(Offset position, this.descriptor) : super(position);
+  BoundaryNode(Offset position, this.descriptor) : super(position);
 
   @override
   String get label => descriptor;
+
+  @override
+  String toNodeString() {
+    return 'BoundaryNode ($descriptor)';
+  }
+}
+
+class EntryNode extends BoundaryNode {
+  EntryNode(Offset position, String descriptor) : super(position, descriptor);
 
   @override
   String toNodeString() {
@@ -66,13 +74,8 @@ class EntryNode extends Node {
   }
 }
 
-class ExitNode extends Node {
-  String descriptor;
-
-  ExitNode(Offset position, this.descriptor) : super(position);
-
-  @override
-  String get label => descriptor;
+class ExitNode extends BoundaryNode {
+  ExitNode(Offset position, String descriptor) : super(position, descriptor);
 
   @override
   String toNodeString() {
