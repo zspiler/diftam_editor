@@ -15,6 +15,8 @@ import 'ui/tag_node_info_panel.dart';
 import 'ui/boundary_node_info_panel.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
+import 'main.dart'; // TODO rm
+import 'package:provider/provider.dart';
 
 class CanvasView extends StatefulWidget {
   const CanvasView({
@@ -28,74 +30,18 @@ class CanvasView extends StatefulWidget {
 const darkBlue = Color.fromARGB(255, 20, 54, 91);
 
 class _CanvasViewState extends State<CanvasView> {
-  var nodes = <Node>[];
-  var edges = <Edge>[];
-  var pathPerEdge = <Edge, Path>{};
-
-  Offset? draggingStartPoint;
-  Offset? draggingEndPoint;
-  Node? draggedNode;
-  Node? newEdgeSourceNode;
-  Offset cursorPosition = Offset.zero;
-  Offset canvasPosition = Offset.zero;
-  GraphObject? hoveredObject;
-  GraphObject? selectedObject;
-
-  double scale = 1.0;
-
-  EdgeType? _drawingEdgeType; // TODO private?
-  NodeType? _drawingNodeType; // TODO private?
-
   late FocusNode focusNode;
 
   @override
   void initState() {
     super.initState();
     focusNode = FocusNode();
-    // TODO why cant just do this above?
-    setState(() {
-      // TODO ensure unique IDS?
-      // final someLongId = TagNode(Offset(100, 100), 'some long id', 'some label');
-      final tag2 = TagNode(Offset(500, 350), 'randomId', 'priv');
-      final tag3 = TagNode(Offset(700, 350), 'randomId2', 'pub');
-
-      // final tag3 = Node("tag 3", Offset(500, 150), NodeType.tag);
-      // final stdin = Node("stdin", Offset(600, 150), NodeType.entry);
-      // final stdout = Node("stdout", Offset(800, 150), NodeType.exit);
-      // final someVeryVeryVeryLongId = Node("some very very very long id", Offset(500, 100), NodeType.tag);
-
-      // nodes.add(someLongId);
-      nodes.add(tag2);
-      nodes.add(tag3);
-      // nodes.add(tag3);
-      // nodes.add(stdin);
-      // nodes.add(stdout);
-      // nodes.add(someVeryVeryVeryLongId);
-
-      // edges.add(Edge(someLongId, tag2, EdgeType.oblivious));
-      // edges.add(Edge(someLongId, tag2, EdgeType.aware));
-      // edges.add(Edge(someLongId, someLongId, EdgeType.oblivious));
-      // edges.add(Edge(someLongId, tag3, EdgeType.oblivious));
-      edges.add(Edge(tag2, tag3, EdgeType.aware));
-    });
   }
 
   @override
   void dispose() {
     focusNode.dispose();
     super.dispose();
-  }
-
-  bool isInSelectionMode() {
-    return _drawingEdgeType == null && _drawingNodeType == null;
-  }
-
-  bool isInEdgeDrawingMode() {
-    return _drawingEdgeType != null;
-  }
-
-  bool isInNodeCreationMode() {
-    return _drawingNodeType != null;
   }
 
   bool isNodeHit(Node node, Offset offset) {
@@ -107,280 +53,159 @@ class _CanvasViewState extends State<CanvasView> {
         node.position.dy + nodeHeight > offset.dy;
   }
 
-  bool isEdgeHit(Edge edge, Offset position) {
-    if (!pathPerEdge.containsKey(edge)) {
-      return false; // sanity check TODO
-    }
-
-    final path = pathPerEdge[edge]!;
-
-    return Utils.isPointNearBezierPath(position, path);
-  }
-
-  void stopEdgeDrawing() {
-    setState(() {
-      newEdgeSourceNode = null;
-      draggingStartPoint = null;
-      draggingEndPoint = null;
-      _drawingEdgeType = null;
-    });
-  }
-
-  void stopNodeDrawing() {
-    setState(() {
-      _drawingNodeType = null;
-    });
-  }
-
   void handlePanning(Offset scrollDelta) {
-    setState(() {
-      canvasPosition -= scrollDelta / 1.5;
-    });
+    // TODO ugly :(
+    final appState = Provider.of<MyAppState>(context, listen: false); // NOTE listen: false?
+
+    final newCanvasPosition = appState.canvasPosition -= scrollDelta / 1.5;
+    appState.setCanvasPosition(newCanvasPosition);
   }
 
   void zoom({bool zoomIn = true}) {
-    final oldScale = scale;
+    // TODO ugly :(
+    final appState = Provider.of<MyAppState>(context, listen: false); // NOTE listen: false?
+
+    final oldScale = appState.scale;
 
     final zoomFactor = zoomIn ? 1.1 : 0.9;
 
-    setState(() {
-      scale *= zoomFactor;
-    });
+    appState.setScale(appState.scale *= zoomFactor);
 
-    final scaleChange = scale - oldScale;
+    final scaleChange = appState.scale - oldScale;
 
-    final offsetX = -(cursorPosition.dx * scaleChange);
-    final offsetY = -(cursorPosition.dy * scaleChange);
+    final offsetX = -(appState.cursorPosition.dx * scaleChange);
+    final offsetY = -(appState.cursorPosition.dy * scaleChange);
 
-    setState(() {
-      canvasPosition += Offset(offsetX, offsetY);
-    });
+    final newCanvasPosition = appState.canvasPosition + Offset(offsetX, offsetY);
+    appState.setCanvasPosition(newCanvasPosition);
   }
 
-  void resetZoomAndPosition() {
-    setState(() {
-      canvasPosition = Offset(0, 0);
-      scale = 1.0;
-    });
-  }
-
-  void enterSelectionMode() {
-    stopEdgeDrawing();
-    stopNodeDrawing();
-  }
-
-  void enterEdgeDrawingMode(EdgeType edgeType) {
-    stopNodeDrawing();
-    setState(() {
-      if (_drawingEdgeType == null || _drawingEdgeType != edgeType) {
-        _drawingEdgeType = edgeType;
-      } else {
-        _drawingEdgeType = null;
-      }
-    });
-  }
-
-  void enterNodeDrawingMode(NodeType nodeType) {
-    setState(() {
-      _drawingEdgeType = null;
-      if (_drawingNodeType == null || _drawingNodeType != nodeType) {
-        _drawingNodeType = nodeType;
-      } else {
-        stopNodeDrawing();
-      }
-    });
-  }
-
-  void deleteObject(GraphObject object) {
+  void showDeleteObjectDialog() {
     CustomDialog.showConfirmationDialog(context,
         confirmButtonText: 'Delete', title: 'Are you sure you want to delete this object?', onConfirm: () {
-      if (object is Node) {
-        setState(() {
-          nodes.remove(object);
-          edges.removeWhere((edge) => edge.source == object || edge.target == object);
-        });
-      } else {
-        setState(() {
-          edges.remove(object);
-        });
-      }
-      if (selectedObject == object) {
-        setState(() {
-          selectedObject = null;
-        });
-      }
+      final appState = context.watch<MyAppState>();
+      appState.deleteSelectedObject();
     });
   }
 
-  GraphObject? getObjectAtCursor() {
-    for (var node in nodes) {
-      if (isNodeHit(node, cursorPosition)) {
-        return node;
-      }
-    }
-
-    for (var edge in edges) {
-      if (isEdgeHit(edge, cursorPosition)) {
-        return edge;
-      }
-    }
-    return null;
-  }
-
-  void createEdge(Node sourceNode, Node targetNode, EdgeType edgeType) {
-    try {
-      final newEdge = Edge(sourceNode, targetNode, edgeType);
-      final edgeExists =
-          edges.any((edge) => edge.source == newEdge.source && edge.target == newEdge.target && edge.type == newEdge.type);
-      if (!edgeExists) {
-        setState(() {
-          edges.add(newEdge);
-        });
-      }
-    } on ArgumentError catch (e) {
-      SnackbarGlobal.show(e.message);
-    }
-  }
-
-  void createNode(Offset position, NodeType nodeType, {String? nameOrDescriptor}) {
-    // TODO refactor (nameOrDescriptor 😬)
-    final randomId = Utils.generateRandomString(4);
-
-    final tempPosition = Offset(0, 0);
-    late final Node newNode;
-    if (nodeType == NodeType.tag) {
-      newNode = TagNode(tempPosition, randomId, nameOrDescriptor);
-    } else {
-      if (nodeType == NodeType.entry) {
-        newNode = EntryNode(tempPosition, nameOrDescriptor!);
-      } else {
-        newNode = ExitNode(tempPosition, nameOrDescriptor!);
-      }
-    }
-
-    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(newNode);
-    newNode.position = Offset(position.dx - nodeWidth / 2, position.dy - nodeHeight / 2);
-
-    setState(() {
-      nodes.add(newNode);
-    });
-  }
-
-  bool entryNodeWithDescriptorExists(String descriptor) {
-    return nodes.any((node) => node is EntryNode && node.descriptor == descriptor);
-  }
-
-  bool exitNodeWithDescriptorExists(String descriptor) {
-    return nodes.any((node) => node is ExitNode && node.descriptor == descriptor);
-  }
-
+  // TODO how to access state outside build? 😬 Riverpod?
   void onTapUp(TapUpDetails details) {
+    // TODO ugly :(
+    final appState = Provider.of<MyAppState>(context, listen: false); // NOTE listen: false?
+
     final position = details.localPosition;
 
-    if (isInSelectionMode()) {
-      setState(() {
-        selectedObject = hoveredObject;
-      });
-    } else if (isInNodeCreationMode()) {
-      if (_drawingNodeType == null) {
+    if (appState.isInSelectionMode()) {
+      appState.setSelectedObject(appState.hoveredObject);
+    } else if (appState.isInNodeCreationMode()) {
+      if (appState.drawingNodeType == null) {
         // TODO
         return;
       }
-      if (_drawingNodeType == NodeType.tag) {
+      if (appState.drawingNodeType == NodeType.tag) {
         CustomDialog.showInputDialog(context, title: 'Create new tag', hint: 'Enter tag name (optional)', acceptEmptyInput: true,
             onConfirm: (String inputText) {
           if (inputText.isEmpty) {
-            createNode(position, NodeType.tag);
+            appState.createNode(position, NodeType.tag);
           } else {
-            createNode(position, NodeType.tag, nameOrDescriptor: inputText);
+            appState.createNode(position, NodeType.tag, nameOrDescriptor: inputText);
           }
-          stopNodeDrawing();
+          appState.stopNodeDrawing();
         });
       } else {
         CustomDialog.showInputDialog(context,
-            title: 'Create new ${_drawingNodeType!.value} node',
+            title: 'Create new ${appState.drawingNodeType!.value} node',
             hint: 'Enter descriptor',
             onConfirm: (String inputText) {
-              if (_drawingNodeType == NodeType.entry && entryNodeWithDescriptorExists(inputText) ||
-                  _drawingNodeType == NodeType.exit && exitNodeWithDescriptorExists(inputText)) {
-                SnackbarGlobal.show('$_drawingNodeType node with descriptor $inputText already exists!');
+              if (appState.drawingNodeType == NodeType.entry && appState.entryNodeWithDescriptorExists(inputText) ||
+                  appState.drawingNodeType == NodeType.exit && appState.exitNodeWithDescriptorExists(inputText)) {
+                SnackbarGlobal.show('$appState.drawingNodeType node with descriptor $inputText already exists!');
               } else {
-                createNode(position, _drawingNodeType!, nameOrDescriptor: inputText);
+                appState.createNode(position, appState.drawingNodeType!, nameOrDescriptor: inputText);
               }
-              stopNodeDrawing();
+              appState.stopNodeDrawing();
             },
             isInputValid: (String inputText) =>
-                inputText.isNotEmpty && _drawingNodeType == NodeType.entry && !entryNodeWithDescriptorExists(inputText) ||
-                _drawingNodeType == NodeType.exit && !exitNodeWithDescriptorExists(inputText),
-            errorMessage: '${_drawingNodeType!.value} node with this descriptor already exists!');
+                inputText.isNotEmpty &&
+                    appState.drawingNodeType == NodeType.entry &&
+                    !appState.entryNodeWithDescriptorExists(inputText) ||
+                appState.drawingNodeType == NodeType.exit && !appState.exitNodeWithDescriptorExists(inputText),
+            errorMessage: '${appState.drawingNodeType!.value} node with this descriptor already exists!');
       }
     }
   }
 
   void onTapDown(TapDownDetails details) {
+    // TODO ugly :(
+    final appState = Provider.of<MyAppState>(context, listen: false); // NOTE listen: false?
+
     final position = details.localPosition;
 
-    if (isInEdgeDrawingMode()) {
-      for (var node in nodes) {
+    if (appState.isInEdgeDrawingMode()) {
+      for (var node in appState.nodes) {
         if (isNodeHit(node, position)) {
-          if (draggingStartPoint == null) {
+          if (appState.draggingStartPoint == null) {
             // NOTE probably dont need here since its called on hover but ok
-            setState(() {
-              draggingStartPoint = position;
-              newEdgeSourceNode = node;
-            });
+
+            appState.setDraggingStartPoint(position);
+            appState.setNewEdgeSourceNode(node);
           } else {
-            if (newEdgeSourceNode != null && _drawingEdgeType != null) {
-              createEdge(newEdgeSourceNode!, node, _drawingEdgeType!);
+            if (appState.newEdgeSourceNode != null && appState.drawingEdgeType != null) {
+              appState.createEdge(appState.newEdgeSourceNode!, node, appState.drawingEdgeType!);
             }
-            stopEdgeDrawing();
+            appState.stopEdgeDrawing();
           }
           return;
         }
       }
-      stopEdgeDrawing();
+      appState.stopEdgeDrawing();
     }
   }
 
   void onPanStart(DragStartDetails details) {
+    // TODO ugly :(
+    final appState = Provider.of<MyAppState>(context, listen: false); // NOTE listen: false?
+
     final position = details.localPosition;
 
-    if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
-    for (var node in nodes) {
+    if (appState.isInEdgeDrawingMode() || appState.isInNodeCreationMode()) return;
+    for (var node in appState.nodes) {
       if (isNodeHit(node, position)) {
-        setState(() {
-          draggedNode = node;
-        });
+        appState.setDraggedNode(node);
         break;
       }
     }
   }
 
   void onPanUpdate(DragUpdateDetails details) {
+    // TODO ugly :(
+    final appState = Provider.of<MyAppState>(context, listen: false); // NOTE listen: false?
+
     final delta = details.delta;
 
-    if (isInEdgeDrawingMode() || isInNodeCreationMode() || draggedNode == null) return; // TODO null handling
+    if (appState.isInEdgeDrawingMode() || appState.isInNodeCreationMode() || appState.draggedNode == null)
+      return; // TODO null handling
 
-    var newX = draggedNode!.position.dx + delta.dx;
-    var newY = draggedNode!.position.dy + delta.dy;
+    var newX = appState.draggedNode!.position.dx + delta.dx;
+    var newY = appState.draggedNode!.position.dy + delta.dy;
 
     final canvasWidth = MediaQuery.of(context).size.width;
     final canvasHeight = MediaQuery.of(context).size.height;
 
-    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(draggedNode!);
+    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(appState.draggedNode!);
 
     final isNewPositionInvalid = newX < 0 && newX + nodeWidth > canvasWidth && newY < 0 && newY + nodeHeight > canvasHeight;
     if (isNewPositionInvalid) {
       return;
     }
 
-    setState(() {
-      draggedNode!.position = Offset(newX, newY);
-    });
+    appState.draggedNode!.position = Offset(newX, newY); // TODO Mutating directly???
   }
 
   @override
   Widget build(BuildContext context) {
+    final appState = context.watch<MyAppState>(); // TODO rename to store?
+
     return Stack(children: [
       Listener(
         onPointerSignal: (pointerSignal) {
@@ -396,41 +221,36 @@ class _CanvasViewState extends State<CanvasView> {
         },
         onPointerHover: (event) {
           // TODO this is currently terrible - all mouse movement updates states and rerenders everything 🙈
-          setState(() {
-            /*
+
+          /*
                 Because Listener is outside Transformation (since we want to scroll etc. even outside original canvas area). 
                 here the coordinates do not match transformd coordinates so we need to apply inverse transformation.
                */
-            Matrix4 inverseTransformation = Matrix4.identity()
-              ..translate(canvasPosition.dx, canvasPosition.dy)
-              ..scale(scale, scale)
-              ..invert();
+          Matrix4 inverseTransformation = Matrix4.identity()
+            ..translate(appState.canvasPosition.dx, appState.canvasPosition.dy)
+            ..scale(appState.scale, appState.scale)
+            ..invert();
 
-            vector.Vector3 transformedPositionVector =
-                inverseTransformation.transform3(vector.Vector3(event.localPosition.dx, event.localPosition.dy, 0));
+          vector.Vector3 transformedPositionVector =
+              inverseTransformation.transform3(vector.Vector3(event.localPosition.dx, event.localPosition.dy, 0));
 
-            cursorPosition = Offset(transformedPositionVector.x, transformedPositionVector.y);
-          });
+          appState.setCursorPosition(Offset(transformedPositionVector.x, transformedPositionVector.y));
 
-          if (isInEdgeDrawingMode()) {
-            setState(() {
-              draggingEndPoint = cursorPosition;
-            });
-          } else if (isInSelectionMode()) {
-            setState(() {
-              hoveredObject = getObjectAtCursor();
-            });
+          if (appState.isInEdgeDrawingMode()) {
+            appState.setDraggingEndPoint(appState.cursorPosition);
+          } else if (appState.isInSelectionMode()) {
+            appState.setHoveredObject(appState.getObjectAtCursor());
           }
         },
         child: MouseRegion(
-          cursor: hoveredObject != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+          cursor: appState.hoveredObject != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
           child: Container(
             color: Color.fromARGB(255, 219, 219, 219),
             child: ClipRect(
               child: Transform(
                 transform: Matrix4.identity()
-                  ..translate(canvasPosition.dx, canvasPosition.dy)
-                  ..scale(scale, scale),
+                  ..translate(appState.canvasPosition.dx, appState.canvasPosition.dy)
+                  ..scale(appState.scale, appState.scale),
                 child: Container(
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
@@ -443,20 +263,18 @@ class _CanvasViewState extends State<CanvasView> {
                         return;
                       }
 
-                      if (selectedObject != null) {
+                      if (appState.selectedObject != null) {
                         if (KeyboardShortcutManager.isDeleteKeyPressed(RawKeyboard.instance)) {
-                          deleteObject(selectedObject!);
+                          showDeleteObjectDialog();
                         } else if (KeyboardShortcutManager.isDeselectKeyPressed(RawKeyboard.instance)) {
-                          setState(() {
-                            selectedObject = null;
-                          });
+                          appState.setSelectedObject(null);
                         }
                       }
 
-                      if (!isInSelectionMode()) {
+                      if (!appState.isInSelectionMode()) {
                         if (KeyboardShortcutManager.isCancelDrawingKeyPressed(RawKeyboard.instance)) {
-                          stopNodeDrawing();
-                          stopEdgeDrawing();
+                          appState.stopNodeDrawing();
+                          appState.stopEdgeDrawing();
                         }
                       }
 
@@ -475,26 +293,28 @@ class _CanvasViewState extends State<CanvasView> {
 
                       if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) &&
                           event.logicalKey == LogicalKeyboardKey.digit0) {
-                        resetZoomAndPosition();
+                        appState.resetZoomAndPosition();
                       }
                     },
                     child: GestureDetector(
-                        onTapUp: onTapUp,
-                        onTapDown: onTapDown,
-                        onPanStart: onPanStart,
-                        onPanUpdate: onPanUpdate,
+                        // onTapUp: onTapUp,
+                        // onTapDown: onTapDown,
+                        // onPanStart: onPanStart,
+                        // onPanUpdate: onPanUpdate,
                         onPanEnd: (details) {
-                          draggedNode = null;
+                          appState.draggedNode = null;
                         },
                         child: CustomPaint(
                           painter: GraphPainter(
-                            nodes,
-                            edges,
-                            isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null
-                                ? (draggingStartPoint!, draggingEndPoint!) // TODO null safety
+                            appState.nodes,
+                            appState.edges,
+                            appState.isInEdgeDrawingMode() &&
+                                    appState.draggingStartPoint != null &&
+                                    appState.draggingEndPoint != null
+                                ? (appState.draggingStartPoint!, appState.draggingEndPoint!) // TODO null safety
                                 : null,
-                            (newPathPerEdge) => pathPerEdge = newPathPerEdge,
-                            selectedObject,
+                            (newPathPerEdge) => appState.setPathPerEdge(newPathPerEdge),
+                            appState.selectedObject,
                           ),
                         )),
                   ),
@@ -511,18 +331,18 @@ class _CanvasViewState extends State<CanvasView> {
         child: Align(
           alignment: Alignment.topCenter,
           child: MyMenuBar(
-              onSelectionPress: () => enterSelectionMode(),
-              onAwareConnectionPress: () => enterEdgeDrawingMode(EdgeType.aware),
-              onObliviousConnectionPress: () => enterEdgeDrawingMode(EdgeType.oblivious),
-              onEntryNodePress: () => enterNodeDrawingMode(NodeType.entry),
-              onExitNodePress: () => enterNodeDrawingMode(NodeType.exit),
-              onTagNodePress: () => enterNodeDrawingMode(NodeType.tag),
-              drawingEdgeType: _drawingEdgeType,
-              drawingNodeType: _drawingNodeType,
-              isInSelectionMode: isInSelectionMode()),
+              onSelectionPress: () => appState.enterSelectionMode(),
+              onAwareConnectionPress: () => appState.enterEdgeDrawingMode(EdgeType.aware),
+              onObliviousConnectionPress: () => appState.enterEdgeDrawingMode(EdgeType.oblivious),
+              onEntryNodePress: () => appState.enterNodeDrawingMode(NodeType.entry),
+              onExitNodePress: () => appState.enterNodeDrawingMode(NodeType.exit),
+              onTagNodePress: () => appState.enterNodeDrawingMode(NodeType.tag),
+              drawingEdgeType: appState.drawingEdgeType,
+              drawingNodeType: appState.drawingNodeType,
+              isInSelectionMode: appState.isInSelectionMode()),
         ),
       ),
-      if (selectedObject is Edge)
+      if (appState.selectedObject is Edge)
         Positioned(
           top: 0,
           bottom: 0,
@@ -530,15 +350,13 @@ class _CanvasViewState extends State<CanvasView> {
           child: Align(
               alignment: Alignment.centerRight,
               child: EdgeInfoPanel(
-                  edge: selectedObject as Edge,
-                  deleteObject: deleteObject,
+                  edge: appState.selectedObject as Edge,
+                  deleteObject: showDeleteObjectDialog,
                   changeEdgeType: (newEdgeType) {
-                    setState(() {
-                      (selectedObject as Edge).type = newEdgeType;
-                    });
+                    (appState.selectedObject as Edge).type = newEdgeType;
                   })),
         ),
-      if (selectedObject is TagNode)
+      if (appState.selectedObject is TagNode)
         // TODO reuse panel + positions
         Positioned(
             top: 0,
@@ -547,27 +365,25 @@ class _CanvasViewState extends State<CanvasView> {
             child: Align(
                 alignment: Alignment.centerRight,
                 child: TagNodeInfoPanel(
-                  node: selectedObject as TagNode,
-                  deleteObject: deleteObject,
+                  node: appState.selectedObject as TagNode,
+                  deleteObject: showDeleteObjectDialog,
                   editLabel: () {
                     CustomDialog.showInputDialog(
                       context,
                       title: 'Edit label',
                       hint: 'Enter new label',
                       acceptEmptyInput: true,
-                      initialText: (selectedObject as TagNode).name,
+                      initialText: (appState.selectedObject as TagNode).name,
                       onConfirm: (String inputText) {
-                        setState(() {
-                          (selectedObject as TagNode).name = inputText.isNotEmpty ? inputText : null;
-                        });
+                        (appState.selectedObject as TagNode).name = inputText.isNotEmpty ? inputText : null;
                       },
-                      isInputValid: (String inputText) =>
-                          !nodes.any((node) => node != selectedObject && node is TagNode && node.name == inputText),
+                      isInputValid: (String inputText) => !appState.nodes
+                          .any((node) => node != appState.selectedObject && node is TagNode && node.name == inputText),
                       errorMessage: 'Please choose a unique tag label',
                     );
                   },
                 ))),
-      if (selectedObject is BoundaryNode)
+      if (appState.selectedObject is BoundaryNode)
         Positioned(
             top: 0,
             bottom: 0,
@@ -575,23 +391,24 @@ class _CanvasViewState extends State<CanvasView> {
             child: Align(
                 alignment: Alignment.centerRight,
                 child: BoundaryNodeInfoPanel(
-                  node: selectedObject as BoundaryNode,
-                  deleteObject: deleteObject,
+                  node: appState.selectedObject as BoundaryNode,
+                  deleteObject: showDeleteObjectDialog,
                   editDescriptor: () {
                     CustomDialog.showInputDialog(context,
                         title: 'Edit descriptor',
                         hint: 'Enter new descriptor',
-                        initialText: (selectedObject as BoundaryNode).descriptor,
+                        initialText: (appState.selectedObject as BoundaryNode).descriptor,
                         onConfirm: (String inputText) {
-                          setState(() {
-                            (selectedObject as BoundaryNode).descriptor = inputText;
-                          });
+                          (appState.selectedObject as BoundaryNode).descriptor = inputText;
+                          // TODO MOVE OUT? also need to call notify listeners
                         },
                         isInputValid: (String inputText) =>
-                            inputText.isNotEmpty && selectedObject is EntryNode && !entryNodeWithDescriptorExists(inputText) ||
-                            selectedObject is ExitNode && !exitNodeWithDescriptorExists(inputText),
+                            inputText.isNotEmpty &&
+                                appState.selectedObject is EntryNode &&
+                                !appState.entryNodeWithDescriptorExists(inputText) ||
+                            appState.selectedObject is ExitNode && !appState.exitNodeWithDescriptorExists(inputText),
                         errorMessage:
-                            '${selectedObject is EntryNode ? 'Entry' : 'Exit'} node with this descriptor already exists!');
+                            '${appState.selectedObject is EntryNode ? 'Entry' : 'Exit'} node with this descriptor already exists!');
                   },
                 ))),
     ]);

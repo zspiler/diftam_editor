@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class EdgeInfoPanel extends StatelessWidget {
   final Edge edge;
-  final void Function(GraphObject object) deleteObject;
+  final void Function() deleteObject;
   final void Function(EdgeType newEdgeType) changeEdgeType;
 
   const EdgeInfoPanel({super.key, required this.edge, required this.deleteObject, required this.changeEdgeType});
@@ -88,9 +88,7 @@ class EdgeInfoPanel extends StatelessWidget {
                     message: "Delete edge",
                     child: IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        deleteObject(edge);
-                      },
+                      onPressed: deleteObject,
                     )),
               ],
             ),

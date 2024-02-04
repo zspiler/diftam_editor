@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class TagNodeInfoPanel extends StatelessWidget {
   final TagNode node;
-  final void Function(GraphObject object) deleteObject;
+  final void Function() deleteObject;
   final void Function() editLabel;
 
   const TagNodeInfoPanel({super.key, required this.node, required this.deleteObject, required this.editLabel});
@@ -77,9 +77,7 @@ class TagNodeInfoPanel extends StatelessWidget {
                     message: "Delete tag",
                     child: IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        deleteObject(node);
-                      },
+                      onPressed: deleteObject,
                     )),
               ],
             ),

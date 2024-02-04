@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class BoundaryNodeInfoPanel extends StatelessWidget {
   final BoundaryNode node;
-  final void Function(GraphObject object) deleteObject;
+  final void Function() deleteObject;
   final void Function() editDescriptor;
 
   const BoundaryNodeInfoPanel({super.key, required this.node, required this.deleteObject, required this.editDescriptor});
@@ -64,9 +64,7 @@ class BoundaryNodeInfoPanel extends StatelessWidget {
                     message: "Delete node",
                     child: IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        deleteObject(node);
-                      },
+                      onPressed: deleteObject,
                     )),
               ],
             ),

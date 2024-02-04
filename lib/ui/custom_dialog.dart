@@ -67,15 +67,15 @@ class CustomDialog {
             builder: (BuildContext context, StateSetter setState) {
               void onContinuePress() {
                 if (!acceptEmptyInput && textEditingController.text.isEmpty) {
-                  setState(() {
-                    displayedError = 'Field must not be empty';
-                  });
+                  // setState(() {
+                  displayedError = 'Field must not be empty';
+                  // });
                   return;
                 }
                 if (isInputValid != null && !isInputValid(textEditingController.text)) {
-                  setState(() {
-                    displayedError = errorMessage ?? 'Invalid input';
-                  });
+                  // setState(() {
+                  displayedError = errorMessage ?? 'Invalid input';
+                  // });
                   return;
                 }
 
