@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'graph.dart';
 import 'ui/snackbar.dart';
 
+final scaleProvider = Provider<double>((ref) => 1.0);
+
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
