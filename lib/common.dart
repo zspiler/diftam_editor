@@ -115,3 +115,12 @@ class Edge implements GraphObject {
     return 'Edge{source: $source, target: $target, type: ${type.value}}';
   }
 }
+
+class CanvasData {
+  final List<Node> nodes;
+  final List<Edge> edges;
+
+  CanvasData({List<Node>? nodes, List<Edge>? edges})
+      : nodes = nodes ?? [],
+        edges = edges ?? [];
+}

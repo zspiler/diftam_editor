@@ -17,9 +17,11 @@ import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
 
 class CanvasView extends StatefulWidget {
-  const CanvasView({
-    super.key,
-  });
+  final List<Node> nodes;
+  final List<Edge> edges;
+  FocusNode focusNode;
+
+  CanvasView({super.key, required this.nodes, required this.edges, required this.focusNode});
 
   @override
   State<CanvasView> createState() => _CanvasViewState();
@@ -51,39 +53,10 @@ class _CanvasViewState extends State<CanvasView> {
   @override
   void initState() {
     super.initState();
-    focusNode = FocusNode();
-    // TODO why cant just do this above?
-    setState(() {
-      // TODO ensure unique IDS?
-      // final someLongId = TagNode(Offset(100, 100), 'some long id', 'some label');
-      final tag2 = TagNode(Offset(500, 350), 'randomId', 'priv');
-      final tag3 = TagNode(Offset(700, 350), 'randomId2', 'pub');
 
-      // final tag3 = Node("tag 3", Offset(500, 150), NodeType.tag);
-      // final stdin = Node("stdin", Offset(600, 150), NodeType.entry);
-      // final stdout = Node("stdout", Offset(800, 150), NodeType.exit);
-      // final someVeryVeryVeryLongId = Node("some very very very long id", Offset(500, 100), NodeType.tag);
-
-      // nodes.add(someLongId);
-      nodes.add(tag2);
-      nodes.add(tag3);
-      // nodes.add(tag3);
-      // nodes.add(stdin);
-      // nodes.add(stdout);
-      // nodes.add(someVeryVeryVeryLongId);
-
-      // edges.add(Edge(someLongId, tag2, EdgeType.oblivious));
-      // edges.add(Edge(someLongId, tag2, EdgeType.aware));
-      // edges.add(Edge(someLongId, someLongId, EdgeType.oblivious));
-      // edges.add(Edge(someLongId, tag3, EdgeType.oblivious));
-      edges.add(Edge(tag2, tag3, EdgeType.aware));
-    });
-  }
-
-  @override
-  void dispose() {
-    focusNode.dispose();
-    super.dispose();
+    nodes = List.from(widget.nodes);
+    edges = List.from(widget.edges);
+    focusNode = widget.focusNode;
   }
 
   bool isInSelectionMode() {
