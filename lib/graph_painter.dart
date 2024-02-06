@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'node_painter.dart';
 import 'edge_painter.dart';
 import 'common.dart';
+import 'user_preferences.dart';
 
 class GraphPainter extends CustomPainter {
   final List<Node> nodes;
@@ -10,10 +11,13 @@ class GraphPainter extends CustomPainter {
   final (Offset, Offset)? newEdge;
   final Function(Map<Edge, Path> pathPerEdge) emitPathPerEdge;
   final GraphObject? selectedObject;
+  final Preferences preferences;
+  late final NodePainter nodePainter;
 
-  GraphPainter(this.nodes, this.edges, this.newEdge, this.emitPathPerEdge, this.selectedObject);
+  GraphPainter(this.nodes, this.edges, this.newEdge, this.emitPathPerEdge, this.selectedObject, this.preferences)
+      : nodePainter = NodePainter(strokeWidth: preferences.strokeWidth);
 
-// NOTE widget rebuilt each time _CanvasViewState changes 😬
+  // NOTE widget rebuilt each time _CanvasViewState changes 😬
   @override
   void paint(Canvas canvas, Size size) {
     drawGrid(canvas, size);
@@ -21,7 +25,7 @@ class GraphPainter extends CustomPainter {
     emitPathPerEdge(pathPerEdge);
 
     for (var node in nodes) {
-      NodePainter.drawNode(canvas, node, isSelected: selectedObject == node);
+      nodePainter.drawNode(canvas, node, isSelected: selectedObject == node);
     }
 
     if (newEdge != null) {

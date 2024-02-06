@@ -4,6 +4,7 @@ import 'dart:math';
 import 'node_painter.dart';
 import 'common.dart';
 import 'utils.dart';
+import 'user_preferences.dart';
 
 enum EdgeShape {
   straight,
@@ -11,9 +12,9 @@ enum EdgeShape {
   curvedDown,
 }
 
-class EdgePainter {
-  static const strokeWidth = 4.0;
+final strokeWidth = defaultStrokeWidth.toDouble();
 
+class EdgePainter {
   static Paint getEdgePaintStyle(EdgeType edgeType, {bool isSelected = false}) {
     final obliviousColor = isSelected ? const Color.fromARGB(255, 255, 192, 188) : Colors.red.withOpacity(0.7);
     final awareColor = isSelected ? Color.fromARGB(255, 201, 255, 203) : Colors.green.withOpacity(0.7);

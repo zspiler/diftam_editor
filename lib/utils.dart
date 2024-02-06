@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-// TODO better way of exposing utils?
+// TODO just make methods public, without class?
 class Utils {
   static double snapToGrid(double value, int gridSize) {
     return (value / gridSize).round() * gridSize * 1.0;

@@ -4,8 +4,11 @@ import 'common.dart';
 import 'utils.dart';
 
 class NodePainter {
-  static const strokeWidth = 4.0;
   static const textStyle = TextStyle(color: Colors.white, fontSize: 18);
+
+  final int strokeWidth;
+
+  NodePainter({int? strokeWidth}) : strokeWidth = strokeWidth ?? 4; // TODO default!
 
   static Radius getNodeRadius(Node node) {
     return node.runtimeType == TagNode ? const Radius.circular(24) : const Radius.circular(2);
@@ -23,14 +26,14 @@ class NodePainter {
     return nodeColor;
   }
 
-  static Paint getNodePaintStyle(Node node, {bool isSelected = false}) {
+  Paint getNodePaintStyle(Node node, {bool isSelected = false}) {
     return Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
+      ..strokeWidth = strokeWidth.toDouble()
       ..color = isSelected ? Colors.white : getNodeColor(node);
   }
 
-  static void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
+  void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
     var (x, y) = (node.position.dx, node.position.dy);
 
     x = Utils.snapToGrid(x, gridSize);

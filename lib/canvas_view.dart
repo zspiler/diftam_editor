@@ -15,13 +15,15 @@ import 'ui/tag_node_info_panel.dart';
 import 'ui/boundary_node_info_panel.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
+import 'user_preferences.dart';
 
 class CanvasView extends StatefulWidget {
   final List<Node> nodes;
   final List<Edge> edges;
   FocusNode focusNode;
+  Preferences preferences;
 
-  CanvasView({super.key, required this.nodes, required this.edges, required this.focusNode});
+  CanvasView({super.key, required this.nodes, required this.edges, required this.focusNode, required this.preferences});
 
   @override
   State<CanvasView> createState() => _CanvasViewState();
@@ -468,6 +470,7 @@ class _CanvasViewState extends State<CanvasView> {
                                 : null,
                             (newPathPerEdge) => pathPerEdge = newPathPerEdge,
                             selectedObject,
+                            widget.preferences,
                           ),
                         )),
                   ),
