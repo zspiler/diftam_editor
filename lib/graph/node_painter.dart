@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'common.dart';
-import 'utils.dart';
+import '../common.dart';
+import '../utils.dart';
 
 class NodePainter {
   static const textStyle = TextStyle(color: Colors.white, fontSize: 18);

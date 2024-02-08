@@ -5,14 +5,14 @@ import 'package:poc/keyboard_shortcuts.dart';
 
 import 'package:vector_math/vector_math_64.dart' as vector;
 
-import 'node_painter.dart';
-import 'graph_painter.dart';
+import 'graph/node_painter.dart';
+import 'graph/graph_painter.dart';
 import 'common.dart';
 import 'menu_bar.dart';
 import 'utils.dart';
-import 'ui/edge_info_panel.dart';
-import 'ui/tag_node_info_panel.dart';
-import 'ui/boundary_node_info_panel.dart';
+import 'info_panels/edge_info_panel.dart';
+import 'info_panels/tag_node_info_panel.dart';
+import 'info_panels/boundary_node_info_panel.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
 import 'user_preferences.dart';

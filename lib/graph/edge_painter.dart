@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 import 'node_painter.dart';
-import 'common.dart';
-import 'utils.dart';
-import 'user_preferences.dart';
+import '../common.dart';
+import '../utils.dart';
+import '../user_preferences.dart';
 
 enum EdgeShape {
   straight,
