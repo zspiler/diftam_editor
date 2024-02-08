@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'user_preferences.dart';
 import 'ui/number_input.dart';
+import 'ui/color_picker.dart';
 
 class PreferencesDialog extends StatefulWidget {
   final Function(Preferences newPreferences) onChange;
@@ -13,6 +14,9 @@ class PreferencesDialog extends StatefulWidget {
 
 class _PreferencesDialogState extends State<PreferencesDialog> {
   int _strokeWidth = 0;
+  Color _tagNodeColor = Colors.white;
+  Color _entryNodeColor = Colors.white;
+  Color _exitNodeColor = Colors.white;
 
   @override
   void initState() {
@@ -21,16 +25,38 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
   }
 
   Future<void> _loadPreferences() async {
-    final strokeWidth = await PreferencesManager.getStrokeWidth();
+    final preferences = await PreferencesManager.getPreferences();
     setState(() {
-      _strokeWidth = strokeWidth;
+      _strokeWidth = preferences.strokeWidth;
+      _tagNodeColor = preferences.tagNodeColor;
+      _entryNodeColor = preferences.entryNodeColor;
+      _exitNodeColor = preferences.exitNodeColor;
     });
   }
 
   void _updateStrokeWidth(int newValue) async {
     await PreferencesManager.setStrokeWidth(newValue);
+    await _updatePreferences();
+  }
+
+  void _updateTagNodeColor(Color newColor) async {
+    await PreferencesManager.setTagNodeColor(newColor);
+    await _updatePreferences();
+  }
+
+  void _updateEntryNodeColor(Color newColor) async {
+    await PreferencesManager.setEntryNodeColor(newColor);
+    await _updatePreferences();
+  }
+
+  void _updateExitNodeColor(Color newColor) async {
+    await PreferencesManager.setExitNodeColor(newColor);
+    await _updatePreferences();
+  }
+
+  Future<void> _updatePreferences() async {
     await _loadPreferences();
-    final updatedPreferences = Preferences(strokeWidth: _strokeWidth);
+    final updatedPreferences = await PreferencesManager.getPreferences();
     widget.onChange(updatedPreferences);
   }
 
@@ -42,19 +68,51 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final nodeColorPreferencesRows = [
+      ('Tag node', _tagNodeColor, _updateTagNodeColor),
+      ('Entry node', _entryNodeColor, _updateEntryNodeColor),
+      ('Exit node', _exitNodeColor, _updateExitNodeColor)
+    ];
+
+    List<TableRow> buildColorPreferencesTableRows() {
+      const tableSpacer = TableRow(children: [SizedBox(height: 8), SizedBox(height: 8)]);
+      List<TableRow> rowsWithSpacers = nodeColorPreferencesRows.fold<List<TableRow>>([], (List<TableRow> accumulator, row) {
+        final description = row.$1;
+        final color = row.$2;
+        final onChange = row.$3;
+
+        accumulator.add(TableRow(children: [
+          TableCell(
+            verticalAlignment: TableCellVerticalAlignment.middle,
+            child: Text(description, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+          ),
+          TableCell(
+            verticalAlignment: TableCellVerticalAlignment.middle,
+            child: SizedBox(height: 40, width: 40, child: MyColorPicker(color: color, onChange: onChange)),
+          ),
+        ]));
+
+        if (row != nodeColorPreferencesRows.last) {
+          accumulator.add(tableSpacer);
+        }
+
+        return accumulator;
+      });
+
+      return rowsWithSpacers;
+    }
+
     return Dialog(
       child: Container(
         width: 400,
-        height: 300,
+        height: 1000,
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text('Settings', style: Theme.of(context).textTheme.headlineLarge),
-              SizedBox(
-                height: 30,
-              ),
+              SizedBox(height: 30),
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -65,9 +123,16 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
                     max: 10,
                     min: 1,
                   ),
-                  SizedBox(
-                    height: 30,
+                  SizedBox(height: 30),
+                  Text('Colors', style: Theme.of(context).textTheme.titleLarge),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 50.0, vertical: 20.0),
+                    child: Table(columnWidths: const {
+                      0: FlexColumnWidth(1),
+                      1: IntrinsicColumnWidth(),
+                    }, children: buildColorPreferencesTableRows()),
                   ),
+                  SizedBox(height: 30),
                   TextButton(
                     child: Text("Reset"),
                     onPressed: _clearPreferences,

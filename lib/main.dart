@@ -37,9 +37,11 @@ class _MyAppState extends State<MyApp> {
     focusNode = FocusNode();
 
     // TODO ensure unique IDS?
+    final entry = EntryNode(Offset(350, 350), 'stdin');
     final tag2 = TagNode(Offset(500, 350), 'randomId', 'priv');
     final tag3 = TagNode(Offset(700, 350), 'randomId2', 'pub');
-    addNewCanvas(nodes: [tag2, tag3], edges: [Edge(tag2, tag3, EdgeType.aware)]);
+    final exit = ExitNode(Offset(850, 350), 'stdout');
+    addNewCanvas(nodes: [tag2, tag3, entry, exit], edges: [Edge(tag2, tag3, EdgeType.aware)]);
   }
 
   @override
@@ -49,9 +51,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> loadPreferences() async {
-    final strokeWidth = await PreferencesManager.getStrokeWidth();
+    final prefs = await PreferencesManager.getPreferences();
     setState(() {
-      preferences = Preferences(strokeWidth: strokeWidth);
+      preferences = prefs;
     });
   }
 

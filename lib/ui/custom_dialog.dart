@@ -59,7 +59,7 @@ class CustomDialog {
     AlertDialog alert = AlertDialog(
       title: Text(title),
       content: Container(
-        // TODO responsive
+        // TODO responsive (padding: EdgeInsets.all?)
         height: 150,
         width: 300,
         child: Center(

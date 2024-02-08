@@ -7,23 +7,24 @@ class NodePainter {
   static const textStyle = TextStyle(color: Colors.white, fontSize: 18);
 
   final int strokeWidth;
+  final Color tagNodeColor;
+  final Color entryNodeColor;
+  final Color exitNodeColor;
 
-  NodePainter({int? strokeWidth}) : strokeWidth = strokeWidth ?? 4; // TODO default!
+  NodePainter({required this.strokeWidth, required this.tagNodeColor, required this.entryNodeColor, required this.exitNodeColor});
 
   static Radius getNodeRadius(Node node) {
     return node.runtimeType == TagNode ? const Radius.circular(24) : const Radius.circular(2);
   }
 
-  static Color getNodeColor(Node node) {
-    final Color nodeColor;
+  Color getNodeColor(Node node) {
     if (node.runtimeType == TagNode) {
-      nodeColor = Colors.lime;
+      return tagNodeColor;
     } else if (node.runtimeType == EntryNode) {
-      nodeColor = Colors.grey;
+      return entryNodeColor;
     } else {
-      nodeColor = const Color.fromARGB(255, 96, 96, 96);
+      return exitNodeColor;
     }
-    return nodeColor;
   }
 
   Paint getNodePaintStyle(Node node, {bool isSelected = false}) {

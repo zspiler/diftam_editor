@@ -12,10 +12,14 @@ class GraphPainter extends CustomPainter {
   final Function(Map<Edge, Path> pathPerEdge) emitPathPerEdge;
   final GraphObject? selectedObject;
   final Preferences preferences;
-  late final NodePainter nodePainter;
+  final NodePainter nodePainter;
 
   GraphPainter(this.nodes, this.edges, this.newEdge, this.emitPathPerEdge, this.selectedObject, this.preferences)
-      : nodePainter = NodePainter(strokeWidth: preferences.strokeWidth);
+      : nodePainter = NodePainter(
+            strokeWidth: preferences.strokeWidth,
+            tagNodeColor: preferences.tagNodeColor,
+            entryNodeColor: preferences.entryNodeColor,
+            exitNodeColor: preferences.exitNodeColor);
 
   // NOTE widget rebuilt each time _CanvasViewState changes 😬
   @override

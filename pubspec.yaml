@@ -39,6 +39,7 @@ dependencies:
   vector_math: ^2.1.4
   universal_io: ^2.2.2
   shared_preferences: ^2.2.2
+  flex_color_picker: ^3.3.1
 
 dev_dependencies:
   flutter_test:
