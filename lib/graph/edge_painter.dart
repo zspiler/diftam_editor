@@ -15,9 +15,15 @@ enum EdgeShape {
 final strokeWidth = defaultStrokeWidth.toDouble();
 
 class EdgePainter {
-  static Paint getEdgePaintStyle(EdgeType edgeType, {bool isSelected = false}) {
-    final obliviousColor = isSelected ? const Color.fromARGB(255, 255, 192, 188) : Colors.red.withOpacity(0.7);
-    final awareColor = isSelected ? Color.fromARGB(255, 201, 255, 203) : Colors.green.withOpacity(0.7);
+  final Color obliviousEdgeColor;
+  final Color awareEdgeColor;
+
+  EdgePainter({required this.obliviousEdgeColor, required this.awareEdgeColor});
+
+  Paint getEdgePaintStyle(EdgeType edgeType, {bool isSelected = false}) {
+    final obliviousColor = isSelected ? Colors.white : obliviousEdgeColor;
+    final awareColor = isSelected ? Colors.white : awareEdgeColor;
+
     final color = edgeType == EdgeType.oblivious ? obliviousColor : awareColor;
     return Paint()
       ..style = PaintingStyle.stroke
@@ -29,14 +35,14 @@ class EdgePainter {
     final paintStyleFaded = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
-      ..color = Colors.lime.withOpacity(0.7);
+      ..color = Colors.grey.withOpacity(0.7);
 
     final (sourcePoint, targetPoint) = points;
     canvas.drawLine(sourcePoint, targetPoint, paintStyleFaded);
     drawArrowhead(canvas, targetPoint, sourcePoint, paintStyleFaded);
   }
 
-  static Path drawEdge(Canvas canvas, Edge edge, {shape = EdgeShape.straight, bool isSelected = false}) {
+  Path drawEdge(Canvas canvas, Edge edge, {shape = EdgeShape.straight, bool isSelected = false}) {
     List<Offset> intersectionPoints = calculateIntersectionPoints(edge.source, edge.target);
 
     Offset startPoint = intersectionPoints[0];
@@ -91,7 +97,7 @@ class EdgePainter {
   }
 
   // TODO: dynamic, avoid other edges
-  static Path drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool isSelected = false}) {
+  Path drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool isSelected = false}) {
     final paintStyle = getEdgePaintStyle(edgeType, isSelected: isSelected);
 
     final loopWidth = 60.0 / (small ? 1.5 : 1);

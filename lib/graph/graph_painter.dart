@@ -13,13 +13,15 @@ class GraphPainter extends CustomPainter {
   final GraphObject? selectedObject;
   final Preferences preferences;
   final NodePainter nodePainter;
+  final EdgePainter edgePainter;
 
   GraphPainter(this.nodes, this.edges, this.newEdge, this.emitPathPerEdge, this.selectedObject, this.preferences)
       : nodePainter = NodePainter(
             strokeWidth: preferences.strokeWidth,
             tagNodeColor: preferences.tagNodeColor,
             entryNodeColor: preferences.entryNodeColor,
-            exitNodeColor: preferences.exitNodeColor);
+            exitNodeColor: preferences.exitNodeColor),
+        edgePainter = EdgePainter(obliviousEdgeColor: preferences.obliviousEdgeColor, awareEdgeColor: preferences.awareEdgeColor);
 
   // NOTE widget rebuilt each time _CanvasViewState changes 😬
   @override
@@ -52,11 +54,11 @@ class GraphPainter extends CustomPainter {
       final loopEdgesOnNode = edges.where((edge2) => edge2.source == sourceNode && edge2.target == sourceNode).toList();
       if (loopEdgesOnNode.length == 2) {
         pathPerEdge[loopEdgesOnNode[0]] =
-            EdgePainter.drawLoop(canvas, sourceNode, EdgeType.aware, isSelected: loopEdgesOnNode[0] == selectedObject);
-        pathPerEdge[loopEdgesOnNode[1]] = EdgePainter.drawLoop(canvas, sourceNode, EdgeType.oblivious,
+            edgePainter.drawLoop(canvas, sourceNode, EdgeType.aware, isSelected: loopEdgesOnNode[0] == selectedObject);
+        pathPerEdge[loopEdgesOnNode[1]] = edgePainter.drawLoop(canvas, sourceNode, EdgeType.oblivious,
             small: true, isSelected: loopEdgesOnNode[1] == selectedObject);
       } else {
-        pathPerEdge[edge] = EdgePainter.drawLoop(canvas, sourceNode, edge.type, isSelected: edge == selectedObject);
+        pathPerEdge[edge] = edgePainter.drawLoop(canvas, sourceNode, edge.type, isSelected: edge == selectedObject);
       }
     }
 
@@ -71,7 +73,7 @@ class GraphPainter extends CustomPainter {
           ? (edge.type == EdgeType.oblivious ? EdgeShape.curvedUp : EdgeShape.curvedDown)
           : EdgeShape.straight;
 
-      pathPerEdge[edge] = EdgePainter.drawEdge(canvas, edge, shape: edgeShape, isSelected: edge == selectedObject);
+      pathPerEdge[edge] = edgePainter.drawEdge(canvas, edge, shape: edgeShape, isSelected: edge == selectedObject);
     }
 
     return pathPerEdge;

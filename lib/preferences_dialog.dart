@@ -17,6 +17,8 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
   Color _tagNodeColor = Colors.white;
   Color _entryNodeColor = Colors.white;
   Color _exitNodeColor = Colors.white;
+  Color _obliviousEdgeColor = Colors.white;
+  Color _awareEdgeColor = Colors.white;
 
   @override
   void initState() {
@@ -31,6 +33,8 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
       _tagNodeColor = preferences.tagNodeColor;
       _entryNodeColor = preferences.entryNodeColor;
       _exitNodeColor = preferences.exitNodeColor;
+      _obliviousEdgeColor = preferences.obliviousEdgeColor;
+      _awareEdgeColor = preferences.awareEdgeColor;
     });
   }
 
@@ -54,6 +58,16 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
     await _updatePreferences();
   }
 
+  void _updateObliviousEdgeColor(Color newColor) async {
+    await PreferencesManager.setObliviousEdgeColor(newColor);
+    await _updatePreferences();
+  }
+
+  void _updateAwareEdgeColor(Color newColor) async {
+    await PreferencesManager.setAwareEdgeColor(newColor);
+    await _updatePreferences();
+  }
+
   Future<void> _updatePreferences() async {
     await _loadPreferences();
     final updatedPreferences = await PreferencesManager.getPreferences();
@@ -71,7 +85,9 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
     final nodeColorPreferencesRows = [
       ('Tag node', _tagNodeColor, _updateTagNodeColor),
       ('Entry node', _entryNodeColor, _updateEntryNodeColor),
-      ('Exit node', _exitNodeColor, _updateExitNodeColor)
+      ('Exit node', _exitNodeColor, _updateExitNodeColor),
+      ('Oblivious edge', _obliviousEdgeColor, _updateObliviousEdgeColor),
+      ('Aware edge', _awareEdgeColor, _updateAwareEdgeColor),
     ];
 
     List<TableRow> buildColorPreferencesTableRows() {

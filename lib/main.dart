@@ -41,7 +41,8 @@ class _MyAppState extends State<MyApp> {
     final tag2 = TagNode(Offset(500, 350), 'randomId', 'priv');
     final tag3 = TagNode(Offset(700, 350), 'randomId2', 'pub');
     final exit = ExitNode(Offset(850, 350), 'stdout');
-    addNewCanvas(nodes: [tag2, tag3, entry, exit], edges: [Edge(tag2, tag3, EdgeType.aware)]);
+    addNewCanvas(
+        nodes: [tag2, tag3, entry, exit], edges: [Edge(tag2, tag3, EdgeType.aware), Edge(tag2, tag3, EdgeType.oblivious)]);
   }
 
   @override
@@ -113,7 +114,6 @@ class _MyAppState extends State<MyApp> {
                         ),
                       );
                     },
-                    // style: IconButton.styleFrom(backgroundColor: drawingNodeType == NodeType.exit ? Colors.white : null),
                   )))
         ],
       ),
