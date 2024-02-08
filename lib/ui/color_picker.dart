@@ -40,8 +40,8 @@ class MyColorPicker extends StatelessWidget {
       height: 40,
       borderRadius: 4,
       spacing: 5,
-      runSpacing: 5,
-      wheelDiameter: 155,
+      padding: const EdgeInsets.all(32),
+      wheelDiameter: 200,
       heading: Text(
         'Select color',
         style: Theme.of(context).textTheme.titleLarge,
@@ -50,12 +50,6 @@ class MyColorPicker extends StatelessWidget {
         'Select color shade',
         style: Theme.of(context).textTheme.titleSmall,
       ),
-      wheelSubheading: Text(
-        'Selected color and its shades',
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
-      showMaterialName: true,
-      showColorName: true,
       showColorCode: true,
       copyPasteBehavior: const ColorPickerCopyPasteBehavior(
         longPressMenu: true,
@@ -64,13 +58,14 @@ class MyColorPicker extends StatelessWidget {
       colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
       colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
       pickersEnabled: const <ColorPickerType, bool>{
-        ColorPickerType.accent: true,
         ColorPickerType.wheel: true,
+        ColorPickerType.accent: false,
         ColorPickerType.both: false,
-        ColorPickerType.primary: false,
         ColorPickerType.bw: false,
+        ColorPickerType.primary: false,
         ColorPickerType.custom: false,
       },
+      enableShadesSelection: false,
     ).showPickerDialog(
       context,
       transitionBuilder: (BuildContext context, Animation<double> a1, Animation<double> a2, Widget widget) {
@@ -84,7 +79,7 @@ class MyColorPicker extends StatelessWidget {
         );
       },
       transitionDuration: const Duration(milliseconds: 400),
-      constraints: const BoxConstraints(minHeight: 460, minWidth: 300, maxWidth: 320),
+      constraints: const BoxConstraints(minHeight: 350, minWidth: 300, maxWidth: 320),
     );
   }
 }
