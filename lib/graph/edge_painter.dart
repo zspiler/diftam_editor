@@ -4,7 +4,6 @@ import 'dart:math';
 import 'node_painter.dart';
 import '../common.dart';
 import '../utils.dart';
-import '../user_preferences.dart';
 
 enum EdgeShape {
   straight,
@@ -12,13 +11,12 @@ enum EdgeShape {
   curvedDown,
 }
 
-final strokeWidth = defaultStrokeWidth.toDouble();
-
 class EdgePainter {
+  final int strokeWidth;
   final Color obliviousEdgeColor;
   final Color awareEdgeColor;
 
-  EdgePainter({required this.obliviousEdgeColor, required this.awareEdgeColor});
+  EdgePainter({required this.strokeWidth, required this.obliviousEdgeColor, required this.awareEdgeColor});
 
   Paint getEdgePaintStyle(EdgeType edgeType, {bool isSelected = false}) {
     final obliviousColor = isSelected ? Colors.white : obliviousEdgeColor;
@@ -27,14 +25,14 @@ class EdgePainter {
     final color = edgeType == EdgeType.oblivious ? obliviousColor : awareColor;
     return Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
+      ..strokeWidth = strokeWidth.toDouble()
       ..color = color;
   }
 
-  static void drawEdgeInProgress(Canvas canvas, (Offset, Offset) points) {
+  void drawEdgeInProgress(Canvas canvas, (Offset, Offset) points) {
     final paintStyleFaded = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
+      ..strokeWidth = strokeWidth.toDouble()
       ..color = Colors.grey.withOpacity(0.7);
 
     final (sourcePoint, targetPoint) = points;

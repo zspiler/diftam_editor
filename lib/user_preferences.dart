@@ -1,14 +1,23 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
-const defaultStrokeWidth = 4;
+const defaultNodeStrokeWidth = 4;
+const defaultEdgeStrokeWidth = 4;
 const defaultTagNodeColor = Colors.lime;
 const defaultEntryNodeColor = Colors.grey;
 const defaultExitNodeColor = Color.fromARGB(255, 96, 96, 96);
-final defaultObliviousEdgeColor = Colors.red;
-final defaultAwareEdgeColor = Colors.green;
+const defaultObliviousEdgeColor = Colors.red;
+const defaultAwareEdgeColor = Colors.green;
 
-enum PreferenceKey { strokeWidth, tagNodeColor, entryNodeColor, exitNodeColor, obliviousEdgeColor, awareEdgeColor }
+enum PreferenceKey {
+  nodeStrokeWidth,
+  edgeStrokeWidth,
+  tagNodeColor,
+  entryNodeColor,
+  exitNodeColor,
+  obliviousEdgeColor,
+  awareEdgeColor
+}
 
 Color getDefaultColor(PreferenceKey key) {
   switch (key) {
@@ -22,15 +31,17 @@ Color getDefaultColor(PreferenceKey key) {
       return defaultObliviousEdgeColor;
     case PreferenceKey.awareEdgeColor:
       return defaultAwareEdgeColor;
-    case PreferenceKey.strokeWidth:
-      throw '${PreferenceKey.strokeWidth.name} has no default color!';
+    default:
+      throw '${key.name} has no default color!';
   }
 }
 
 class PreferencesManager {
   static Future<Preferences> getPreferences() async {
-    final (strokeWidth, tagNodeColor, entryNodeColor, exitNodeColor, obliviousEdgeColor, awareEdgeColor) = await (
-      getStrokeWidth(),
+    final (nodeStrokeWidth, edgeStrokeWidth, tagNodeColor, entryNodeColor, exitNodeColor, obliviousEdgeColor, awareEdgeColor) =
+        await (
+      getNodeStrokeWidth(),
+      getEdgeStrokeWidth(),
       getTagNodeColor(),
       getEntryNodeColor(),
       getExitNodeColor(),
@@ -39,7 +50,8 @@ class PreferencesManager {
     ).wait;
 
     return Preferences(
-      strokeWidth: strokeWidth,
+      nodeStrokeWidth: nodeStrokeWidth,
+      edgeStrokeWidth: edgeStrokeWidth,
       tagNodeColor: tagNodeColor,
       entryNodeColor: entryNodeColor,
       exitNodeColor: exitNodeColor,
@@ -53,14 +65,24 @@ class PreferencesManager {
     await preferences.clear();
   }
 
-  static Future<void> setStrokeWidth(int value) async {
+  static Future<void> setNodeStrokeWidth(int value) async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
-    await preferences.setInt(PreferenceKey.strokeWidth.name, value);
+    await preferences.setInt(PreferenceKey.nodeStrokeWidth.name, value);
   }
 
-  static Future<int> getStrokeWidth() async {
+  static Future<int> getNodeStrokeWidth() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
-    return preferences.getInt(PreferenceKey.strokeWidth.name) ?? defaultStrokeWidth;
+    return preferences.getInt(PreferenceKey.nodeStrokeWidth.name) ?? defaultNodeStrokeWidth;
+  }
+
+  static Future<void> setEdgeStrokeWidth(int value) async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setInt(PreferenceKey.edgeStrokeWidth.name, value);
+  }
+
+  static Future<int> getEdgeStrokeWidth() async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    return preferences.getInt(PreferenceKey.edgeStrokeWidth.name) ?? defaultEdgeStrokeWidth;
   }
 
   static Future<void> setTagNodeColor(Color color) async {
@@ -116,7 +138,8 @@ class PreferencesManager {
 }
 
 class Preferences {
-  final int strokeWidth;
+  final int nodeStrokeWidth;
+  final int edgeStrokeWidth;
   Color tagNodeColor;
   Color entryNodeColor;
   Color exitNodeColor;
@@ -124,13 +147,15 @@ class Preferences {
   Color awareEdgeColor;
 
   Preferences(
-      {int? strokeWidth,
+      {int? nodeStrokeWidth,
+      int? edgeStrokeWidth,
       Color? tagNodeColor,
       Color? entryNodeColor,
       Color? exitNodeColor,
       Color? obliviousEdgeColor,
       Color? awareEdgeColor})
-      : strokeWidth = strokeWidth ?? defaultStrokeWidth,
+      : nodeStrokeWidth = nodeStrokeWidth ?? defaultNodeStrokeWidth,
+        edgeStrokeWidth = edgeStrokeWidth ?? defaultEdgeStrokeWidth,
         tagNodeColor = tagNodeColor ?? defaultTagNodeColor,
         entryNodeColor = entryNodeColor ?? defaultEntryNodeColor,
         exitNodeColor = exitNodeColor ?? defaultExitNodeColor,
@@ -139,6 +164,6 @@ class Preferences {
 
   @override
   String toString() {
-    return 'Preferences{strokeWidth: $strokeWidth, tagNodeColor: $tagNodeColor, entryNodeColor: $entryNodeColor, exitNodeColor: $exitNodeColor}';
+    return 'Preferences{nodeStrokeWidth: $nodeStrokeWidth, edgeStrokeWidth: $edgeStrokeWidth, tagNodeColor: $tagNodeColor, entryNodeColor: $entryNodeColor, exitNodeColor: $exitNodeColor}';
   }
 }

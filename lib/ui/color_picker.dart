@@ -14,8 +14,8 @@ class MyColorPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColorIndicator(
-      width: 44,
-      height: 44,
+      width: 40,
+      height: 40,
       borderRadius: 4,
       color: color,
       onSelectFocus: false,

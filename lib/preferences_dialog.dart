@@ -13,7 +13,8 @@ class PreferencesDialog extends StatefulWidget {
 }
 
 class _PreferencesDialogState extends State<PreferencesDialog> {
-  int _strokeWidth = 0;
+  int _nodeStrokeWidth = 0;
+  int _edgeStrokeWidth = 0;
   Color _tagNodeColor = Colors.white;
   Color _entryNodeColor = Colors.white;
   Color _exitNodeColor = Colors.white;
@@ -29,7 +30,8 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
   Future<void> _loadPreferences() async {
     final preferences = await PreferencesManager.getPreferences();
     setState(() {
-      _strokeWidth = preferences.strokeWidth;
+      _nodeStrokeWidth = preferences.nodeStrokeWidth;
+      _edgeStrokeWidth = preferences.edgeStrokeWidth;
       _tagNodeColor = preferences.tagNodeColor;
       _entryNodeColor = preferences.entryNodeColor;
       _exitNodeColor = preferences.exitNodeColor;
@@ -38,8 +40,13 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
     });
   }
 
-  void _updateStrokeWidth(int newValue) async {
-    await PreferencesManager.setStrokeWidth(newValue);
+  void _updateNodeStrokeWidth(int newValue) async {
+    await PreferencesManager.setNodeStrokeWidth(newValue);
+    await _updatePreferences();
+  }
+
+  void _updateEdgeStrokeWidth(int newValue) async {
+    await PreferencesManager.setEdgeStrokeWidth(newValue);
     await _updatePreferences();
   }
 
@@ -90,8 +97,9 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
       ('Aware edge', _awareEdgeColor, _updateAwareEdgeColor),
     ];
 
+    TableRow buildTableSpacer(double height) => TableRow(children: [SizedBox(height: height), SizedBox(height: height)]);
+
     List<TableRow> buildColorPreferencesTableRows() {
-      const tableSpacer = TableRow(children: [SizedBox(height: 8), SizedBox(height: 8)]);
       List<TableRow> rowsWithSpacers = nodeColorPreferencesRows.fold<List<TableRow>>([], (List<TableRow> accumulator, row) {
         final description = row.$1;
         final color = row.$2;
@@ -104,12 +112,12 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
           ),
           TableCell(
             verticalAlignment: TableCellVerticalAlignment.middle,
-            child: SizedBox(height: 40, width: 40, child: MyColorPicker(color: color, onChange: onChange)),
+            child: Align(alignment: Alignment.center, child: MyColorPicker(color: color, onChange: onChange)),
           ),
         ]));
 
         if (row != nodeColorPreferencesRows.last) {
-          accumulator.add(tableSpacer);
+          accumulator.add(buildTableSpacer(10));
         }
 
         return accumulator;
@@ -133,26 +141,62 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   Text('Stroke width', style: Theme.of(context).textTheme.titleLarge),
-                  NumberInput(
-                    value: _strokeWidth,
-                    onChange: _updateStrokeWidth,
-                    max: 10,
-                    min: 1,
-                  ),
+                  SizedBox(height: 16),
+                  Table(columnWidths: const {
+                    0: FixedColumnWidth(110),
+                    1: FixedColumnWidth(110),
+                  }, children: [
+                    TableRow(children: [
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Text('Node', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+                      ),
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: NumberInput(
+                            value: _nodeStrokeWidth,
+                            onChange: _updateNodeStrokeWidth,
+                            max: 10,
+                            min: 1,
+                          ),
+                        ),
+                      ),
+                    ]),
+                    buildTableSpacer(8),
+                    TableRow(children: [
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Text('Edge', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+                      ),
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: NumberInput(
+                            value: _edgeStrokeWidth,
+                            onChange: _updateEdgeStrokeWidth,
+                            max: 8,
+                            min: 1,
+                          ),
+                        ),
+                      ),
+                    ])
+                  ]),
                   SizedBox(height: 30),
                   Text('Colors', style: Theme.of(context).textTheme.titleLarge),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 50.0, vertical: 20.0),
-                    child: Table(columnWidths: const {
-                      0: FlexColumnWidth(1),
-                      1: IntrinsicColumnWidth(),
-                    }, children: buildColorPreferencesTableRows()),
-                  ),
+                  SizedBox(height: 16),
+                  Table(columnWidths: const {
+                    0: FixedColumnWidth(110),
+                    1: FixedColumnWidth(110),
+                  }, children: buildColorPreferencesTableRows()),
                   SizedBox(height: 30),
                   TextButton(
                     child: Text("Reset"),
                     onPressed: _clearPreferences,
                   ),
+                  SizedBox(height: 10),
                   TextButton(
                     child: Text("Close"),
                     onPressed: () {
