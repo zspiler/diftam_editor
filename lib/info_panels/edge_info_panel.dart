@@ -87,7 +87,7 @@ class EdgeInfoPanel extends StatelessWidget {
                 Tooltip(
                     message: "Delete edge",
                     child: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
+                      icon: Icon(Icons.delete_rounded, color: Colors.red),
                       onPressed: () {
                         deleteObject(edge);
                       },

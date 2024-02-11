@@ -117,7 +117,7 @@ class Edge implements GraphObject {
 }
 
 class PolicyData {
-  final String name;
+  String name;
   final List<Node> nodes;
   final List<Edge> edges;
 

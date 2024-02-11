@@ -164,6 +164,6 @@ class Preferences {
 
   @override
   String toString() {
-    return 'Preferences{nodeStrokeWidth: $nodeStrokeWidth, edgeStrokeWidth: $edgeStrokeWidth, tagNodeColor: $tagNodeColor, entryNodeColor: $entryNodeColor, exitNodeColor: $exitNodeColor}';
+    return 'Preferences{nodeStrokeWidth: $nodeStrokeWidth, edgeStrokeWidth: $edgeStrokeWidth, tagNodeColor: $tagNodeColor, entryNodeColor: $entryNodeColor, exitNodeColor: $exitNodeColor} obliviousEdgeColor: $obliviousEdgeColor, awareEdgeColor: $awareEdgeColor';
   }
 }

@@ -63,7 +63,7 @@ class BoundaryNodeInfoPanel extends StatelessWidget {
                 Tooltip(
                     message: "Delete node",
                     child: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
+                      icon: Icon(Icons.delete_rounded, color: Colors.red),
                       onPressed: () {
                         deleteObject(node);
                       },

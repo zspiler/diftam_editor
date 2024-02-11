@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:poc/manage_policies_dialog.dart';
 import 'package:poc/preferences_dialog.dart';
 import 'canvas_view.dart';
 import 'ui/snackbar.dart';
@@ -25,7 +26,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   List<PolicyData> policies = [];
   var selectedPolicyIndex = 0;
-  late FocusNode focusNode;
+
+  List<FocusNode> focusNodes = [];
 
   final nodes = <Node>[];
   final edges = <Edge>[];
@@ -33,9 +35,9 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    loadPreferences();
+    super.initState();
 
-    focusNode = FocusNode();
+    loadPreferences();
 
     // TODO ensure unique IDS?
     final tag2 = TagNode(Offset(500, 350), 'randomId', 'priv');
@@ -57,12 +59,16 @@ class _MyAppState extends State<MyApp> {
       Edge(tag5, tag5, EdgeType.oblivious),
       Edge(tag5, tag5, EdgeType.aware)
     ]);
+
+    createPolicy(name: 'Policy 2');
   }
 
   @override
   void dispose() {
-    focusNode.dispose(); // TODO useless? is this ever called?
     super.dispose();
+    for (var focusNode in focusNodes) {
+      focusNode.dispose();
+    }
   }
 
   Future<void> loadPreferences() async {
@@ -74,6 +80,7 @@ class _MyAppState extends State<MyApp> {
 
   void createPolicy({required String name, List<Node>? nodes, List<Edge>? edges}) {
     setState(() {
+      focusNodes.add(FocusNode());
       policies.add(PolicyData(name: name, nodes: nodes, edges: edges));
     });
   }
@@ -81,6 +88,7 @@ class _MyAppState extends State<MyApp> {
   void selectPolicy(int index) {
     setState(() {
       selectedPolicyIndex = index;
+      focusNodes[selectedPolicyIndex].requestFocus();
     });
   }
 
@@ -91,39 +99,59 @@ class _MyAppState extends State<MyApp> {
         children: [
           IndexedStack(
               index: selectedPolicyIndex,
-              children: policies.map((policy) {
+              children: policies.asMap().entries.map((entry) {
+                final index = entry.key;
+                final policy = entry.value;
                 return CanvasView(
                   nodes: policy.nodes,
                   edges: policy.edges,
-                  focusNode: focusNode,
+                  focusNode: focusNodes[index],
                   preferences: preferences,
                 );
               }).toList()),
           Positioned(
               bottom: 0,
               child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: PolicyTabBar(policies, selectedPolicyIndex, onSelect: selectPolicy, onAdd: () {
-                    var newPolicyName = 'Policy ${policies.length + 1}';
-                    CustomDialog.showInputDialog(
-                      context,
-                      title: 'Create policy',
-                      hint: 'Enter policy name',
-                      acceptEmptyInput: true,
-                      initialText: newPolicyName,
-                      onConfirm: (String inputText) {
-                        if (inputText.isNotEmpty) {
-                          newPolicyName = inputText;
-                        }
-                        createPolicy(name: newPolicyName);
-                        setState(() {
-                          selectedPolicyIndex = policies.length - 1;
-                        });
-                      },
-                      isInputValid: (String inputText) => !policies.any((policy) => policy.name == inputText),
-                      errorMessage: 'Policy with this name already exists!',
-                    );
-                  }))),
+                alignment: Alignment.bottomCenter,
+                child: PolicyTabBar(policies, selectedPolicyIndex, onSelect: selectPolicy, onAddPressed: () {
+                  var newPolicyName = 'Policy ${policies.length + 1}';
+                  CustomDialog.showInputDialog(
+                    context,
+                    title: 'Create policy',
+                    hint: 'Enter policy name',
+                    acceptEmptyInput: true,
+                    initialText: newPolicyName,
+                    onConfirm: (String inputText) {
+                      if (inputText.isNotEmpty) {
+                        newPolicyName = inputText;
+                      }
+                      createPolicy(name: newPolicyName);
+                      selectPolicy(policies.length - 1);
+                    },
+                    isInputValid: (String inputText) => !policies.any((policy) => policy.name == inputText),
+                    errorMessage: 'Policy with this name already exists!',
+                  );
+                }, onManagePressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return ManagePoliciesDialog(
+                          policies: policies,
+                          onChange: (updatedPolicies) {
+                            setState(() {
+                              policies = List.from(updatedPolicies);
+                            });
+                          },
+                          onDeletePress: (int index) {
+                            final newPoliciesLength = policies.length - 1;
+                            if (selectedPolicyIndex >= newPoliciesLength) {
+                              selectPolicy(selectedPolicyIndex -= 1);
+                            }
+                          },
+                        );
+                      });
+                }),
+              )),
           Positioned(
               top: 16,
               left: 16,
