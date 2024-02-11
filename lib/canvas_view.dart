@@ -108,7 +108,7 @@ class _CanvasViewState extends State<CanvasView> {
 
   void handleCanvasPanning(Offset scrollDelta) {
     setState(() {
-      canvasPosition -= scrollDelta / 1.5;
+      canvasPosition -= scrollDelta / 1.5 / canvasScale;
     });
   }
 
