@@ -73,7 +73,7 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   bool isNodeHit(Node node, Offset position) {
-    final nodeSize = NodePainter.calculateNodeSize(node);
+    final nodeSize = NodePainter.calculateNodeSize(node, padding: widget.preferences.nodePadding);
 
     return node.position.dx < position.dx &&
         node.position.dx + nodeSize.width > position.dx &&
@@ -242,7 +242,7 @@ class _CanvasViewState extends State<CanvasView> {
       }
     }
 
-    final nodeSize = NodePainter.calculateNodeSize(newNode) * canvasScale;
+    final nodeSize = NodePainter.calculateNodeSize(newNode, padding: widget.preferences.nodePadding) * canvasScale;
     newNode.position = Offset(position.dx - nodeSize.width / 2, position.dy - nodeSize.height / 2);
 
     setState(() {

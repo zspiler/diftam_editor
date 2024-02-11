@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-import 'node_painter.dart';
 import '../common.dart';
 import '../utils.dart';
+import '../user_preferences.dart';
+import 'node_painter.dart';
 
 enum EdgeShape {
   straight,
@@ -14,16 +15,15 @@ enum EdgeShape {
 class EdgePainter {
   final Offset canvasPosition;
   final double canvasScale;
+  final Preferences preferences;
   final int strokeWidth;
   final Color obliviousEdgeColor;
   final Color awareEdgeColor;
 
-  EdgePainter(
-      {required this.canvasPosition,
-      required this.canvasScale,
-      required this.strokeWidth,
-      required this.obliviousEdgeColor,
-      required this.awareEdgeColor});
+  EdgePainter({required this.canvasPosition, required this.canvasScale, required this.preferences})
+      : strokeWidth = preferences.edgeStrokeWidth,
+        obliviousEdgeColor = preferences.obliviousEdgeColor,
+        awareEdgeColor = preferences.awareEdgeColor;
 
   Paint getEdgePaintStyle(EdgeType edgeType, {bool isSelected = false}) {
     final obliviousColor = isSelected ? Colors.white : obliviousEdgeColor;
@@ -116,7 +116,7 @@ class EdgePainter {
     final nodeX = (Utils.snapToGrid(node.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
     final nodeY = (Utils.snapToGrid(node.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
 
-    final nodeSize = NodePainter.calculateNodeSize(node) * canvasScale;
+    final nodeSize = NodePainter.calculateNodeSize(node, padding: preferences.nodePadding) * canvasScale;
 
     final boxTopCenterX = nodeX + nodeSize.width / 2;
     final boxTopCenterY = nodeY;
@@ -155,8 +155,8 @@ class EdgePainter {
     final x2 = (Utils.snapToGrid(node2.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
     final y2 = (Utils.snapToGrid(node2.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
 
-    final node1Size = NodePainter.calculateNodeSize(node1) * canvasScale;
-    final node2Size = NodePainter.calculateNodeSize(node2) * canvasScale;
+    final node1Size = NodePainter.calculateNodeSize(node1, padding: preferences.nodePadding) * canvasScale;
+    final node2Size = NodePainter.calculateNodeSize(node2, padding: preferences.nodePadding) * canvasScale;
 
     final node1Offset = Offset(x1 + node1Size.width / 2, y1 + node1Size.height / 2);
     final node2Offset = Offset(x2 + node2Size.width / 2, y2 + node2Size.height / 2);

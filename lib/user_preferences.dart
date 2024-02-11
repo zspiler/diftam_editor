@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
+const defaultNodePadding = 3;
 const defaultNodeStrokeWidth = 4;
 const defaultEdgeStrokeWidth = 4;
 const defaultTagNodeColor = Colors.lime;
@@ -10,6 +11,7 @@ const defaultObliviousEdgeColor = Colors.red;
 const defaultAwareEdgeColor = Colors.green;
 
 enum PreferenceKey {
+  nodePadding,
   nodeStrokeWidth,
   edgeStrokeWidth,
   tagNodeColor,
@@ -38,8 +40,17 @@ Color getDefaultColor(PreferenceKey key) {
 
 class PreferencesManager {
   static Future<Preferences> getPreferences() async {
-    final (nodeStrokeWidth, edgeStrokeWidth, tagNodeColor, entryNodeColor, exitNodeColor, obliviousEdgeColor, awareEdgeColor) =
-        await (
+    final (
+      nodePadding,
+      nodeStrokeWidth,
+      edgeStrokeWidth,
+      tagNodeColor,
+      entryNodeColor,
+      exitNodeColor,
+      obliviousEdgeColor,
+      awareEdgeColor
+    ) = await (
+      getNodePadding(),
       getNodeStrokeWidth(),
       getEdgeStrokeWidth(),
       getTagNodeColor(),
@@ -50,6 +61,7 @@ class PreferencesManager {
     ).wait;
 
     return Preferences(
+      nodePadding: nodePadding,
       nodeStrokeWidth: nodeStrokeWidth,
       edgeStrokeWidth: edgeStrokeWidth,
       tagNodeColor: tagNodeColor,
@@ -63,6 +75,16 @@ class PreferencesManager {
   static Future<void> clear() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
     await preferences.clear();
+  }
+
+  static Future<void> setNodePadding(int value) async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setInt(PreferenceKey.nodePadding.name, value);
+  }
+
+  static Future<int> getNodePadding() async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    return preferences.getInt(PreferenceKey.nodePadding.name) ?? defaultNodePadding;
   }
 
   static Future<void> setNodeStrokeWidth(int value) async {
@@ -138,6 +160,7 @@ class PreferencesManager {
 }
 
 class Preferences {
+  final int nodePadding;
   final int nodeStrokeWidth;
   final int edgeStrokeWidth;
   Color tagNodeColor;
@@ -147,14 +170,16 @@ class Preferences {
   Color awareEdgeColor;
 
   Preferences(
-      {int? nodeStrokeWidth,
+      {int? nodePadding,
+      int? nodeStrokeWidth,
       int? edgeStrokeWidth,
       Color? tagNodeColor,
       Color? entryNodeColor,
       Color? exitNodeColor,
       Color? obliviousEdgeColor,
       Color? awareEdgeColor})
-      : nodeStrokeWidth = nodeStrokeWidth ?? defaultNodeStrokeWidth,
+      : nodePadding = nodePadding ?? defaultNodePadding,
+        nodeStrokeWidth = nodeStrokeWidth ?? defaultNodeStrokeWidth,
         edgeStrokeWidth = edgeStrokeWidth ?? defaultEdgeStrokeWidth,
         tagNodeColor = tagNodeColor ?? defaultTagNodeColor,
         entryNodeColor = entryNodeColor ?? defaultEntryNodeColor,
@@ -164,6 +189,6 @@ class Preferences {
 
   @override
   String toString() {
-    return 'Preferences{nodeStrokeWidth: $nodeStrokeWidth, edgeStrokeWidth: $edgeStrokeWidth, tagNodeColor: $tagNodeColor, entryNodeColor: $entryNodeColor, exitNodeColor: $exitNodeColor} obliviousEdgeColor: $obliviousEdgeColor, awareEdgeColor: $awareEdgeColor';
+    return 'Preferences{nodePadding: $nodePadding nodeStrokeWidth: $nodeStrokeWidth, edgeStrokeWidth: $edgeStrokeWidth, tagNodeColor: $tagNodeColor, entryNodeColor: $entryNodeColor, exitNodeColor: $exitNodeColor} obliviousEdgeColor: $obliviousEdgeColor, awareEdgeColor: $awareEdgeColor';
   }
 }

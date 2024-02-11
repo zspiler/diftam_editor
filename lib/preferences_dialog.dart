@@ -13,6 +13,7 @@ class PreferencesDialog extends StatefulWidget {
 }
 
 class _PreferencesDialogState extends State<PreferencesDialog> {
+  int _nodePadding = 0;
   int _nodeStrokeWidth = 0;
   int _edgeStrokeWidth = 0;
   Color _tagNodeColor = Colors.white;
@@ -30,6 +31,7 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
   Future<void> _loadPreferences() async {
     final preferences = await PreferencesManager.getPreferences();
     setState(() {
+      _nodePadding = preferences.nodePadding;
       _nodeStrokeWidth = preferences.nodeStrokeWidth;
       _edgeStrokeWidth = preferences.edgeStrokeWidth;
       _tagNodeColor = preferences.tagNodeColor;
@@ -38,6 +40,11 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
       _obliviousEdgeColor = preferences.obliviousEdgeColor;
       _awareEdgeColor = preferences.awareEdgeColor;
     });
+  }
+
+  void _updateNodePadding(int newValue) async {
+    await PreferencesManager.setNodePadding(newValue);
+    await _updatePreferences();
   }
 
   void _updateNodeStrokeWidth(int newValue) async {
@@ -140,16 +147,36 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Text('Stroke width', style: Theme.of(context).textTheme.titleLarge),
+                  Text('Sizing', style: Theme.of(context).textTheme.titleLarge),
                   SizedBox(height: 16),
                   Table(columnWidths: const {
-                    0: FixedColumnWidth(110),
-                    1: FixedColumnWidth(110),
+                    0: FixedColumnWidth(150),
+                    1: FixedColumnWidth(150),
                   }, children: [
                     TableRow(children: [
                       TableCell(
                         verticalAlignment: TableCellVerticalAlignment.middle,
-                        child: Text('Node', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+                        child: Text('Node padding', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+                      ),
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: NumberInput(
+                            value: _nodePadding,
+                            onChange: _updateNodePadding,
+                            max: 5,
+                            min: 1,
+                          ),
+                        ),
+                      ),
+                    ]),
+                    buildTableSpacer(6),
+                    TableRow(children: [
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Text('Node stroke width',
+                            style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
                       ),
                       TableCell(
                         verticalAlignment: TableCellVerticalAlignment.middle,
@@ -164,11 +191,12 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
                         ),
                       ),
                     ]),
-                    buildTableSpacer(8),
+                    buildTableSpacer(6),
                     TableRow(children: [
                       TableCell(
                         verticalAlignment: TableCellVerticalAlignment.middle,
-                        child: Text('Edge', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+                        child: Text('Edge stroke width',
+                            style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
                       ),
                       TableCell(
                         verticalAlignment: TableCellVerticalAlignment.middle,

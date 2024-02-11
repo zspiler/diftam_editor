@@ -20,18 +20,15 @@ class GraphPainter extends CustomPainter {
   GraphPainter(this.nodes, this.edges, this.newEdge, this.emitPathPerEdge, this.selectedObject, this.canvasPosition,
       this.canvasScale, this.preferences)
       : nodePainter = NodePainter(
-            canvasPosition: canvasPosition,
-            canvasScale: canvasScale,
-            strokeWidth: preferences.nodeStrokeWidth,
-            tagNodeColor: preferences.tagNodeColor,
-            entryNodeColor: preferences.entryNodeColor,
-            exitNodeColor: preferences.exitNodeColor),
+          canvasPosition: canvasPosition,
+          canvasScale: canvasScale,
+          preferences: preferences,
+        ),
         edgePainter = EdgePainter(
-            canvasPosition: canvasPosition,
-            canvasScale: canvasScale,
-            strokeWidth: preferences.edgeStrokeWidth,
-            obliviousEdgeColor: preferences.obliviousEdgeColor,
-            awareEdgeColor: preferences.awareEdgeColor);
+          canvasPosition: canvasPosition,
+          canvasScale: canvasScale,
+          preferences: preferences,
+        );
 
   // NOTE widget rebuilt each time _CanvasViewState changes 😬
   @override
