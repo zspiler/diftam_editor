@@ -123,15 +123,15 @@ class _CanvasViewState extends State<CanvasView> {
 
     final scaleChange = canvasScale - oldScale;
 
-    final offsetX = -(cursorPosition.dx * scaleChange);
-    final offsetY = -(cursorPosition.dy * scaleChange);
+    final adjustedCursorPosition = (adjustPositionForCanvasTransform(cursorPosition) + canvasPosition) / oldScale; // NOTE ?
+    final offsetX = -(adjustedCursorPosition.dx * scaleChange);
+    final offsetY = -(adjustedCursorPosition.dy * scaleChange);
 
-    // TODO resposition canvas!
     // TODO slow down trackpad zooming
     // TODO limit zoom
 
     setState(() {
-      // canvasPosition += Offset(offsetX, offsetY);
+      canvasPosition += Offset(offsetX, offsetY);
     });
   }
 
