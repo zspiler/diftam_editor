@@ -42,10 +42,9 @@ class _CanvasViewState extends State<CanvasView> {
   Node? newEdgeSourceNode;
   Offset cursorPosition = Offset.zero;
   Offset canvasPosition = Offset.zero;
+  double canvasScale = 1.0;
   GraphObject? hoveredObject;
   GraphObject? selectedObject;
-
-  double scale = 1.0;
 
   EdgeType? _drawingEdgeType; // TODO private?
   NodeType? _drawingNodeType; // TODO private?
@@ -73,13 +72,13 @@ class _CanvasViewState extends State<CanvasView> {
     return _drawingNodeType != null;
   }
 
-  bool isNodeHit(Node node, Offset offset) {
-    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(node);
+  bool isNodeHit(Node node, Offset position) {
+    final nodeSize = NodePainter.calculateNodeSize(node);
 
-    return node.position.dx < offset.dx &&
-        node.position.dx + nodeWidth > offset.dx &&
-        node.position.dy < offset.dy &&
-        node.position.dy + nodeHeight > offset.dy;
+    return node.position.dx < position.dx &&
+        node.position.dx + nodeSize.width > position.dx &&
+        node.position.dy < position.dy &&
+        node.position.dy + nodeSize.height > position.dy;
   }
 
   bool isEdgeHit(Edge edge, Offset position) {
@@ -107,35 +106,39 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
-  void handlePanning(Offset scrollDelta) {
+  void handleCanvasPanning(Offset scrollDelta) {
     setState(() {
       canvasPosition -= scrollDelta / 1.5;
     });
   }
 
-  void zoom({bool zoomIn = true}) {
-    final oldScale = scale;
+  void zoomCanvas({bool zoomIn = true}) {
+    final oldScale = canvasScale;
 
     final zoomFactor = zoomIn ? 1.1 : 0.9;
 
     setState(() {
-      scale *= zoomFactor;
+      canvasScale *= zoomFactor;
     });
 
-    final scaleChange = scale - oldScale;
+    final scaleChange = canvasScale - oldScale;
 
     final offsetX = -(cursorPosition.dx * scaleChange);
     final offsetY = -(cursorPosition.dy * scaleChange);
 
+    // TODO resposition canvas!
+    // TODO slow down trackpad zooming
+    // TODO limit zoom
+
     setState(() {
-      canvasPosition += Offset(offsetX, offsetY);
+      // canvasPosition += Offset(offsetX, offsetY);
     });
   }
 
   void resetZoomAndPosition() {
     setState(() {
       canvasPosition = Offset(0, 0);
-      scale = 1.0;
+      canvasScale = 1.0;
     });
   }
 
@@ -189,7 +192,7 @@ class _CanvasViewState extends State<CanvasView> {
 
   GraphObject? getObjectAtCursor() {
     for (var node in nodes) {
-      if (isNodeHit(node, cursorPosition)) {
+      if (isNodeHit(node, adjustPositionForCanvasTransform(cursorPosition))) {
         return node;
       }
     }
@@ -233,8 +236,8 @@ class _CanvasViewState extends State<CanvasView> {
       }
     }
 
-    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(newNode);
-    newNode.position = Offset(position.dx - nodeWidth / 2, position.dy - nodeHeight / 2);
+    final nodeSize = NodePainter.calculateNodeSize(newNode) * canvasScale;
+    newNode.position = Offset(position.dx - nodeSize.width / 2, position.dy - nodeSize.height / 2);
 
     setState(() {
       nodes.add(newNode);
@@ -250,7 +253,7 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void onTapUp(TapUpDetails details) {
-    final position = details.localPosition;
+    final position = adjustPositionForCanvasTransform(details.localPosition);
 
     if (isInSelectionMode()) {
       setState(() {
@@ -293,7 +296,7 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void onTapDown(TapDownDetails details) {
-    final position = details.localPosition;
+    final position = adjustPositionForCanvasTransform(details.localPosition);
 
     if (isInEdgeDrawingMode()) {
       for (var node in nodes) {
@@ -318,7 +321,7 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void onPanStart(DragStartDetails details) {
-    final position = details.localPosition;
+    final position = adjustPositionForCanvasTransform(details.localPosition);
 
     if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
     for (var node in nodes) {
@@ -332,26 +335,33 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void onPanUpdate(DragUpdateDetails details) {
-    final delta = details.delta;
+    final delta = Offset(details.delta.dx, details.delta.dy) / canvasScale;
 
     if (isInEdgeDrawingMode() || isInNodeCreationMode() || draggedNode == null) return; // TODO null handling
 
     var newX = draggedNode!.position.dx + delta.dx;
     var newY = draggedNode!.position.dy + delta.dy;
 
-    final canvasWidth = MediaQuery.of(context).size.width;
-    final canvasHeight = MediaQuery.of(context).size.height;
-
-    final (nodeWidth, nodeHeight) = NodePainter.calculateNodeBoxSize(draggedNode!);
-
-    final isNewPositionInvalid = newX < 0 && newX + nodeWidth > canvasWidth && newY < 0 && newY + nodeHeight > canvasHeight;
-    if (isNewPositionInvalid) {
-      return;
-    }
-
     setState(() {
       draggedNode!.position = Offset(newX, newY);
     });
+  }
+
+  Offset adjustPositionForCanvasTransform(Offset position) {
+    Matrix4 inverseTransformation = Matrix4.identity()
+      ..scale(canvasScale, canvasScale)
+      ..translate(canvasPosition.dx, canvasPosition.dy)
+      ..invert();
+
+    vector.Vector3 transformedPositionVector = inverseTransformation.transform3(vector.Vector3(position.dx, position.dy, 0));
+    return Offset(transformedPositionVector.x, transformedPositionVector.y);
+  }
+
+  (Offset, Offset)? getEdgeInProgress() {
+    if (isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null) {
+      return (draggingStartPoint!, draggingEndPoint!);
+    }
+    return null;
   }
 
   @override
@@ -362,34 +372,20 @@ class _CanvasViewState extends State<CanvasView> {
           if (pointerSignal is! PointerScrollEvent) return;
 
           if (KeyboardShortcutManager.isScrollKeyPresseed(RawKeyboard.instance)) {
-            zoom(zoomIn: pointerSignal.scrollDelta.dy < 0);
+            zoomCanvas(zoomIn: pointerSignal.scrollDelta.dy < 0);
           } else {
-            handlePanning(pointerSignal.scrollDelta);
+            handleCanvasPanning(pointerSignal.scrollDelta);
           }
-
-          // TODO: Fix trackpad!
         },
         onPointerHover: (event) {
           // TODO this is currently terrible - all mouse movement updates states and rerenders everything 🙈
           setState(() {
-            /*
-                Because Listener is outside Transformation (since we want to scroll etc. even outside original canvas area). 
-                here the coordinates do not match transformd coordinates so we need to apply inverse transformation.
-               */
-            Matrix4 inverseTransformation = Matrix4.identity()
-              ..translate(canvasPosition.dx, canvasPosition.dy)
-              ..scale(scale, scale)
-              ..invert();
-
-            vector.Vector3 transformedPositionVector =
-                inverseTransformation.transform3(vector.Vector3(event.localPosition.dx, event.localPosition.dy, 0));
-
-            cursorPosition = Offset(transformedPositionVector.x, transformedPositionVector.y);
+            cursorPosition = event.localPosition;
           });
 
           if (isInEdgeDrawingMode()) {
             setState(() {
-              draggingEndPoint = cursorPosition;
+              draggingEndPoint = adjustPositionForCanvasTransform(cursorPosition);
             });
           } else if (isInSelectionMode()) {
             setState(() {
@@ -400,82 +396,70 @@ class _CanvasViewState extends State<CanvasView> {
         child: MouseRegion(
           cursor: hoveredObject != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
           child: Container(
-            color: Color.fromARGB(255, 219, 219, 219),
-            child: ClipRect(
-              child: Transform(
-                transform: Matrix4.identity()
-                  ..translate(canvasPosition.dx, canvasPosition.dy)
-                  ..scale(scale, scale),
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  color: darkBlue,
-                  child: KeyboardListener(
-                    focusNode: focusNode,
-                    autofocus: true,
-                    onKeyEvent: (event) {
-                      if (event is! KeyDownEvent) {
-                        return;
-                      }
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            color: darkBlue,
+            child: KeyboardListener(
+              focusNode: focusNode,
+              autofocus: true,
+              onKeyEvent: (event) {
+                if (event is! KeyDownEvent) {
+                  return;
+                }
 
-                      if (selectedObject != null) {
-                        if (KeyboardShortcutManager.isDeleteKeyPressed(RawKeyboard.instance)) {
-                          deleteObject(selectedObject!);
-                        } else if (KeyboardShortcutManager.isDeselectKeyPressed(RawKeyboard.instance)) {
-                          setState(() {
-                            selectedObject = null;
-                          });
-                        }
-                      }
+                if (selectedObject != null) {
+                  if (KeyboardShortcutManager.isDeleteKeyPressed(RawKeyboard.instance)) {
+                    deleteObject(selectedObject!);
+                  } else if (KeyboardShortcutManager.isDeselectKeyPressed(RawKeyboard.instance)) {
+                    setState(() {
+                      selectedObject = null;
+                    });
+                  }
+                }
 
-                      if (!isInSelectionMode()) {
-                        if (KeyboardShortcutManager.isCancelDrawingKeyPressed(RawKeyboard.instance)) {
-                          stopNodeDrawing();
-                          stopEdgeDrawing();
-                        }
-                      }
+                if (!isInSelectionMode()) {
+                  if (KeyboardShortcutManager.isCancelDrawingKeyPressed(RawKeyboard.instance)) {
+                    stopNodeDrawing();
+                    stopEdgeDrawing();
+                  }
+                }
 
-                      if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) &&
-                              event.logicalKey == LogicalKeyboardKey.equal ||
-                          event.logicalKey == LogicalKeyboardKey.add ||
-                          event.logicalKey == LogicalKeyboardKey.numpadAdd) {
-                        zoom();
-                      }
+                if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.equal ||
+                    event.logicalKey == LogicalKeyboardKey.add ||
+                    event.logicalKey == LogicalKeyboardKey.numpadAdd) {
+                  zoomCanvas();
+                }
 
-                      if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) &&
-                              event.logicalKey == LogicalKeyboardKey.minus ||
-                          event.logicalKey == LogicalKeyboardKey.numpadSubtract) {
-                        zoom(zoomIn: false);
-                      }
+                if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.minus ||
+                    event.logicalKey == LogicalKeyboardKey.numpadSubtract) {
+                  zoomCanvas(zoomIn: false);
+                }
 
-                      if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) &&
-                          event.logicalKey == LogicalKeyboardKey.digit0) {
-                        resetZoomAndPosition();
-                      }
-                    },
-                    child: GestureDetector(
-                        onTapUp: onTapUp,
-                        onTapDown: onTapDown,
-                        onPanStart: onPanStart,
-                        onPanUpdate: onPanUpdate,
-                        onPanEnd: (details) {
-                          draggedNode = null;
-                        },
-                        child: CustomPaint(
-                          painter: GraphPainter(
-                            nodes,
-                            edges,
-                            isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null
-                                ? (draggingStartPoint!, draggingEndPoint!) // TODO null safety
-                                : null,
-                            (newPathPerEdge) => pathPerEdge = newPathPerEdge,
-                            selectedObject,
-                            widget.preferences,
-                          ),
-                        )),
-                  ),
-                ),
-              ),
+                if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) &&
+                    event.logicalKey == LogicalKeyboardKey.digit0) {
+                  resetZoomAndPosition();
+                }
+              },
+              child: GestureDetector(
+                  onTapUp: onTapUp,
+                  onTapDown: onTapDown,
+                  onPanStart: onPanStart,
+                  onPanUpdate: onPanUpdate,
+                  onPanEnd: (details) {
+                    draggedNode = null;
+                  },
+                  child: CustomPaint(
+                    painter: GraphPainter(
+                      nodes,
+                      edges,
+                      getEdgeInProgress(),
+                      (newPathPerEdge) => pathPerEdge = newPathPerEdge,
+                      selectedObject,
+                      canvasPosition,
+                      canvasScale,
+                      widget.preferences,
+                    ),
+                  )),
             ),
           ),
         ),

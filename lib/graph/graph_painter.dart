@@ -11,17 +11,24 @@ class GraphPainter extends CustomPainter {
   final (Offset, Offset)? newEdge;
   final Function(Map<Edge, Path> pathPerEdge) emitPathPerEdge;
   final GraphObject? selectedObject;
+  final Offset canvasPosition;
+  final double canvasScale;
   final Preferences preferences;
   final NodePainter nodePainter;
   final EdgePainter edgePainter;
 
-  GraphPainter(this.nodes, this.edges, this.newEdge, this.emitPathPerEdge, this.selectedObject, this.preferences)
+  GraphPainter(this.nodes, this.edges, this.newEdge, this.emitPathPerEdge, this.selectedObject, this.canvasPosition,
+      this.canvasScale, this.preferences)
       : nodePainter = NodePainter(
+            canvasPosition: canvasPosition,
+            canvasScale: canvasScale,
             strokeWidth: preferences.nodeStrokeWidth,
             tagNodeColor: preferences.tagNodeColor,
             entryNodeColor: preferences.entryNodeColor,
             exitNodeColor: preferences.exitNodeColor),
         edgePainter = EdgePainter(
+            canvasPosition: canvasPosition,
+            canvasScale: canvasScale,
             strokeWidth: preferences.edgeStrokeWidth,
             obliviousEdgeColor: preferences.obliviousEdgeColor,
             awareEdgeColor: preferences.awareEdgeColor);
@@ -88,14 +95,24 @@ class GraphPainter extends CustomPainter {
   void drawGrid(Canvas canvas, Size canvasSize) {
     final paint = Paint()
       ..color = Colors.grey.withAlpha(50)
-      ..strokeWidth = 1;
+      ..strokeWidth = canvasScale;
 
-    for (var i = 0; i < canvasSize.width; i += gridSize) {
-      canvas.drawLine(Offset(i * 1.0, 0), Offset(i * 1.0, canvasSize.height), paint);
+    final scaledGridSize = gridSize * canvasScale;
+
+    final startX = ((canvasPosition.dx * canvasScale) % scaledGridSize) - scaledGridSize;
+    final startY = ((canvasPosition.dy * canvasScale) % scaledGridSize) - scaledGridSize;
+
+    final numberOfHorizontalLines = (canvasSize.width / scaledGridSize).ceil() + 1;
+    final numberOfVerticalLines = (canvasSize.height / scaledGridSize).ceil() + 1;
+
+    for (var i = 0; i < numberOfHorizontalLines; i++) {
+      final x = startX + i * scaledGridSize;
+      canvas.drawLine(Offset(x, 0), Offset(x, canvasSize.height), paint);
     }
 
-    for (var i = 0; i < canvasSize.height; i += gridSize) {
-      canvas.drawLine(Offset(0, i * 1.0), Offset(canvasSize.width, i * 1.0), paint);
+    for (var i = 0; i < numberOfVerticalLines; i++) {
+      final y = startY + i * scaledGridSize;
+      canvas.drawLine(Offset(0, y), Offset(canvasSize.width, y), paint);
     }
   }
 }

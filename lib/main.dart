@@ -37,12 +37,25 @@ class _MyAppState extends State<MyApp> {
     focusNode = FocusNode();
 
     // TODO ensure unique IDS?
-    final entry = EntryNode(Offset(350, 350), 'stdin');
     final tag2 = TagNode(Offset(500, 350), 'randomId', 'priv');
     final tag3 = TagNode(Offset(700, 350), 'randomId2', 'pub');
-    final exit = ExitNode(Offset(850, 350), 'stdout');
-    addNewCanvas(
-        nodes: [tag2, tag3, entry, exit], edges: [Edge(tag2, tag3, EdgeType.aware), Edge(tag2, tag3, EdgeType.oblivious)]);
+    final tag4 = TagNode(Offset(100, 250), 'abcdefghijklm', 'abcdefghijklm');
+    final tag5 = TagNode(Offset(500, 250), 'randomId55', 'priv5');
+    final tag6 = TagNode(Offset(700, 250), 'randomId55', 'pub6');
+
+    addNewCanvas(nodes: [
+      tag2,
+      tag3,
+      tag4,
+      tag5,
+      tag6
+    ], edges: [
+      Edge(tag2, tag3, EdgeType.aware),
+      Edge(tag2, tag3, EdgeType.oblivious),
+      Edge(tag5, tag6, EdgeType.oblivious),
+      Edge(tag5, tag5, EdgeType.oblivious),
+      Edge(tag5, tag5, EdgeType.aware)
+    ]);
   }
 
   @override
