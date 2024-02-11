@@ -113,12 +113,20 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void zoomCanvas({bool zoomIn = true}) {
-    final oldScale = canvasScale;
+    const maxZoom = 50.0;
+    const minZoom = 0.1;
 
     final zoomFactor = zoomIn ? 1.1 : 0.9;
+    final newScale = canvasScale * zoomFactor;
+
+    if (newScale >= maxZoom || newScale <= minZoom) {
+      return;
+    }
+
+    final oldScale = canvasScale;
 
     setState(() {
-      canvasScale *= zoomFactor;
+      canvasScale = newScale;
     });
 
     final scaleChange = canvasScale - oldScale;
@@ -128,7 +136,6 @@ class _CanvasViewState extends State<CanvasView> {
     final offsetY = -(adjustedCursorPosition.dy * scaleChange);
 
     // TODO slow down trackpad zooming
-    // TODO limit zoom
 
     setState(() {
       canvasPosition += Offset(offsetX, offsetY);
