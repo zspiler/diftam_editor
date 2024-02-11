@@ -116,11 +116,12 @@ class Edge implements GraphObject {
   }
 }
 
-class CanvasData {
+class PolicyData {
+  final String name;
   final List<Node> nodes;
   final List<Edge> edges;
 
-  CanvasData({List<Node>? nodes, List<Edge>? edges})
+  PolicyData({required this.name, List<Node>? nodes, List<Edge>? edges})
       : nodes = nodes ?? [],
         edges = edges ?? [];
 }

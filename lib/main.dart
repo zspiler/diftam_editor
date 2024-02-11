@@ -3,8 +3,9 @@ import 'package:poc/preferences_dialog.dart';
 import 'canvas_view.dart';
 import 'ui/snackbar.dart';
 import 'common.dart';
-import 'canvas_tab_bar.dart';
+import 'policy_tab_bar.dart';
 import 'user_preferences.dart';
+import 'ui/custom_dialog.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -22,8 +23,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  List<CanvasData> canvases = [];
-  var selectedCanvasIndex = 0;
+  List<PolicyData> policies = [];
+  var selectedPolicyIndex = 0;
   late FocusNode focusNode;
 
   final nodes = <Node>[];
@@ -43,7 +44,7 @@ class _MyAppState extends State<MyApp> {
     final tag5 = TagNode(Offset(500, 250), 'randomId55', 'priv5');
     final tag6 = TagNode(Offset(700, 250), 'randomId55', 'pub6');
 
-    addNewCanvas(nodes: [
+    createPolicy(name: 'Policy 1', nodes: [
       tag2,
       tag3,
       tag4,
@@ -71,15 +72,15 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void addNewCanvas({List<Node>? nodes, List<Edge>? edges}) {
+  void createPolicy({required String name, List<Node>? nodes, List<Edge>? edges}) {
     setState(() {
-      canvases.add(CanvasData(nodes: nodes, edges: edges));
+      policies.add(PolicyData(name: name, nodes: nodes, edges: edges));
     });
   }
 
-  void selectCanvas(int index) {
+  void selectPolicy(int index) {
     setState(() {
-      selectedCanvasIndex = index;
+      selectedPolicyIndex = index;
     });
   }
 
@@ -89,11 +90,11 @@ class _MyAppState extends State<MyApp> {
       body: Stack(
         children: [
           IndexedStack(
-              index: selectedCanvasIndex,
-              children: canvases.map((canvas) {
+              index: selectedPolicyIndex,
+              children: policies.map((policy) {
                 return CanvasView(
-                  nodes: canvas.nodes,
-                  edges: canvas.edges,
+                  nodes: policy.nodes,
+                  edges: policy.edges,
                   focusNode: focusNode,
                   preferences: preferences,
                 );
@@ -102,11 +103,26 @@ class _MyAppState extends State<MyApp> {
               bottom: 0,
               child: Align(
                   alignment: Alignment.bottomCenter,
-                  child: CanvasTabBar(canvases, selectedCanvasIndex, onSelect: selectCanvas, onAdd: () {
-                    addNewCanvas();
-                    setState(() {
-                      selectedCanvasIndex = canvases.length - 1;
-                    });
+                  child: PolicyTabBar(policies, selectedPolicyIndex, onSelect: selectPolicy, onAdd: () {
+                    var newPolicyName = 'Policy ${policies.length + 1}';
+                    CustomDialog.showInputDialog(
+                      context,
+                      title: 'Create policy',
+                      hint: 'Enter policy name',
+                      acceptEmptyInput: true,
+                      initialText: newPolicyName,
+                      onConfirm: (String inputText) {
+                        if (inputText.isNotEmpty) {
+                          newPolicyName = inputText;
+                        }
+                        createPolicy(name: newPolicyName);
+                        setState(() {
+                          selectedPolicyIndex = policies.length - 1;
+                        });
+                      },
+                      isInputValid: (String inputText) => !policies.any((policy) => policy.name == inputText),
+                      errorMessage: 'Policy with this name already exists!',
+                    );
                   }))),
           Positioned(
               top: 16,
