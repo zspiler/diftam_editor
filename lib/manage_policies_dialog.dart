@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'ui/custom_dialog.dart';
 import 'models.dart';
+import 'export.dart';
 
 class ManagePoliciesDialog extends StatefulWidget {
   final Function(List<PolicyData> updatedPolicies) onChange;
@@ -22,8 +23,8 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
     _policies = List.from(widget.policies);
   }
 
-  TableRow buildTableSpacer(double height) =>
-      TableRow(children: [SizedBox(height: height), SizedBox(height: height), SizedBox(height: height)]);
+  TableRow buildTableSpacer(double height) => TableRow(
+      children: [SizedBox(height: height), SizedBox(height: height), SizedBox(height: height), SizedBox(height: height)]);
 
   List<TableRow> buildPoliciesTableRows() {
     List<TableRow> rowsWithSpacers = _policies.fold<List<TableRow>>([], (List<TableRow> accumulator, policy) {
@@ -71,6 +72,22 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
                 ),
               ),
             )),
+        TableCell(
+          verticalAlignment: TableCellVerticalAlignment.middle,
+          child: Container(
+            child: Align(
+              alignment: Alignment.center,
+              child: Tooltip(
+                  message: "Export",
+                  child: IconButton(
+                    icon: Icon(Icons.download),
+                    onPressed: () {
+                      exportPolicyWeb(policy);
+                    },
+                  )),
+            ),
+          ),
+        ),
         _policies.length > 1
             ? TableCell(
                 verticalAlignment: TableCellVerticalAlignment.middle,
@@ -136,6 +153,7 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
                           0: FlexColumnWidth(1),
                           1: IntrinsicColumnWidth(),
                           2: IntrinsicColumnWidth(),
+                          3: IntrinsicColumnWidth(),
                         }),
                       ),
                     ],
