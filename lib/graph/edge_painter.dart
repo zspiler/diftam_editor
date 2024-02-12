@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-import '../common.dart';
+import '../models.dart';
+import '../constants.dart';
 import '../utils.dart';
 import '../user_preferences.dart';
 import 'node_painter.dart';

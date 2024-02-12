@@ -1,4 +1,4 @@
-import 'package:poc/common.dart';
+import 'package:poc/models.dart';
 import 'package:flutter/material.dart';
 
 class TagNodeInfoPanel extends StatelessWidget {

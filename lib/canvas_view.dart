@@ -7,7 +7,7 @@ import 'package:vector_math/vector_math_64.dart' as vector;
 
 import 'graph/node_painter.dart';
 import 'graph/graph_painter.dart';
-import 'common.dart';
+import 'models.dart';
 import 'menu_bar.dart';
 import 'utils.dart';
 import 'info_panels/edge_info_panel.dart';

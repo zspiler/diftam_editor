@@ -1,4 +1,4 @@
-import 'package:poc/common.dart';
+import 'package:poc/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

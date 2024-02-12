@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'node_painter.dart';
 import 'edge_painter.dart';
-import '../common.dart';
+import '../models.dart';
+import '../constants.dart';
 import '../user_preferences.dart';
 
 class GraphPainter extends CustomPainter {

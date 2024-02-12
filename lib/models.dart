@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-const gridSize = 25;
-
 enum EdgeType {
   oblivious('Oblivious'),
   aware('Aware');
