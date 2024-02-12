@@ -21,7 +21,9 @@ enum NodeType {
   const NodeType(this.value);
 }
 
-abstract class GraphObject {}
+abstract class GraphObject {
+  Map<String, dynamic> toJson();
+}
 
 abstract class Node implements GraphObject {
   Offset position;
@@ -31,9 +33,16 @@ abstract class Node implements GraphObject {
   String get label;
 
   @override
-  String toString() => toNodeString(); // we want to require that subclasses implement their own toString method
+  String toString() => toNodeString(); // require that subclasses to implement their own toString method
 
   String toNodeString();
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'position': {'x': position.dx, 'y': position.dy},
+    };
+  }
 }
 
 class TagNode extends Node {
@@ -49,6 +58,16 @@ class TagNode extends Node {
   String toNodeString() {
     return 'Tag ($id, $label)';
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'type': NodeType.tag.value,
+      'id': id,
+      'name': name,
+      ...super.toJson(),
+    };
+  }
 }
 
 abstract class BoundaryNode extends Node {
@@ -63,6 +82,14 @@ abstract class BoundaryNode extends Node {
   String toNodeString() {
     return 'BoundaryNode ($descriptor)';
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'descriptor': descriptor,
+      ...super.toJson(),
+    };
+  }
 }
 
 class EntryNode extends BoundaryNode {
@@ -72,6 +99,14 @@ class EntryNode extends BoundaryNode {
   String toNodeString() {
     return 'EntryNode{$descriptor}';
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'type': NodeType.entry.value,
+      ...super.toJson(),
+    };
+  }
 }
 
 class ExitNode extends BoundaryNode {
@@ -80,6 +115,14 @@ class ExitNode extends BoundaryNode {
   @override
   String toNodeString() {
     return 'ExitNode{$descriptor}';
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'type': NodeType.exit.value,
+      ...super.toJson(),
+    };
   }
 }
 
@@ -114,6 +157,17 @@ class Edge implements GraphObject {
   String toString() {
     return 'Edge{source: $source, target: $target, type: ${type.value}}';
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    String getNodeId(Node node) => node is TagNode ? node.id : (node as BoundaryNode).descriptor;
+
+    return {
+      'source': getNodeId(source),
+      'target': getNodeId(target),
+      'type': type.value,
+    };
+  }
 }
 
 class PolicyData {
@@ -124,4 +178,12 @@ class PolicyData {
   PolicyData({required this.name, List<Node>? nodes, List<Edge>? edges})
       : nodes = nodes ?? [],
         edges = edges ?? [];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'nodes': nodes.map((node) => node.toJson()).toList(),
+      'edges': edges.map((edge) => edge.toJson()).toList(),
+    };
+  }
 }
