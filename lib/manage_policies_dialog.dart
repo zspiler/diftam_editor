@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'ui/custom_dialog.dart';
+import 'ui/snackbar.dart';
 import 'models.dart';
 import 'export.dart';
 
@@ -81,8 +82,13 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
                   message: "Export",
                   child: IconButton(
                     icon: Icon(Icons.download),
-                    onPressed: () {
-                      exportPolicyWeb(policy);
+                    onPressed: () async {
+                      try {
+                        await exportPolicy(policy);
+                        SnackbarGlobal.success('Policy downloaded successfully');
+                      } catch (e) {
+                        SnackbarGlobal.error('Failed to save policy');
+                      }
                     },
                   )),
             ),

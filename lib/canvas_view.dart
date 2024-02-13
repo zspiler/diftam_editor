@@ -222,7 +222,7 @@ class _CanvasViewState extends State<CanvasView> {
         });
       }
     } on ArgumentError catch (e) {
-      SnackbarGlobal.show(e.message);
+      SnackbarGlobal.info(e.message);
     }
   }
 
@@ -287,7 +287,7 @@ class _CanvasViewState extends State<CanvasView> {
             onConfirm: (String inputText) {
               if (_drawingNodeType == NodeType.entry && entryNodeWithDescriptorExists(inputText) ||
                   _drawingNodeType == NodeType.exit && exitNodeWithDescriptorExists(inputText)) {
-                SnackbarGlobal.show('$_drawingNodeType node with descriptor $inputText already exists!');
+                SnackbarGlobal.info('$_drawingNodeType node with descriptor $inputText already exists!');
               } else {
                 createNode(position, _drawingNodeType!, nameOrDescriptor: inputText);
               }
