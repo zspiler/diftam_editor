@@ -156,6 +156,7 @@ class _MyAppState extends State<MyApp> {
                     return;
                   }
                   addPolicy(policy);
+                  selectPolicy(policies.length - 1);
                   // TODO Desktop
                 }, onManagePressed: () {
                   showDialog(

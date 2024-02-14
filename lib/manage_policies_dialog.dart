@@ -85,7 +85,6 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
                     onPressed: () async {
                       try {
                         await exportPolicy(policy);
-                        SnackbarGlobal.success('Policy downloaded successfully');
                       } catch (e) {
                         SnackbarGlobal.error('Failed to save policy');
                       }
