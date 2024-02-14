@@ -46,7 +46,7 @@ void main() {
       final stdin = EntryNode(Offset(300, 250), 'stdin');
       final stdout = ExitNode(Offset(900, 250), 'stdout');
 
-      final examplePolicy = PolicyData(name: 'Policy 1', nodes: [
+      final examplePolicy = Policy(name: 'Policy 1', nodes: [
         priv,
         pub,
         stdin,

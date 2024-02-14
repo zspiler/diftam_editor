@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'models.dart';
 
 class PolicyTabBar extends StatelessWidget {
-  final List<PolicyData> policies;
+  final List<Policy> policies;
   final Function(int index) onSelect;
   final Function() onAddPressed;
   final Function() onImportPressed;

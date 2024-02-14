@@ -201,12 +201,12 @@ class Edge implements GraphObject {
         type = EdgeType.fromString(json['type']); // TODO ?
 }
 
-class PolicyData {
-  String name = '';
+class Policy {
+  late final String name; // TODO late OK?
   late final List<Node> nodes; // TODO late OK?
   late final List<Edge> edges; // TODO late OK?
 
-  PolicyData({required this.name, List<Node>? nodes, List<Edge>? edges})
+  Policy({required this.name, List<Node>? nodes, List<Edge>? edges})
       : nodes = nodes ?? [],
         edges = edges ?? [];
 
@@ -218,7 +218,7 @@ class PolicyData {
     };
   }
 
-  PolicyData.fromJson(Map<String, dynamic> json) {
+  Policy.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     nodes = json['nodes'].map<Node>((node) {
       if (node['type'] == NodeType.tag.value) {

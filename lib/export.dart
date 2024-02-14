@@ -2,7 +2,7 @@ import 'models.dart';
 import 'dart:convert';
 import 'package:file_saver/file_saver.dart';
 
-Future<void> exportPolicy(PolicyData policy, {bool indent = true}) async {
+Future<void> exportPolicy(Policy policy, {bool indent = true}) async {
   final encoder = indent ? JsonEncoder.withIndent('  ') : JsonEncoder();
   final jsonString = encoder.convert(policy.toJson());
 

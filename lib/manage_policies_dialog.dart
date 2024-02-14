@@ -5,9 +5,9 @@ import 'models.dart';
 import 'export.dart';
 
 class ManagePoliciesDialog extends StatefulWidget {
-  final Function(List<PolicyData> updatedPolicies) onChange;
+  final Function(List<Policy> updatedPolicies) onChange;
   final Function(int index) onDeletePress;
-  final List<PolicyData> policies;
+  final List<Policy> policies;
 
   const ManagePoliciesDialog({required this.policies, required this.onChange, required this.onDeletePress, super.key});
 
@@ -16,7 +16,7 @@ class ManagePoliciesDialog extends StatefulWidget {
 }
 
 class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
-  List<PolicyData> _policies = [];
+  List<Policy> _policies = [];
 
   @override
   void initState() {

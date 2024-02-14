@@ -26,7 +26,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  List<PolicyData> policies = [];
+  List<Policy> policies = [];
   var selectedPolicyIndex = 0;
 
   List<FocusNode> focusNodes = [];
@@ -45,7 +45,7 @@ class _MyAppState extends State<MyApp> {
     final stdin = EntryNode(Offset(300, 250), 'stdin');
     final stdout = ExitNode(Offset(900, 250), 'stdout');
 
-    final policy = PolicyData(name: 'Policy 1', nodes: [
+    final policy = Policy(name: 'Policy 1', nodes: [
       priv,
       pub,
       stdin,
@@ -78,7 +78,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void addPolicy(PolicyData policy) {
+  void addPolicy(Policy policy) {
     setState(() {
       focusNodes.add(FocusNode());
       policies.add(policy);
@@ -125,7 +125,7 @@ class _MyAppState extends State<MyApp> {
                       if (inputText.isNotEmpty) {
                         newPolicyName = inputText;
                       }
-                      addPolicy(PolicyData(name: newPolicyName));
+                      addPolicy(Policy(name: newPolicyName));
                       selectPolicy(policies.length - 1);
                     },
                     isInputValid: (String inputText) => !policies.any((policy) => policy.name == inputText),
@@ -148,7 +148,7 @@ class _MyAppState extends State<MyApp> {
                     return;
                   }
 
-                  PolicyData policy;
+                  Policy policy;
                   try {
                     policy = decodeAndParsePolicy(bytes);
                   } catch (e) {
