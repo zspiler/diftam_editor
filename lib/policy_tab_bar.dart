@@ -5,11 +5,16 @@ class PolicyTabBar extends StatelessWidget {
   final List<PolicyData> policies;
   final Function(int index) onSelect;
   final Function() onAddPressed;
+  final Function() onImportPressed;
   final Function() onManagePressed;
   final int currentPolicyIndex;
 
   PolicyTabBar(this.policies, this.currentPolicyIndex,
-      {Key? key, required this.onSelect, required this.onAddPressed, required this.onManagePressed})
+      {Key? key,
+      required this.onSelect,
+      required this.onAddPressed,
+      required this.onImportPressed,
+      required this.onManagePressed})
       : super(key: key);
 
   @override
@@ -52,6 +57,22 @@ class PolicyTabBar extends StatelessWidget {
                 ),
                 onPressed: onAddPressed,
                 child: Icon(Icons.add),
+              ),
+            ),
+          ),
+          Tooltip(
+            message: 'Import policy',
+            child: SizedBox(
+              height: 40,
+              child: TextButton(
+                style: ButtonStyle(
+                  shape:
+                      MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.black.withAlpha(150)),
+                ),
+                onPressed: onImportPressed,
+                child: Icon(Icons.upload),
               ),
             ),
           ),

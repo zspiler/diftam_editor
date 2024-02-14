@@ -7,6 +7,10 @@ enum EdgeType {
   final String value;
 
   const EdgeType(this.value);
+
+  static EdgeType fromString(String value) {
+    return EdgeType.values.firstWhere((e) => e.value == value);
+  }
 }
 
 enum NodeType {
@@ -19,9 +23,7 @@ enum NodeType {
   const NodeType(this.value);
 }
 
-abstract class GraphObject {
-  Map<String, dynamic> toJson();
-}
+abstract class GraphObject {}
 
 abstract class Node implements GraphObject {
   Offset position;
@@ -35,12 +37,13 @@ abstract class Node implements GraphObject {
 
   String toNodeString();
 
-  @override
   Map<String, dynamic> toJson() {
     return {
       'position': {'x': position.dx, 'y': position.dy},
     };
   }
+
+  Node.fromJson(Map<String, dynamic> json) : position = Offset(json['position']['x'], json['position']['y']);
 }
 
 class TagNode extends Node {
@@ -66,9 +69,16 @@ class TagNode extends Node {
       ...super.toJson(),
     };
   }
+
+  TagNode.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        name = json['name'],
+        super.fromJson(json);
 }
 
 abstract class BoundaryNode extends Node {
+  // TODO descriptor could just be 'id'? Edge.fromJson would be simpler
+
   String descriptor;
 
   BoundaryNode(Offset position, this.descriptor) : super(position);
@@ -88,6 +98,10 @@ abstract class BoundaryNode extends Node {
       ...super.toJson(),
     };
   }
+
+  BoundaryNode.fromJson(Map<String, dynamic> json)
+      : descriptor = json['descriptor'],
+        super.fromJson(json);
 }
 
 class EntryNode extends BoundaryNode {
@@ -105,6 +119,8 @@ class EntryNode extends BoundaryNode {
       ...super.toJson(),
     };
   }
+
+  EntryNode.fromJson(Map<String, dynamic> json) : super.fromJson(json);
 }
 
 class ExitNode extends BoundaryNode {
@@ -122,6 +138,8 @@ class ExitNode extends BoundaryNode {
       ...super.toJson(),
     };
   }
+
+  ExitNode.fromJson(Map<String, dynamic> json) : super.fromJson(json);
 }
 
 class Edge implements GraphObject {
@@ -156,7 +174,6 @@ class Edge implements GraphObject {
     return 'Edge{source: $source, target: $target, type: ${type.value}}';
   }
 
-  @override
   Map<String, dynamic> toJson() {
     String getNodeId(Node node) => node is TagNode ? node.id : (node as BoundaryNode).descriptor;
 
@@ -166,12 +183,27 @@ class Edge implements GraphObject {
       'type': type.value,
     };
   }
+
+  Edge.fromJson(Map<String, dynamic> json, List<Node> nodes)
+      : source = nodes.firstWhere((node) {
+          if (node is TagNode) {
+            return node.id == json['source'];
+          }
+          return (node as BoundaryNode).descriptor == json['source'];
+        }),
+        target = nodes.firstWhere((node) {
+          if (node is TagNode) {
+            return node.id == json['target'];
+          }
+          return (node as BoundaryNode).descriptor == json['target'];
+        }),
+        type = EdgeType.fromString(json['type']); // TODO ?
 }
 
 class PolicyData {
-  String name;
-  final List<Node> nodes;
-  final List<Edge> edges;
+  String name = '';
+  late final List<Node> nodes; // TODO late OK?
+  late final List<Edge> edges; // TODO late OK?
 
   PolicyData({required this.name, List<Node>? nodes, List<Edge>? edges})
       : nodes = nodes ?? [],
@@ -183,5 +215,24 @@ class PolicyData {
       'nodes': nodes.map((node) => node.toJson()).toList(),
       'edges': edges.map((edge) => edge.toJson()).toList(),
     };
+  }
+
+  PolicyData.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    nodes = json['nodes'].map<Node>((node) {
+      if (node['type'] == NodeType.tag.value) {
+        return TagNode.fromJson(node);
+      }
+
+      if (node['type'] == NodeType.entry.value) {
+        return EntryNode.fromJson(node);
+      }
+
+      if (node['type'] == NodeType.exit.value) {
+        return ExitNode.fromJson(node);
+      }
+      throw ArgumentError('Unknown node type: ${node['type']}');
+    }).toList();
+    edges = json['edges'].map<Edge>((edge) => Edge.fromJson(edge, nodes)).toList();
   }
 }

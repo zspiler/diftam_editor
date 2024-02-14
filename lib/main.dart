@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:poc/import.dart';
 import 'package:poc/manage_policies_dialog.dart';
 import 'package:poc/preferences_dialog.dart';
 import 'canvas_view.dart';
@@ -7,6 +8,7 @@ import 'models.dart';
 import 'policy_tab_bar.dart';
 import 'user_preferences.dart';
 import 'ui/custom_dialog.dart';
+import 'package:file_picker/file_picker.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -29,8 +31,6 @@ class _MyAppState extends State<MyApp> {
 
   List<FocusNode> focusNodes = [];
 
-  final nodes = <Node>[];
-  final edges = <Edge>[];
   Preferences preferences = Preferences();
 
   @override
@@ -40,27 +40,27 @@ class _MyAppState extends State<MyApp> {
     loadPreferences();
 
     // TODO ensure unique IDS?
-    final tag2 = TagNode(Offset(500, 350), 'randomId', 'priv');
-    final tag3 = TagNode(Offset(700, 350), 'randomId2', 'pub');
-    final tag4 = TagNode(Offset(100, 250), 'abcdefghijklm', 'abcdefghijklm');
-    final tag5 = TagNode(Offset(500, 250), 'randomId55', 'priv5');
-    final tag6 = TagNode(Offset(700, 250), 'randomId55', 'pub6');
+    final priv = TagNode(Offset(500, 350), 'privID', 'priv');
+    final pub = TagNode(Offset(700, 350), 'pubID', 'pub');
+    final stdin = EntryNode(Offset(300, 250), 'stdin');
+    final stdout = ExitNode(Offset(900, 250), 'stdout');
 
-    createPolicy(name: 'Policy 1', nodes: [
-      tag2,
-      tag3,
-      tag4,
-      tag5,
-      tag6
+    final policy = PolicyData(name: 'Policy 1', nodes: [
+      priv,
+      pub,
+      stdin,
+      stdout
     ], edges: [
-      Edge(tag2, tag3, EdgeType.aware),
-      Edge(tag2, tag3, EdgeType.oblivious),
-      Edge(tag5, tag6, EdgeType.oblivious),
-      Edge(tag5, tag5, EdgeType.oblivious),
-      Edge(tag5, tag5, EdgeType.aware)
+      Edge(stdin, priv, EdgeType.aware),
+      Edge(priv, pub, EdgeType.oblivious),
+      Edge(priv, pub, EdgeType.aware),
+      Edge(pub, pub, EdgeType.aware),
+      Edge(pub, pub, EdgeType.oblivious),
+      Edge(pub, priv, EdgeType.aware),
+      Edge(pub, stdout, EdgeType.aware),
     ]);
 
-    createPolicy(name: 'Policy 2');
+    addPolicy(policy);
   }
 
   @override
@@ -78,10 +78,10 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void createPolicy({required String name, List<Node>? nodes, List<Edge>? edges}) {
+  void addPolicy(PolicyData policy) {
     setState(() {
       focusNodes.add(FocusNode());
-      policies.add(PolicyData(name: name, nodes: nodes, edges: edges));
+      policies.add(policy);
     });
   }
 
@@ -125,12 +125,38 @@ class _MyAppState extends State<MyApp> {
                       if (inputText.isNotEmpty) {
                         newPolicyName = inputText;
                       }
-                      createPolicy(name: newPolicyName);
+                      addPolicy(PolicyData(name: newPolicyName));
                       selectPolicy(policies.length - 1);
                     },
                     isInputValid: (String inputText) => !policies.any((policy) => policy.name == inputText),
                     errorMessage: 'Policy with this name already exists!',
                   );
+                }, onImportPressed: () async {
+                  // TODO this package supports saving file via dialog, but only on Desktop!
+                  FilePickerResult? result = await FilePicker.platform.pickFiles(
+                    type: FileType.custom,
+                    allowedExtensions: ['json'],
+                  );
+                  if (result == null) {
+                    // user canceled file picker
+                    return;
+                  }
+                  final bytes = result.files.single.bytes;
+                  if (bytes == null) {
+                    // TODO fails on MacOS
+                    SnackbarGlobal.error("Failed to read file");
+                    return;
+                  }
+
+                  PolicyData policy;
+                  try {
+                    policy = decodeAndParsePolicy(bytes);
+                  } catch (e) {
+                    SnackbarGlobal.error(e.toString());
+                    return;
+                  }
+                  addPolicy(policy);
+                  // TODO Desktop
                 }, onManagePressed: () {
                   showDialog(
                       context: context,
