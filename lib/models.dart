@@ -43,7 +43,8 @@ abstract class Node implements GraphObject {
     };
   }
 
-  Node.fromJson(Map<String, dynamic> json) : position = Offset(json['position']['x'], json['position']['y']);
+  Node.fromJson(Map<String, dynamic> json)
+      : position = Offset((json['position']['x'] as num).toDouble(), (json['position']['y'] as num).toDouble());
 }
 
 class TagNode extends Node {

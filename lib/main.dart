@@ -136,6 +136,7 @@ class _MyAppState extends State<MyApp> {
                   FilePickerResult? result = await FilePicker.platform.pickFiles(
                     type: FileType.custom,
                     allowedExtensions: ['json'],
+                    withData: true, // needed for MacOS
                   );
                   if (result == null) {
                     // user canceled file picker
@@ -143,7 +144,6 @@ class _MyAppState extends State<MyApp> {
                   }
                   final bytes = result.files.single.bytes;
                   if (bytes == null) {
-                    // TODO fails on MacOS
                     SnackbarGlobal.error("Failed to read file");
                     return;
                   }
