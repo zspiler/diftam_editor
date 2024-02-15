@@ -1,4 +1,4 @@
-import 'package:poc/models.dart';
+import 'package:poc/policy/policy.dart';
 import 'package:flutter/material.dart';
 
 class BoundaryNodeInfoPanel extends StatelessWidget {

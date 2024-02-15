@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'models.dart';
+import 'policy/policy.dart';
 
 class PolicyTabBar extends StatelessWidget {
   final List<Policy> policies;

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import '../models.dart';
-import '../constants.dart';
-import '../utils.dart';
+import '../policy/policy.dart';
+import '../grid.dart';
 import '../user_preferences.dart';
 
 class NodePainter {
@@ -47,8 +46,8 @@ class NodePainter {
   }
 
   void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
-    final x = (Utils.snapToGrid(node.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
-    final y = (Utils.snapToGrid(node.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
+    final x = (snapToGrid(node.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
+    final y = (snapToGrid(node.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
 
     final nodeSize = calculateNodeSize(node, padding: preferences.nodePadding) * canvasScale;
 
@@ -82,8 +81,8 @@ class NodePainter {
   static Size calculateNodeSize(Node node, {required int padding}) {
     var width = min(getNodeTextPainter(node.label).width, 100) + 15.0 * padding;
     var height = 25.0 * padding;
-    width = Utils.snapToGrid(width, gridSize);
-    height = Utils.snapToGrid(height, gridSize);
+    width = snapToGrid(width, gridSize);
+    height = snapToGrid(height, gridSize);
     return Size(width, height);
   }
 

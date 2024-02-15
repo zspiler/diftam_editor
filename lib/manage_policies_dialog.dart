@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
-import 'models.dart';
-import 'export.dart';
+import 'policy/policy.dart';
+import 'import_export.dart';
 
 class ManagePoliciesDialog extends StatefulWidget {
   final Function(List<Policy> updatedPolicies) onChange;

@@ -2,17 +2,16 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:poc/keyboard_shortcuts.dart';
-
 import 'package:vector_math/vector_math_64.dart' as vector;
-
 import 'graph/node_painter.dart';
 import 'graph/graph_painter.dart';
-import 'models.dart';
+import 'policy/policy.dart';
 import 'menu_bar.dart';
 import 'utils.dart';
 import 'info_panels/edge_info_panel.dart';
 import 'info_panels/tag_node_info_panel.dart';
 import 'info_panels/boundary_node_info_panel.dart';
+import 'info_panels/info_panel_positioner.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
 import 'user_preferences.dart';
@@ -88,7 +87,7 @@ class _CanvasViewState extends State<CanvasView> {
 
     final path = pathPerEdge[edge]!;
 
-    return Utils.isPointNearBezierPath(position, path);
+    return isPointNearBezierPath(position, path);
   }
 
   void stopEdgeDrawing() {
@@ -228,7 +227,7 @@ class _CanvasViewState extends State<CanvasView> {
 
   void createNode(Offset position, NodeType nodeType, {String? nameOrDescriptor}) {
     // TODO refactor (nameOrDescriptor 😬)
-    final randomId = Utils.generateRandomString(4);
+    final randomId = generateRandomString(4);
 
     final tempPosition = Offset(0, 0);
     late final Node newNode;
@@ -477,7 +476,7 @@ class _CanvasViewState extends State<CanvasView> {
         child: Align(
           alignment: Alignment.topCenter,
           child: MyMenuBar(
-              onSelectionPress: () => enterSelectionMode(),
+              onSelectionPress: enterSelectionMode,
               onAwareConnectionPress: () => enterEdgeDrawingMode(EdgeType.aware),
               onObliviousConnectionPress: () => enterEdgeDrawingMode(EdgeType.oblivious),
               onEntryNodePress: () => enterNodeDrawingMode(NodeType.entry),
@@ -489,77 +488,60 @@ class _CanvasViewState extends State<CanvasView> {
         ),
       ),
       if (selectedObject is Edge)
-        Positioned(
-          top: 0,
-          bottom: 0,
-          right: 16,
-          child: Align(
-              alignment: Alignment.centerRight,
-              child: EdgeInfoPanel(
-                  edge: selectedObject as Edge,
-                  deleteObject: deleteObject,
-                  changeEdgeType: (newEdgeType) {
-                    setState(() {
-                      (selectedObject as Edge).type = newEdgeType;
-                    });
-                  })),
+        InfoPanelPositioner(
+          child: EdgeInfoPanel(
+              edge: selectedObject as Edge,
+              deleteObject: deleteObject,
+              changeEdgeType: (newEdgeType) {
+                setState(() {
+                  (selectedObject as Edge).type = newEdgeType;
+                });
+              }),
         ),
       if (selectedObject is TagNode)
-        // TODO reuse panel + positions
-        Positioned(
-            top: 0,
-            bottom: 0,
-            right: 16,
-            child: Align(
-                alignment: Alignment.centerRight,
-                child: TagNodeInfoPanel(
-                  node: selectedObject as TagNode,
-                  deleteObject: deleteObject,
-                  editLabel: () {
-                    CustomDialog.showInputDialog(
-                      context,
-                      title: 'Edit label',
-                      hint: 'Enter new label',
-                      acceptEmptyInput: true,
-                      initialText: (selectedObject as TagNode).name,
-                      onConfirm: (String inputText) {
-                        setState(() {
-                          (selectedObject as TagNode).name = inputText.isNotEmpty ? inputText : null;
-                        });
-                      },
-                      isInputValid: (String inputText) =>
-                          !nodes.any((node) => node != selectedObject && node is TagNode && node.name == inputText),
-                      errorMessage: 'Please choose a unique tag label',
-                    );
-                  },
-                ))),
+        InfoPanelPositioner(
+            child: TagNodeInfoPanel(
+          node: selectedObject as TagNode,
+          deleteObject: deleteObject,
+          editLabel: () {
+            CustomDialog.showInputDialog(
+              context,
+              title: 'Edit label',
+              hint: 'Enter new label',
+              acceptEmptyInput: true,
+              initialText: (selectedObject as TagNode).name,
+              onConfirm: (String inputText) {
+                setState(() {
+                  (selectedObject as TagNode).name = inputText.isNotEmpty ? inputText : null;
+                });
+              },
+              isInputValid: (String inputText) =>
+                  !nodes.any((node) => node != selectedObject && node is TagNode && node.name == inputText),
+              errorMessage: 'Please choose a unique tag label',
+            );
+          },
+        )),
       if (selectedObject is BoundaryNode)
-        Positioned(
-            top: 0,
-            bottom: 0,
-            right: 16,
-            child: Align(
-                alignment: Alignment.centerRight,
-                child: BoundaryNodeInfoPanel(
-                  node: selectedObject as BoundaryNode,
-                  deleteObject: deleteObject,
-                  editDescriptor: () {
-                    CustomDialog.showInputDialog(context,
-                        title: 'Edit descriptor',
-                        hint: 'Enter new descriptor',
-                        initialText: (selectedObject as BoundaryNode).descriptor,
-                        onConfirm: (String inputText) {
-                          setState(() {
-                            (selectedObject as BoundaryNode).descriptor = inputText;
-                          });
-                        },
-                        isInputValid: (String inputText) =>
-                            inputText.isNotEmpty && selectedObject is EntryNode && !entryNodeWithDescriptorExists(inputText) ||
-                            selectedObject is ExitNode && !exitNodeWithDescriptorExists(inputText),
-                        errorMessage:
-                            '${selectedObject is EntryNode ? 'Entry' : 'Exit'} node with this descriptor already exists!');
-                  },
-                ))),
+        InfoPanelPositioner(
+            child: BoundaryNodeInfoPanel(
+          node: selectedObject as BoundaryNode,
+          deleteObject: deleteObject,
+          editDescriptor: () {
+            CustomDialog.showInputDialog(context,
+                title: 'Edit descriptor',
+                hint: 'Enter new descriptor',
+                initialText: (selectedObject as BoundaryNode).descriptor,
+                onConfirm: (String inputText) {
+                  setState(() {
+                    (selectedObject as BoundaryNode).descriptor = inputText;
+                  });
+                },
+                isInputValid: (String inputText) =>
+                    inputText.isNotEmpty && selectedObject is EntryNode && !entryNodeWithDescriptorExists(inputText) ||
+                    selectedObject is ExitNode && !exitNodeWithDescriptorExists(inputText),
+                errorMessage: '${selectedObject is EntryNode ? 'Entry' : 'Exit'} node with this descriptor already exists!');
+          },
+        )),
     ]);
   }
 }

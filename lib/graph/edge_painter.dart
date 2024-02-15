@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-import '../models.dart';
-import '../constants.dart';
-import '../utils.dart';
+import '../policy/policy.dart';
+import '../grid.dart';
 import '../user_preferences.dart';
 import 'node_painter.dart';
 
@@ -114,8 +113,8 @@ class EdgePainter {
     final loopWidth = 60.0 / (small ? 1.5 : 1) * canvasScale;
     final loopHeight = 70.0 / (small ? 1.5 : 1) * canvasScale;
 
-    final nodeX = (Utils.snapToGrid(node.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
-    final nodeY = (Utils.snapToGrid(node.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
+    final nodeX = (snapToGrid(node.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
+    final nodeY = (snapToGrid(node.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
 
     final nodeSize = NodePainter.calculateNodeSize(node, padding: preferences.nodePadding) * canvasScale;
 
@@ -151,10 +150,10 @@ class EdgePainter {
   }
 
   List<Offset> calculateIntersectionPoints(Node node1, Node node2) {
-    final x1 = (Utils.snapToGrid(node1.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
-    final y1 = (Utils.snapToGrid(node1.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
-    final x2 = (Utils.snapToGrid(node2.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
-    final y2 = (Utils.snapToGrid(node2.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
+    final x1 = (snapToGrid(node1.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
+    final y1 = (snapToGrid(node1.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
+    final x2 = (snapToGrid(node2.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
+    final y2 = (snapToGrid(node2.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
 
     final node1Size = NodePainter.calculateNodeSize(node1, padding: preferences.nodePadding) * canvasScale;
     final node2Size = NodePainter.calculateNodeSize(node2, padding: preferences.nodePadding) * canvasScale;

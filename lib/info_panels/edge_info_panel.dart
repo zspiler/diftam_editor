@@ -1,5 +1,5 @@
-import 'package:poc/models.dart';
 import 'package:flutter/material.dart';
+import '../policy/policy.dart';
 
 class EdgeInfoPanel extends StatelessWidget {
   final Edge edge;

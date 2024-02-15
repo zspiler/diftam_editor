@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:poc/import.dart';
+import 'package:poc/import_export.dart';
 import 'package:poc/manage_policies_dialog.dart';
 import 'package:poc/preferences_dialog.dart';
 import 'canvas_view.dart';
 import 'ui/snackbar.dart';
-import 'models.dart';
+import 'policy/policy.dart';
 import 'policy_tab_bar.dart';
 import 'user_preferences.dart';
 import 'ui/custom_dialog.dart';
