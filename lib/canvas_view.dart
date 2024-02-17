@@ -15,6 +15,7 @@ import 'info_panels/info_panel_positioner.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
 import 'user_preferences.dart';
+import 'package:universal_io/io.dart';
 
 class CanvasView extends StatefulWidget {
   final List<Node> nodes;
@@ -106,9 +107,18 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void handleCanvasPanning(Offset scrollDelta) {
+    final adjustedScrollDelta = adjustPanningScrollDeltaForPlatforms(scrollDelta);
     setState(() {
-      canvasPosition -= scrollDelta / 1.5 / canvasScale;
+      canvasPosition -= adjustedScrollDelta / 1.5 / canvasScale;
     });
+  }
+
+  Offset adjustPanningScrollDeltaForPlatforms(Offset scrollDelta) {
+    if (KeyboardShortcutManager.isShiftKeyPressed(RawKeyboard.instance) && Platform.isMacOS) {
+      return Offset(scrollDelta.dy, 0);
+    }
+
+    return scrollDelta;
   }
 
   void zoomCanvas({bool zoomIn = true}) {
