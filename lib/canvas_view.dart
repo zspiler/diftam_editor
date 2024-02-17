@@ -374,38 +374,49 @@ class _CanvasViewState extends State<CanvasView> {
     return null;
   }
 
-  void onKeyDown(KeyDownEvent event) {
+  /*
+  Returns `true` if any app shortcuts were detected & handled, `false` otherwise.
+   */
+  bool onKeyDown(RawKeyDownEvent event) {
     if (selectedObject != null) {
       if (KeyboardShortcutManager.isDeleteKeyPressed(RawKeyboard.instance)) {
         deleteObject(selectedObject!);
+        return true;
       } else if (KeyboardShortcutManager.isDeselectKeyPressed(RawKeyboard.instance)) {
         setState(() {
           selectedObject = null;
         });
+        return true;
       }
     }
 
-    if (!isInSelectionMode()) {
-      if (KeyboardShortcutManager.isCancelDrawingKeyPressed(RawKeyboard.instance)) {
+    if (KeyboardShortcutManager.isCancelDrawingKeyPressed(RawKeyboard.instance)) {
+      if (!isInSelectionMode()) {
         stopNodeDrawing();
         stopEdgeDrawing();
       }
+      return true;
     }
 
     if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.equal ||
         event.logicalKey == LogicalKeyboardKey.add ||
         event.logicalKey == LogicalKeyboardKey.numpadAdd) {
       zoomCanvas();
+      return true;
     }
 
     if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.minus ||
         event.logicalKey == LogicalKeyboardKey.numpadSubtract) {
       zoomCanvas(zoomIn: false);
+      return true;
     }
 
     if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.digit0) {
       resetZoomAndPosition();
+      return true;
     }
+
+    return false;
   }
 
   @override
@@ -443,14 +454,18 @@ class _CanvasViewState extends State<CanvasView> {
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
             color: darkBlue,
-            child: KeyboardListener(
+            child: Focus(
               focusNode: focusNode,
               autofocus: true,
-              onKeyEvent: (event) {
-                if (event is! KeyDownEvent) {
-                  return;
+              onKey: (FocusNode node, RawKeyEvent event) {
+                if (event is! RawKeyDownEvent) {
+                  return KeyEventResult.ignored;
                 }
-                onKeyDown(event);
+                final shortcutsHandled = onKeyDown(event);
+                if (shortcutsHandled) {
+                  return KeyEventResult.handled;
+                }
+                return KeyEventResult.ignored;
               },
               child: GestureDetector(
                   onTapUp: onTapUp,
