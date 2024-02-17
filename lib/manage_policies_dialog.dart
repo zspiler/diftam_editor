@@ -24,6 +24,39 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
     _policies = List.from(widget.policies);
   }
 
+  void _onDelete(Policy policy) {
+    CustomDialog.showConfirmationDialog(context,
+        confirmButtonText: 'Delete', title: 'Are you sure you want to delete this policy?', onConfirm: () {
+      final indexOfDeletedPolicy = _policies.indexOf(policy);
+      setState(() {
+        _policies.remove(policy);
+      });
+      widget.onDeletePress(indexOfDeletedPolicy);
+      widget.onChange(_policies);
+    });
+  }
+
+  void _onRename(Policy policy) {
+    CustomDialog.showInputDialog(
+      context,
+      title: 'Rename policy',
+      hint: 'Enter policy name',
+      acceptEmptyInput: true,
+      initialText: policy.name,
+      onConfirm: (String inputText) {
+        if (inputText.isEmpty) {
+          return;
+        }
+        setState(() {
+          policy.name = inputText;
+        });
+        widget.onChange(_policies);
+      },
+      isInputValid: (String inputText) => !_policies.any((p) => p != policy && p.name == inputText),
+      errorMessage: 'Policy with this name already exists!',
+    );
+  }
+
   TableRow buildTableSpacer(double height) => TableRow(
       children: [SizedBox(height: height), SizedBox(height: height), SizedBox(height: height), SizedBox(height: height)]);
 
@@ -48,26 +81,7 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
                     child: IconButton(
                       padding: EdgeInsets.zero,
                       icon: Icon(Icons.edit, size: 16.0),
-                      onPressed: () {
-                        CustomDialog.showInputDialog(
-                          context,
-                          title: 'Rename policy',
-                          hint: 'Enter policy name',
-                          acceptEmptyInput: true,
-                          initialText: policy.name,
-                          onConfirm: (String inputText) {
-                            if (inputText.isEmpty) {
-                              return;
-                            }
-                            setState(() {
-                              policy.name = inputText;
-                            });
-                            widget.onChange(_policies);
-                          },
-                          isInputValid: (String inputText) => !_policies.any((p) => p != policy && p.name == inputText),
-                          errorMessage: 'Policy with this name already exists!',
-                        );
-                      },
+                      onPressed: () => _onRename(policy),
                     ),
                   ),
                 ),
@@ -103,18 +117,7 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
                         message: "Delete",
                         child: IconButton(
                           icon: Icon(Icons.delete_rounded, color: Colors.red),
-                          onPressed: () {
-                            CustomDialog.showConfirmationDialog(context,
-                                confirmButtonText: 'Delete',
-                                title: 'Are you sure you want to delete this policy?', onConfirm: () {
-                              final indexOfDeletedPolicy = _policies.indexOf(policy);
-                              setState(() {
-                                _policies.remove(policy);
-                              });
-                              widget.onDeletePress(indexOfDeletedPolicy);
-                              widget.onChange(_policies);
-                            });
-                          },
+                          onPressed: () => _onDelete(policy),
                         )),
                   ),
                 ),

@@ -7,7 +7,6 @@ import '../user_preferences.dart';
 class NodePainter {
   final Offset canvasPosition;
   final double canvasScale;
-  final Preferences preferences;
   final int strokeWidth;
   final Color tagNodeColor;
   final Color entryNodeColor;
@@ -17,7 +16,7 @@ class NodePainter {
   NodePainter({
     required this.canvasPosition,
     required this.canvasScale,
-    required this.preferences,
+    required Preferences preferences,
   })  : strokeWidth = preferences.nodeStrokeWidth,
         tagNodeColor = preferences.tagNodeColor,
         entryNodeColor = preferences.entryNodeColor,
@@ -41,7 +40,7 @@ class NodePainter {
   Paint getNodePaintStyle(Node node, {bool isSelected = false}) {
     return Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth.toDouble() * canvasScale
+      ..strokeWidth = strokeWidth * canvasScale
       ..color = isSelected ? Colors.white : getNodeColor(node);
   }
 
@@ -49,7 +48,7 @@ class NodePainter {
     final x = (snapToGrid(node.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
     final y = (snapToGrid(node.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
 
-    final nodeSize = calculateNodeSize(node, padding: preferences.nodePadding) * canvasScale;
+    final nodeSize = calculateNodeSize(node, padding: nodePadding) * canvasScale;
 
     canvas.drawRRect(
         RRect.fromRectAndRadius(Rect.fromLTWH(x, y, nodeSize.width, nodeSize.height), getNodeRadius(node) * canvasScale),
@@ -87,7 +86,7 @@ class NodePainter {
   }
 
   void drawText(Canvas canvas, double x, double y, String text, Node node) {
-    final nodeSize = calculateNodeSize(node, padding: preferences.nodePadding) * canvasScale;
+    final nodeSize = calculateNodeSize(node, padding: nodePadding) * canvasScale;
 
     final textPainter = getNodeTextPainter(text, scale: canvasScale);
 

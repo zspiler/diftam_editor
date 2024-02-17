@@ -14,12 +14,11 @@ class GraphPainter extends CustomPainter {
   final GraphObject? selectedObject;
   final Offset canvasPosition;
   final double canvasScale;
-  final Preferences preferences;
   final NodePainter nodePainter;
   final EdgePainter edgePainter;
 
   GraphPainter(this.nodes, this.edges, this.newEdge, this.emitPathPerEdge, this.selectedObject, this.canvasPosition,
-      this.canvasScale, this.preferences)
+      this.canvasScale, Preferences preferences)
       : nodePainter = NodePainter(
           canvasPosition: canvasPosition,
           canvasScale: canvasScale,

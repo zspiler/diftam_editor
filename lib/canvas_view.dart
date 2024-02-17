@@ -249,14 +249,6 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
-  bool entryNodeWithDescriptorExists(String descriptor) {
-    return nodes.any((node) => node is EntryNode && node.descriptor == descriptor);
-  }
-
-  bool exitNodeWithDescriptorExists(String descriptor) {
-    return nodes.any((node) => node is ExitNode && node.descriptor == descriptor);
-  }
-
   void onTapUp(TapUpDetails details) {
     final position = adjustPositionForCanvasTransform(details.localPosition);
 
@@ -270,34 +262,42 @@ class _CanvasViewState extends State<CanvasView> {
         return;
       }
       if (_drawingNodeType == NodeType.tag) {
-        CustomDialog.showInputDialog(context, title: 'Create new tag', hint: 'Enter tag name (optional)', acceptEmptyInput: true,
-            onConfirm: (String inputText) {
-          if (inputText.isEmpty) {
-            createNode(position, NodeType.tag);
-          } else {
-            createNode(position, NodeType.tag, nameOrDescriptor: inputText);
-          }
-          stopNodeDrawing();
-        });
+        showNewTagNodeDialog(position);
       } else {
-        CustomDialog.showInputDialog(context,
-            title: 'Create new ${_drawingNodeType!.value} node',
-            hint: 'Enter descriptor',
-            onConfirm: (String inputText) {
-              if (_drawingNodeType == NodeType.entry && entryNodeWithDescriptorExists(inputText) ||
-                  _drawingNodeType == NodeType.exit && exitNodeWithDescriptorExists(inputText)) {
-                SnackbarGlobal.info('$_drawingNodeType node with descriptor $inputText already exists!');
-              } else {
-                createNode(position, _drawingNodeType!, nameOrDescriptor: inputText);
-              }
-              stopNodeDrawing();
-            },
-            isInputValid: (String inputText) =>
-                inputText.isNotEmpty && _drawingNodeType == NodeType.entry && !entryNodeWithDescriptorExists(inputText) ||
-                _drawingNodeType == NodeType.exit && !exitNodeWithDescriptorExists(inputText),
-            errorMessage: '${_drawingNodeType!.value} node with this descriptor already exists!');
+        showNewBoundaryNodeDialog(position);
       }
     }
+  }
+
+  void showNewTagNodeDialog(Offset position) {
+    CustomDialog.showInputDialog(context, title: 'Create new tag', hint: 'Enter tag name (optional)', acceptEmptyInput: true,
+        onConfirm: (String inputText) {
+      if (inputText.isEmpty) {
+        createNode(position, NodeType.tag);
+      } else {
+        createNode(position, NodeType.tag, nameOrDescriptor: inputText);
+      }
+      stopNodeDrawing();
+    });
+  }
+
+  void showNewBoundaryNodeDialog(Offset position) {
+    CustomDialog.showInputDialog(context,
+        title: 'Create new ${_drawingNodeType!.value} node',
+        hint: 'Enter descriptor',
+        onConfirm: (String inputText) {
+          if (_drawingNodeType == NodeType.entry && entryNodeWithDescriptorExists(nodes, inputText) ||
+              _drawingNodeType == NodeType.exit && exitNodeWithDescriptorExists(nodes, inputText)) {
+            SnackbarGlobal.info('$_drawingNodeType node with descriptor $inputText already exists!');
+          } else {
+            createNode(position, _drawingNodeType!, nameOrDescriptor: inputText);
+          }
+          stopNodeDrawing();
+        },
+        isInputValid: (String inputText) =>
+            inputText.isNotEmpty && _drawingNodeType == NodeType.entry && !entryNodeWithDescriptorExists(nodes, inputText) ||
+            _drawingNodeType == NodeType.exit && !exitNodeWithDescriptorExists(nodes, inputText),
+        errorMessage: '${_drawingNodeType!.value} node with this descriptor already exists!');
   }
 
   void onTapDown(TapDownDetails details) {
@@ -327,7 +327,10 @@ class _CanvasViewState extends State<CanvasView> {
 
   void onPanStart(DragStartDetails details) {
     final position = adjustPositionForCanvasTransform(details.localPosition);
+    updateDraggedNode(position);
+  }
 
+  void updateDraggedNode(Offset position) {
     if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
     for (var node in nodes) {
       if (isNodeHit(node, position)) {
@@ -367,6 +370,40 @@ class _CanvasViewState extends State<CanvasView> {
       return (draggingStartPoint!, draggingEndPoint!);
     }
     return null;
+  }
+
+  void onKeyDown(KeyDownEvent event) {
+    if (selectedObject != null) {
+      if (KeyboardShortcutManager.isDeleteKeyPressed(RawKeyboard.instance)) {
+        deleteObject(selectedObject!);
+      } else if (KeyboardShortcutManager.isDeselectKeyPressed(RawKeyboard.instance)) {
+        setState(() {
+          selectedObject = null;
+        });
+      }
+    }
+
+    if (!isInSelectionMode()) {
+      if (KeyboardShortcutManager.isCancelDrawingKeyPressed(RawKeyboard.instance)) {
+        stopNodeDrawing();
+        stopEdgeDrawing();
+      }
+    }
+
+    if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.equal ||
+        event.logicalKey == LogicalKeyboardKey.add ||
+        event.logicalKey == LogicalKeyboardKey.numpadAdd) {
+      zoomCanvas();
+    }
+
+    if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.minus ||
+        event.logicalKey == LogicalKeyboardKey.numpadSubtract) {
+      zoomCanvas(zoomIn: false);
+    }
+
+    if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.digit0) {
+      resetZoomAndPosition();
+    }
   }
 
   @override
@@ -411,39 +448,7 @@ class _CanvasViewState extends State<CanvasView> {
                 if (event is! KeyDownEvent) {
                   return;
                 }
-
-                if (selectedObject != null) {
-                  if (KeyboardShortcutManager.isDeleteKeyPressed(RawKeyboard.instance)) {
-                    deleteObject(selectedObject!);
-                  } else if (KeyboardShortcutManager.isDeselectKeyPressed(RawKeyboard.instance)) {
-                    setState(() {
-                      selectedObject = null;
-                    });
-                  }
-                }
-
-                if (!isInSelectionMode()) {
-                  if (KeyboardShortcutManager.isCancelDrawingKeyPressed(RawKeyboard.instance)) {
-                    stopNodeDrawing();
-                    stopEdgeDrawing();
-                  }
-                }
-
-                if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.equal ||
-                    event.logicalKey == LogicalKeyboardKey.add ||
-                    event.logicalKey == LogicalKeyboardKey.numpadAdd) {
-                  zoomCanvas();
-                }
-
-                if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.minus ||
-                    event.logicalKey == LogicalKeyboardKey.numpadSubtract) {
-                  zoomCanvas(zoomIn: false);
-                }
-
-                if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) &&
-                    event.logicalKey == LogicalKeyboardKey.digit0) {
-                  resetZoomAndPosition();
-                }
+                onKeyDown(event);
               },
               child: GestureDetector(
                   onTapUp: onTapUp,
@@ -502,44 +507,22 @@ class _CanvasViewState extends State<CanvasView> {
         InfoPanelPositioner(
             child: TagNodeInfoPanel(
           node: selectedObject as TagNode,
+          nodes: nodes,
           deleteObject: deleteObject,
-          editLabel: () {
-            CustomDialog.showInputDialog(
-              context,
-              title: 'Edit label',
-              hint: 'Enter new label',
-              acceptEmptyInput: true,
-              initialText: (selectedObject as TagNode).name,
-              onConfirm: (String inputText) {
-                setState(() {
-                  (selectedObject as TagNode).name = inputText.isNotEmpty ? inputText : null;
-                });
-              },
-              isInputValid: (String inputText) =>
-                  !nodes.any((node) => node != selectedObject && node is TagNode && node.name == inputText),
-              errorMessage: 'Please choose a unique tag label',
-            );
+          editName: (newName) {
+            // NOTE Could also replace emit new object and replace existing one?
+            setState(() => (selectedObject as TagNode).name = newName);
           },
         )),
       if (selectedObject is BoundaryNode)
         InfoPanelPositioner(
             child: BoundaryNodeInfoPanel(
           node: selectedObject as BoundaryNode,
+          nodes: nodes,
           deleteObject: deleteObject,
-          editDescriptor: () {
-            CustomDialog.showInputDialog(context,
-                title: 'Edit descriptor',
-                hint: 'Enter new descriptor',
-                initialText: (selectedObject as BoundaryNode).descriptor,
-                onConfirm: (String inputText) {
-                  setState(() {
-                    (selectedObject as BoundaryNode).descriptor = inputText;
-                  });
-                },
-                isInputValid: (String inputText) =>
-                    inputText.isNotEmpty && selectedObject is EntryNode && !entryNodeWithDescriptorExists(inputText) ||
-                    selectedObject is ExitNode && !exitNodeWithDescriptorExists(inputText),
-                errorMessage: '${selectedObject is EntryNode ? 'Entry' : 'Exit'} node with this descriptor already exists!');
+          editDescriptor: (newDescriptor) {
+            // NOTE Could also replace emit new object and replace existing one?
+            setState(() => (selectedObject as BoundaryNode).descriptor = newDescriptor);
           },
         )),
     ]);

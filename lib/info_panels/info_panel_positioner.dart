@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class InfoPanelPositioner extends StatelessWidget {
   final Widget child;
+
   const InfoPanelPositioner({
     Key? key,
     required this.child,

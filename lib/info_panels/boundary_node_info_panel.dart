@@ -1,78 +1,84 @@
-import 'package:poc/policy/policy.dart';
 import 'package:flutter/material.dart';
+import '../policy/policy.dart';
+import 'object_info_panel.dart';
+import '../ui/custom_dialog.dart';
 
 class BoundaryNodeInfoPanel extends StatelessWidget {
   final BoundaryNode node;
+  final List<Node> nodes;
   final void Function(GraphObject object) deleteObject;
-  final void Function() editDescriptor;
+  final void Function(String) editDescriptor;
 
-  const BoundaryNodeInfoPanel({super.key, required this.node, required this.deleteObject, required this.editDescriptor});
+  const BoundaryNodeInfoPanel(
+      {super.key, required this.node, required this.nodes, required this.deleteObject, required this.editDescriptor});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(color: Colors.black.withAlpha(75), borderRadius: BorderRadius.all(Radius.circular(20))),
-      width: 400,
-      height: 260, // TODO responsive / adjust to screen? (padding: EdgeInsets.all?)
-      child: Padding(
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 64.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              '${node is ExitNode ? 'Exit' : 'Entry'} node',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            SizedBox(height: 8.0),
-            Table(
-              columnWidths: const {
-                0: FlexColumnWidth(1),
-                1: FlexColumnWidth(1),
-                2: FlexColumnWidth(1),
-              },
-              children: [
-                TableRow(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('Descriptor:'),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('${node.descriptor}'),
-                    ),
-                    Tooltip(
-                      message: 'Edit descriptor',
-                      child: Align(
-                        alignment: Alignment.centerLeft, // Adjust alignment as needed
-                        child: IconButton(
-                          padding: EdgeInsets.zero, // Minimize padding
-                          icon: Icon(Icons.edit, size: 16.0), // Adjust icon size as needed
-                          onPressed: editDescriptor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 16.0),
-            Column(
-              children: [
-                SizedBox(width: 16.0),
-                Tooltip(
-                    message: "Delete node",
-                    child: IconButton(
-                      icon: Icon(Icons.delete_rounded, color: Colors.red),
-                      onPressed: () {
-                        deleteObject(node);
-                      },
-                    )),
-              ],
-            ),
-          ],
-        ),
+    const rowPadding = EdgeInsets.symmetric(vertical: 8.0);
+    return ObjectInfoPanel(children: [
+      Text(
+        '${node is ExitNode ? 'Exit' : 'Entry'} node',
+        style: Theme.of(context).textTheme.headlineSmall,
       ),
-    );
+      SizedBox(height: 8.0),
+      Table(
+        columnWidths: const {
+          0: FlexColumnWidth(1),
+          1: FlexColumnWidth(1),
+          2: FlexColumnWidth(1),
+        },
+        children: [
+          TableRow(
+            children: [
+              Padding(
+                padding: rowPadding,
+                child: Text('Descriptor:'),
+              ),
+              Padding(
+                padding: rowPadding,
+                child: Text('${node.descriptor}'),
+              ),
+              Tooltip(
+                message: 'Edit descriptor',
+                child: Align(
+                  alignment: Alignment.centerLeft, // Adjust alignment as needed
+                  child: IconButton(
+                    padding: EdgeInsets.zero, // Minimize padding
+                    icon: Icon(Icons.edit, size: 16.0), // Adjust icon size as needed
+                    onPressed: () {
+                      CustomDialog.showInputDialog(context,
+                          title: 'Edit descriptor',
+                          hint: 'Enter new descriptor',
+                          initialText: (node as BoundaryNode).descriptor,
+                          onConfirm: (String inputText) {
+                            editDescriptor(inputText);
+                          },
+                          isInputValid: (String inputText) =>
+                              inputText.isNotEmpty && node is EntryNode && !entryNodeWithDescriptorExists(nodes, inputText) ||
+                              node is ExitNode && !exitNodeWithDescriptorExists(nodes, inputText),
+                          errorMessage: '${node is EntryNode ? 'Entry' : 'Exit'} node with this descriptor already exists!');
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      SizedBox(height: 16.0),
+      Column(
+        children: [
+          SizedBox(width: 16.0),
+          Tooltip(
+              message: "Delete node",
+              child: IconButton(
+                icon: Icon(Icons.delete_rounded, color: Colors.red),
+                onPressed: () {
+                  deleteObject(node);
+                },
+              )),
+        ],
+      ),
+    ]);
   }
 }

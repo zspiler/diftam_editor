@@ -4,9 +4,10 @@ import 'edge.dart';
 export 'edge.dart';
 export 'node.dart';
 export 'graph_object.dart';
+export 'utils.dart';
 
 class Policy {
-  late final String name; // TODO late OK?
+  late String name; // TODO late OK?
   late final List<Node> nodes; // TODO late OK?
   late final List<Edge> edges; // TODO late OK?
 

@@ -15,36 +15,38 @@ enum EdgeShape {
 class EdgePainter {
   final Offset canvasPosition;
   final double canvasScale;
-  final Preferences preferences;
   final int strokeWidth;
   final Color obliviousEdgeColor;
   final Color awareEdgeColor;
+  final int nodePadding;
 
-  EdgePainter({required this.canvasPosition, required this.canvasScale, required this.preferences})
+  EdgePainter({required this.canvasPosition, required this.canvasScale, required Preferences preferences})
       : strokeWidth = preferences.edgeStrokeWidth,
         obliviousEdgeColor = preferences.obliviousEdgeColor,
-        awareEdgeColor = preferences.awareEdgeColor;
+        awareEdgeColor = preferences.awareEdgeColor,
+        nodePadding = preferences.nodePadding;
 
   Paint getEdgePaintStyle(EdgeType edgeType, {bool isSelected = false}) {
-    final obliviousColor = isSelected ? Colors.white : obliviousEdgeColor;
-    final awareColor = isSelected ? Colors.white : awareEdgeColor;
-
+    const selectedEdgeColor = Colors.white;
+    final obliviousColor = isSelected ? selectedEdgeColor : obliviousEdgeColor;
+    final awareColor = isSelected ? selectedEdgeColor : awareEdgeColor;
     final color = edgeType == EdgeType.oblivious ? obliviousColor : awareColor;
+
     return Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth.toDouble() * canvasScale
+      ..strokeWidth = strokeWidth * canvasScale
       ..color = color;
   }
 
   void drawEdgeInProgress(Canvas canvas, (Offset, Offset) points) {
-    final paintStyleFaded = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth.toDouble() * canvasScale
-      ..color = Colors.grey.withOpacity(0.7);
-
     var (sourcePoint, targetPoint) = points;
     sourcePoint = Offset((sourcePoint.dx + canvasPosition.dx) * canvasScale, (sourcePoint.dy + canvasPosition.dy) * canvasScale);
     targetPoint = Offset((targetPoint.dx + canvasPosition.dx) * canvasScale, (targetPoint.dy + canvasPosition.dy) * canvasScale);
+
+    final paintStyleFaded = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * canvasScale
+      ..color = Colors.grey.withOpacity(0.7);
 
     canvas.drawLine(sourcePoint, targetPoint, paintStyleFaded);
     drawArrowhead(canvas, targetPoint, sourcePoint, paintStyleFaded);
@@ -116,7 +118,7 @@ class EdgePainter {
     final nodeX = (snapToGrid(node.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
     final nodeY = (snapToGrid(node.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
 
-    final nodeSize = NodePainter.calculateNodeSize(node, padding: preferences.nodePadding) * canvasScale;
+    final nodeSize = NodePainter.calculateNodeSize(node, padding: nodePadding) * canvasScale;
 
     final boxTopCenterX = nodeX + nodeSize.width / 2;
     final boxTopCenterY = nodeY;
@@ -155,8 +157,8 @@ class EdgePainter {
     final x2 = (snapToGrid(node2.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
     final y2 = (snapToGrid(node2.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
 
-    final node1Size = NodePainter.calculateNodeSize(node1, padding: preferences.nodePadding) * canvasScale;
-    final node2Size = NodePainter.calculateNodeSize(node2, padding: preferences.nodePadding) * canvasScale;
+    final node1Size = NodePainter.calculateNodeSize(node1, padding: nodePadding) * canvasScale;
+    final node2Size = NodePainter.calculateNodeSize(node2, padding: nodePadding) * canvasScale;
 
     final node1Offset = Offset(x1 + node1Size.width / 2, y1 + node1Size.height / 2);
     final node2Offset = Offset(x2 + node2Size.width / 2, y2 + node2Size.height / 2);

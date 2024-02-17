@@ -9,7 +9,7 @@ class PolicyTabBar extends StatelessWidget {
   final Function() onManagePressed;
   final int currentPolicyIndex;
 
-  PolicyTabBar(this.policies, this.currentPolicyIndex,
+  const PolicyTabBar(this.policies, this.currentPolicyIndex,
       {Key? key,
       required this.onSelect,
       required this.onAddPressed,
@@ -19,6 +19,9 @@ class PolicyTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final foregroundColor = MaterialStateProperty.all<Color>(Colors.white);
+    final backgroundColor = MaterialStateProperty.all<Color>(Colors.black.withAlpha(150));
+
     return Container(
       child: Row(
         children: [
@@ -34,10 +37,8 @@ class PolicyTabBar extends StatelessWidget {
                     topLeft: Radius.circular(index == 0 ? 10 : 0),
                     bottomLeft: Radius.circular(index == 0 ? 10 : 0),
                   ))),
-                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                  backgroundColor: index == currentPolicyIndex
-                      ? MaterialStateProperty.all<Color>(Colors.blue)
-                      : MaterialStateProperty.all<Color>(Colors.black.withAlpha(150)),
+                  foregroundColor: foregroundColor,
+                  backgroundColor: index == currentPolicyIndex ? MaterialStateProperty.all<Color>(Colors.blue) : backgroundColor,
                 ),
                 onPressed: () => onSelect(index),
                 child: Text(policy.value.name),
@@ -52,8 +53,8 @@ class PolicyTabBar extends StatelessWidget {
                 style: ButtonStyle(
                   shape:
                       MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
-                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.black.withAlpha(150)),
+                  foregroundColor: foregroundColor,
+                  backgroundColor: backgroundColor,
                 ),
                 onPressed: onAddPressed,
                 child: Icon(Icons.add),
@@ -68,8 +69,8 @@ class PolicyTabBar extends StatelessWidget {
                 style: ButtonStyle(
                   shape:
                       MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
-                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.black.withAlpha(150)),
+                  foregroundColor: foregroundColor,
+                  backgroundColor: backgroundColor,
                 ),
                 onPressed: onImportPressed,
                 child: Icon(Icons.upload),
@@ -87,8 +88,8 @@ class PolicyTabBar extends StatelessWidget {
                       borderRadius: BorderRadius.only(topRight: Radius.circular(10), bottomRight: Radius.circular(10)),
                     ),
                   ),
-                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.black.withAlpha(150)),
+                  foregroundColor: foregroundColor,
+                  backgroundColor: backgroundColor,
                 ),
                 onPressed: onManagePressed,
                 child: Icon(Icons.list),

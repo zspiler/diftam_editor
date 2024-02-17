@@ -92,6 +92,76 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void onAddPolicy() {
+    var newPolicyName = 'Policy ${policies.length + 1}';
+    CustomDialog.showInputDialog(
+      context,
+      title: 'Create policy',
+      hint: 'Enter policy name',
+      acceptEmptyInput: true,
+      initialText: newPolicyName,
+      onConfirm: (String inputText) {
+        if (inputText.isNotEmpty) {
+          newPolicyName = inputText;
+        }
+        addPolicy(Policy(name: newPolicyName));
+        selectPolicy(policies.length - 1);
+      },
+      isInputValid: (String inputText) => !policies.any((policy) => policy.name == inputText),
+      errorMessage: 'Policy with this name already exists!',
+    );
+  }
+
+  void onImportPolicy() async {
+    // NOTE this package supports saving file via dialog, but only on Desktop!
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+      withData: true, // needed for MacOS
+    );
+    if (result == null) {
+      // user canceled file picker
+      return;
+    }
+    final bytes = result.files.single.bytes;
+    if (bytes == null) {
+      SnackbarGlobal.error("Failed to read file");
+      return;
+    }
+
+    Policy policy;
+    try {
+      policy = decodeAndParsePolicy(bytes);
+    } catch (e) {
+      SnackbarGlobal.error(e.toString());
+      return;
+    }
+    addPolicy(policy);
+    selectPolicy(policies.length - 1);
+    // TODO Desktop
+  }
+
+  void onManagePolicies() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ManagePoliciesDialog(
+            policies: policies,
+            onChange: (updatedPolicies) {
+              setState(() {
+                policies = List.from(updatedPolicies);
+              });
+            },
+            onDeletePress: (int index) {
+              final newPoliciesLength = policies.length - 1;
+              if (selectedPolicyIndex >= newPoliciesLength) {
+                selectPolicy(selectedPolicyIndex -= 1);
+              }
+            },
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,73 +182,12 @@ class _MyAppState extends State<MyApp> {
           Positioned(
               bottom: 0,
               child: Align(
-                alignment: Alignment.bottomCenter,
-                child: PolicyTabBar(policies, selectedPolicyIndex, onSelect: selectPolicy, onAddPressed: () {
-                  var newPolicyName = 'Policy ${policies.length + 1}';
-                  CustomDialog.showInputDialog(
-                    context,
-                    title: 'Create policy',
-                    hint: 'Enter policy name',
-                    acceptEmptyInput: true,
-                    initialText: newPolicyName,
-                    onConfirm: (String inputText) {
-                      if (inputText.isNotEmpty) {
-                        newPolicyName = inputText;
-                      }
-                      addPolicy(Policy(name: newPolicyName));
-                      selectPolicy(policies.length - 1);
-                    },
-                    isInputValid: (String inputText) => !policies.any((policy) => policy.name == inputText),
-                    errorMessage: 'Policy with this name already exists!',
-                  );
-                }, onImportPressed: () async {
-                  // TODO this package supports saving file via dialog, but only on Desktop!
-                  FilePickerResult? result = await FilePicker.platform.pickFiles(
-                    type: FileType.custom,
-                    allowedExtensions: ['json'],
-                    withData: true, // needed for MacOS
-                  );
-                  if (result == null) {
-                    // user canceled file picker
-                    return;
-                  }
-                  final bytes = result.files.single.bytes;
-                  if (bytes == null) {
-                    SnackbarGlobal.error("Failed to read file");
-                    return;
-                  }
-
-                  Policy policy;
-                  try {
-                    policy = decodeAndParsePolicy(bytes);
-                  } catch (e) {
-                    SnackbarGlobal.error(e.toString());
-                    return;
-                  }
-                  addPolicy(policy);
-                  selectPolicy(policies.length - 1);
-                  // TODO Desktop
-                }, onManagePressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return ManagePoliciesDialog(
-                          policies: policies,
-                          onChange: (updatedPolicies) {
-                            setState(() {
-                              policies = List.from(updatedPolicies);
-                            });
-                          },
-                          onDeletePress: (int index) {
-                            final newPoliciesLength = policies.length - 1;
-                            if (selectedPolicyIndex >= newPoliciesLength) {
-                              selectPolicy(selectedPolicyIndex -= 1);
-                            }
-                          },
-                        );
-                      });
-                }),
-              )),
+                  alignment: Alignment.bottomCenter,
+                  child: PolicyTabBar(policies, selectedPolicyIndex,
+                      onSelect: selectPolicy,
+                      onAddPressed: onAddPolicy,
+                      onImportPressed: onImportPolicy,
+                      onManagePressed: onManagePolicies))),
           Positioned(
               top: 16,
               left: 16,
