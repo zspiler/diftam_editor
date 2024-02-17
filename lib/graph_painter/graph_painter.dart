@@ -80,7 +80,9 @@ class GraphPainter extends CustomPainter {
           ? (edge.type == EdgeType.oblivious ? EdgeShape.curvedUp : EdgeShape.curvedDown)
           : EdgeShape.straight;
 
-      pathPerEdge[edge] = edgePainter.drawEdge(canvas, edge, shape: edgeShape, isSelected: edge == selectedObject);
+      final siblingEdge = getSiblingEdge(edges, edge);
+      pathPerEdge[edge] = edgePainter.drawEdge(canvas, edge,
+          shape: edgeShape, isSelected: edge == selectedObject || (siblingEdge != null && siblingEdge == selectedObject));
     }
 
     return pathPerEdge;

@@ -4,17 +4,22 @@ import 'object_info_panel.dart';
 
 class EdgeInfoPanel extends StatelessWidget {
   final Edge edge;
+  final Edge? siblingEdge;
   final void Function(GraphObject object) deleteObject;
   final void Function(EdgeType newEdgeType) changeEdgeType;
 
-  const EdgeInfoPanel({super.key, required this.edge, required this.deleteObject, required this.changeEdgeType});
+  const EdgeInfoPanel(
+      {super.key, required this.edge, required this.siblingEdge, required this.deleteObject, required this.changeEdgeType});
 
   @override
   Widget build(BuildContext context) {
     const rowPadding = EdgeInsets.symmetric(vertical: 8.0);
+
+    final pluralSuffix = siblingEdge != null ? 's' : '';
+
     return ObjectInfoPanel(children: [
       Text(
-        'Edge',
+        'Edge$pluralSuffix',
         style: Theme.of(context).textTheme.headlineSmall,
       ),
       SizedBox(height: 8.0),
@@ -28,7 +33,7 @@ class EdgeInfoPanel extends StatelessWidget {
             children: [
               Padding(
                 padding: rowPadding,
-                child: Text('From:'),
+                child: Text(siblingEdge != null ? 'Node 1:' : 'From:'),
               ),
               Padding(
                 padding: rowPadding,
@@ -40,7 +45,7 @@ class EdgeInfoPanel extends StatelessWidget {
             children: [
               Padding(
                 padding: rowPadding,
-                child: Text('To:'),
+                child: Text(siblingEdge != null ? 'Node 2:' : 'To:'),
               ),
               Padding(
                 padding: rowPadding,
@@ -66,18 +71,19 @@ class EdgeInfoPanel extends StatelessWidget {
       Column(
         children: [
           SizedBox(width: 8.0),
-          Tooltip(
-              message: "Change edge type",
-              child: IconButton(
-                icon: Icon(Icons.arrow_circle_right_outlined),
-                onPressed: () {
-                  final newEdgeType = edge.type == EdgeType.oblivious ? EdgeType.aware : EdgeType.oblivious;
-                  changeEdgeType(newEdgeType);
-                },
-              )),
+          if (siblingEdge == null)
+            Tooltip(
+                message: "Change edge type",
+                child: IconButton(
+                  icon: Icon(Icons.arrow_circle_right_outlined),
+                  onPressed: () {
+                    final newEdgeType = edge.type == EdgeType.oblivious ? EdgeType.aware : EdgeType.oblivious;
+                    changeEdgeType(newEdgeType);
+                  },
+                )),
           SizedBox(width: 16.0),
           Tooltip(
-              message: "Delete edge",
+              message: "Delete edge$pluralSuffix",
               child: IconButton(
                 icon: Icon(Icons.delete_rounded, color: Colors.red),
                 onPressed: () {

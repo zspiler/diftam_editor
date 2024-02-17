@@ -183,8 +183,10 @@ class _CanvasViewState extends State<CanvasView> {
           edges.removeWhere((edge) => edge.source == object || edge.target == object);
         });
       } else {
+        final siblingEdge = getSiblingEdge(edges, object as Edge);
+        final edgesToRemove = siblingEdge != null ? [object, siblingEdge] : [object];
         setState(() {
-          edges.remove(object);
+          edges.removeWhere((edge) => edgesToRemove.contains(edge));
         });
       }
       if (selectedObject == object) {
@@ -496,6 +498,7 @@ class _CanvasViewState extends State<CanvasView> {
         InfoPanelPositioner(
           child: EdgeInfoPanel(
               edge: selectedObject as Edge,
+              siblingEdge: getSiblingEdge(edges, selectedObject as Edge),
               deleteObject: deleteObject,
               changeEdgeType: (newEdgeType) {
                 setState(() {
