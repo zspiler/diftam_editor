@@ -499,10 +499,15 @@ class _CanvasViewState extends State<CanvasView> {
           child: EdgeInfoPanel(
               edge: selectedObject as Edge,
               siblingEdge: getSiblingEdge(edges, selectedObject as Edge),
+              isOnlyEdgeTypeBetweenNodes: isOnlyEdgeTypeBetweenNodes(edges, selectedObject as Edge),
               deleteObject: deleteObject,
               changeEdgeType: (newEdgeType) {
+                final siblingEdge = getSiblingEdge(edges, selectedObject as Edge);
+                final edgesToModify = siblingEdge != null ? [selectedObject as Edge, siblingEdge] : [selectedObject as Edge];
                 setState(() {
-                  (selectedObject as Edge).type = newEdgeType;
+                  for (var edge in edgesToModify) {
+                    edge.type = newEdgeType;
+                  }
                 });
               }),
         ),

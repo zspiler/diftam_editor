@@ -16,3 +16,7 @@ bool exitNodeWithDescriptorExists(List<Node> nodes, String descriptor) {
 Edge? getSiblingEdge(List<Edge> edges, Edge edge) {
   return firstOrNull(edges, (e) => e != edge && e.type == edge.type && e.source == edge.target && e.target == edge.source);
 }
+
+bool isOnlyEdgeTypeBetweenNodes(List<Edge> edges, Edge edge) {
+  return edges.where((e) => e.source == edge.source && e.target == edge.target && e.type != edge.type).isEmpty;
+}

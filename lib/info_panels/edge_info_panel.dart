@@ -5,11 +5,18 @@ import 'object_info_panel.dart';
 class EdgeInfoPanel extends StatelessWidget {
   final Edge edge;
   final Edge? siblingEdge;
+  final bool isOnlyEdgeTypeBetweenNodes;
   final void Function(GraphObject object) deleteObject;
   final void Function(EdgeType newEdgeType) changeEdgeType;
 
-  const EdgeInfoPanel(
-      {super.key, required this.edge, required this.siblingEdge, required this.deleteObject, required this.changeEdgeType});
+  const EdgeInfoPanel({
+    super.key,
+    required this.edge,
+    required this.siblingEdge,
+    required this.isOnlyEdgeTypeBetweenNodes,
+    required this.deleteObject,
+    required this.changeEdgeType,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +78,7 @@ class EdgeInfoPanel extends StatelessWidget {
       Column(
         children: [
           SizedBox(width: 8.0),
-          if (siblingEdge == null)
+          if (isOnlyEdgeTypeBetweenNodes)
             Tooltip(
                 message: "Change edge type",
                 child: IconButton(
