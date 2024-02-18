@@ -14,7 +14,7 @@ import 'info_panels/boundary_node_info_panel.dart';
 import 'info_panels/info_panel_positioner.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
-import 'user_preferences.dart';
+import 'preferences_manager.dart';
 import 'package:universal_io/io.dart';
 
 class CanvasView extends StatefulWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'user_preferences.dart';
+import 'preferences_manager.dart';
 import 'ui/number_input.dart';
 import 'ui/color_picker.dart';
 
@@ -28,8 +28,8 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
     _loadPreferences();
   }
 
-  Future<void> _loadPreferences() async {
-    final preferences = await PreferencesManager.getPreferences();
+  void _loadPreferences() async {
+    final preferences = PreferencesManager.getPreferences();
     setState(() {
       _nodePadding = preferences.nodePadding;
       _nodeStrokeWidth = preferences.nodeStrokeWidth;
@@ -42,35 +42,34 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
     });
   }
 
-  Future<void> updatePreference<T>(Future<void> Function(T) setter, T newValue) async {
-    await setter(newValue);
-    await _updatePreferences();
+  void setPreference<T>(Function(T) setter, T newValue) {
+    setter(newValue);
+    _updatePreferences();
   }
 
-  Future<void> _updatePreferences() async {
-    await _loadPreferences();
-    final updatedPreferences = await PreferencesManager.getPreferences();
-    widget.onChange(updatedPreferences);
+  void _updatePreferences() {
+    _loadPreferences();
+    widget.onChange(PreferencesManager.getPreferences());
   }
 
   void _clearPreferences() async {
-    await PreferencesManager.clear();
-    await _loadPreferences();
+    PreferencesManager.clear();
+    _loadPreferences();
     widget.onChange(Preferences());
   }
 
   @override
   Widget build(BuildContext context) {
     final nodeColorPreferencesRows = [
-      ('Tag node', _tagNodeColor, (Color newColor) => updatePreference(PreferencesManager.setTagNodeColor, newColor)),
-      ('Entry node', _entryNodeColor, (Color newColor) => updatePreference(PreferencesManager.setEntryNodeColor, newColor)),
-      ('Exit node', _exitNodeColor, (Color newColor) => updatePreference(PreferencesManager.setExitNodeColor, newColor)),
+      ('Tag node', _tagNodeColor, (Color newColor) => setPreference(PreferencesManager.setTagNodeColor, newColor)),
+      ('Entry node', _entryNodeColor, (Color newColor) => setPreference(PreferencesManager.setEntryNodeColor, newColor)),
+      ('Exit node', _exitNodeColor, (Color newColor) => setPreference(PreferencesManager.setExitNodeColor, newColor)),
       (
         'Oblivious edge',
         _obliviousEdgeColor,
-        (Color newColor) => updatePreference(PreferencesManager.setObliviousEdgeColor, newColor)
+        (Color newColor) => setPreference(PreferencesManager.setObliviousEdgeColor, newColor)
       ),
-      ('Aware edge', _awareEdgeColor, (Color newColor) => updatePreference(PreferencesManager.setAwareEdgeColor, newColor)),
+      ('Aware edge', _awareEdgeColor, (Color newColor) => setPreference(PreferencesManager.setAwareEdgeColor, newColor)),
     ];
 
     TableRow buildTableSpacer(double height) => TableRow(children: [SizedBox(height: height), SizedBox(height: height)]);
@@ -133,7 +132,7 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
                           alignment: Alignment.center,
                           child: NumberInput(
                             value: _nodePadding,
-                            onChange: (newPadding) => updatePreference(PreferencesManager.setNodePadding, newPadding),
+                            onChange: (newPadding) => setPreference(PreferencesManager.setNodePadding, newPadding),
                             max: 5,
                             min: 1,
                           ),
@@ -153,7 +152,7 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
                           alignment: Alignment.center,
                           child: NumberInput(
                             value: _nodeStrokeWidth,
-                            onChange: (newStrokeWidth) => updatePreference(PreferencesManager.setNodeStrokeWidth, newStrokeWidth),
+                            onChange: (newStrokeWidth) => setPreference(PreferencesManager.setNodeStrokeWidth, newStrokeWidth),
                             max: 10,
                             min: 1,
                           ),
@@ -173,7 +172,7 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
                           alignment: Alignment.center,
                           child: NumberInput(
                             value: _edgeStrokeWidth,
-                            onChange: (newStrokeWidth) => updatePreference(PreferencesManager.setEdgeStrokeWidth, newStrokeWidth),
+                            onChange: (newStrokeWidth) => setPreference(PreferencesManager.setEdgeStrokeWidth, newStrokeWidth),
                             max: 8,
                             min: 1,
                           ),

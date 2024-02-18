@@ -3,7 +3,7 @@ import 'dart:math';
 
 import '../policy/policy.dart';
 import '../grid.dart';
-import '../user_preferences.dart';
+import '../preferences_manager.dart';
 import 'node_painter.dart';
 
 enum EdgeShape {

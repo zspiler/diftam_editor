@@ -6,11 +6,13 @@ import 'canvas_view.dart';
 import 'ui/snackbar.dart';
 import 'policy/policy.dart';
 import 'policy_tab_bar.dart';
-import 'user_preferences.dart';
+import 'preferences_manager.dart';
 import 'ui/custom_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 
-void main() {
+void main() async {
+  await PreferencesManager.init();
+
   runApp(MaterialApp(
       theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: Colors.blue),
       debugShowCheckedModeBanner: false,
@@ -33,12 +35,8 @@ class _MyAppState extends State<MyApp> {
 
   Preferences preferences = Preferences();
 
-  @override
-  void initState() {
-    super.initState();
-
-    loadPreferences();
-
+  // TODO Development only, remove before release!
+  void createMockPolicy() {
     // TODO ensure unique IDS?
     final priv = TagNode(Offset(500, 350), 'privID', 'priv');
     final pub = TagNode(Offset(700, 350), 'pubID', 'pub');
@@ -64,18 +62,19 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    preferences = PreferencesManager.getPreferences();
+    createMockPolicy();
+  }
+
+  @override
   void dispose() {
     super.dispose();
     for (var focusNode in focusNodes) {
       focusNode.dispose();
     }
-  }
-
-  Future<void> loadPreferences() async {
-    final prefs = await PreferencesManager.getPreferences();
-    setState(() {
-      preferences = prefs;
-    });
   }
 
   void addPolicy(Policy policy) {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import '../policy/policy.dart';
 import '../grid.dart';
-import '../user_preferences.dart';
+import '../preferences_manager.dart';
 
 class NodePainter {
   final Offset canvasPosition;

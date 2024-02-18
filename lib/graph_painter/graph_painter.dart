@@ -4,7 +4,7 @@ import 'node_painter.dart';
 import 'edge_painter.dart';
 import '../policy/policy.dart';
 import '../grid.dart';
-import '../user_preferences.dart';
+import '../preferences_manager.dart';
 
 class GraphPainter extends CustomPainter {
   final List<Node> nodes;
