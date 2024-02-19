@@ -16,6 +16,7 @@ import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
 import 'preferences_manager.dart';
 import 'package:universal_io/io.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class CanvasView extends StatefulWidget {
   final List<Node> nodes;
@@ -114,7 +115,7 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   Offset adjustPanningScrollDeltaForPlatforms(Offset scrollDelta) {
-    if (KeyboardShortcutManager.isShiftKeyPressed(RawKeyboard.instance) && Platform.isMacOS) {
+    if (KeyboardShortcutManager.isShiftKeyPressed(RawKeyboard.instance) && Platform.isMacOS && !kIsWeb) {
       return Offset(scrollDelta.dy, 0);
     }
 
