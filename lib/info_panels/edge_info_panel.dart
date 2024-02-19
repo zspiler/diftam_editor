@@ -18,6 +18,19 @@ class EdgeInfoPanel extends StatelessWidget {
     required this.changeEdgeType,
   });
 
+  String getNodeDisplayText(Node node) {
+    if (node is TagNode) {
+      return 'Tag node (${node.id})';
+    }
+    if (node is EntryNode) {
+      return 'Entry node (${node.descriptor})';
+    }
+    if (node is ExitNode) {
+      return 'Exit node (${node.descriptor})';
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     const rowPadding = EdgeInsets.symmetric(vertical: 8.0);
@@ -44,7 +57,7 @@ class EdgeInfoPanel extends StatelessWidget {
               ),
               Padding(
                 padding: rowPadding,
-                child: Text('${edge.source}'),
+                child: Text(getNodeDisplayText(edge.source)),
               ),
             ],
           ),
@@ -56,7 +69,7 @@ class EdgeInfoPanel extends StatelessWidget {
               ),
               Padding(
                 padding: rowPadding,
-                child: Text('${edge.target}'),
+                child: Text(getNodeDisplayText(edge.target)),
               ),
             ],
           ),

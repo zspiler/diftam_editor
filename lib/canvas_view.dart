@@ -35,7 +35,7 @@ const darkBlue = Color.fromARGB(255, 20, 54, 91);
 class _CanvasViewState extends State<CanvasView> {
   var nodes = <Node>[];
   var edges = <Edge>[];
-  var pathPerEdge = <Edge, Path>{};
+  var edgePaths = <Path>[];
 
   Offset? draggingStartPoint;
   Offset? draggingEndPoint;
@@ -82,12 +82,8 @@ class _CanvasViewState extends State<CanvasView> {
         node.position.dy + nodeSize.height > position.dy;
   }
 
-  bool isEdgeHit(Edge edge, Offset position) {
-    if (!pathPerEdge.containsKey(edge)) {
-      return false; // sanity check TODO
-    }
-
-    final path = pathPerEdge[edge]!;
+  bool isEdgeHit(int edgeIndex, Offset position) {
+    final path = edgePaths[edgeIndex];
 
     return isPointNearBezierPath(position, path);
   }
@@ -215,9 +211,9 @@ class _CanvasViewState extends State<CanvasView> {
       }
     }
 
-    for (var edge in edges) {
-      if (isEdgeHit(edge, cursorPosition)) {
-        return edge;
+    for (var i = 0; i < edges.length; i++) {
+      if (isEdgeHit(i, cursorPosition)) {
+        return edges[i];
       }
     }
     return null;
@@ -444,7 +440,6 @@ class _CanvasViewState extends State<CanvasView> {
           }
         },
         onPointerHover: (event) {
-          // TODO this is currently terrible - all mouse movement updates states and rerenders everything 🙈
           setState(() {
             cursorPosition = event.localPosition;
           });
@@ -486,16 +481,18 @@ class _CanvasViewState extends State<CanvasView> {
                   onPanEnd: (details) {
                     draggedNode = null;
                   },
-                  child: CustomPaint(
-                    painter: GraphPainter(
-                      nodes,
-                      edges,
-                      getEdgeInProgress(),
-                      (newPathPerEdge) => pathPerEdge = newPathPerEdge,
-                      selectedObject,
-                      canvasPosition,
-                      canvasScale,
-                      widget.preferences,
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: GraphPainter(
+                        nodes,
+                        edges,
+                        getEdgeInProgress(),
+                        (newEdgePaths) => edgePaths = newEdgePaths,
+                        selectedObject,
+                        canvasPosition,
+                        canvasScale,
+                        widget.preferences,
+                      ),
                     ),
                   )),
             ),

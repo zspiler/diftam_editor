@@ -7,35 +7,54 @@ import '../grid.dart';
 import '../preferences_manager.dart';
 
 class GraphPainter extends CustomPainter {
-  final List<Node> nodes;
-  final List<Edge> edges;
+  late final List<Node> nodes;
+  late final List<Edge> edges;
+  late final GraphObject? selectedObject;
+  late final NodePainter nodePainter;
+  late final EdgePainter edgePainter;
   final (Offset, Offset)? newEdge;
-  final Function(Map<Edge, Path> pathPerEdge) emitPathPerEdge;
-  final GraphObject? selectedObject;
+  final Function(List<Path> edgePaths) emitEdgePaths;
   final Offset canvasPosition;
   final double canvasScale;
-  final NodePainter nodePainter;
-  final EdgePainter edgePainter;
 
-  GraphPainter(this.nodes, this.edges, this.newEdge, this.emitPathPerEdge, this.selectedObject, this.canvasPosition,
-      this.canvasScale, Preferences preferences)
-      : nodePainter = NodePainter(
-          canvasPosition: canvasPosition,
-          canvasScale: canvasScale,
-          preferences: preferences,
-        ),
-        edgePainter = EdgePainter(
-          canvasPosition: canvasPosition,
-          canvasScale: canvasScale,
-          preferences: preferences,
-        );
+  GraphPainter(List<Node> originalNodes, List<Edge> originalEdges, this.newEdge, this.emitEdgePaths,
+      GraphObject? originalSelectedObject, this.canvasPosition, this.canvasScale, Preferences preferences) {
+    /*
+    We clone 'nodes' and 'edges' to simplify calculation of graph diff which is required to optimize repaints with ('shouldRepaint' method).
+    Without cloning, diff is not detected since we modify graph object properties without replacing objects themselves and
+    oldDelegate holds object references which do not change unless objects are added/removed.
+    An alternative would be to always replace graph objects when modifying them (TODO).
+    */
+    nodes = GraphObject.cloneObjects(originalNodes);
+    edges = GraphObject.cloneObjects(originalEdges);
 
-  // NOTE widget rebuilt each time _CanvasViewState changes 😬
+    if (originalSelectedObject != null) {
+      if (originalSelectedObject is Node) {
+        selectedObject = nodes[originalNodes.indexOf(originalSelectedObject)];
+      } else {
+        selectedObject = edges[originalEdges.indexOf(originalSelectedObject as Edge)];
+      }
+    } else {
+      selectedObject = null;
+    }
+
+    nodePainter = NodePainter(
+      canvasPosition: canvasPosition,
+      canvasScale: canvasScale,
+      preferences: preferences,
+    );
+    edgePainter = EdgePainter(
+      canvasPosition: canvasPosition,
+      canvasScale: canvasScale,
+      preferences: preferences,
+    );
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     drawGrid(canvas, size);
-    final pathPerEdge = drawEdges(canvas, edges);
-    emitPathPerEdge(pathPerEdge);
+    final edgePaths = drawEdges(canvas, edges);
+    emitEdgePaths(edgePaths);
 
     for (var node in nodes) {
       nodePainter.drawNode(canvas, node, isSelected: selectedObject == node);
@@ -50,22 +69,26 @@ class GraphPainter extends CustomPainter {
     Draws edges and also returns map which contains the drawn path for each edge.
     Because edges can be curved, we need the paths to detect whether an edge is under cursor (for selection).
    */
-  Map<Edge, Path> drawEdges(Canvas canvas, List<Edge> edges) {
-    final Map<Edge, Path> pathPerEdge = {};
+  List<Path> drawEdges(Canvas canvas, List<Edge> edges) {
+    final List<Path> edgePaths = List.generate(edges.length, (_) => Path());
 
     final loopEdges = edges.where((edge) => edge.source == edge.target).toList();
     final nonLoopEdges = edges.where((edge) => edge.source != edge.target).toList();
 
     for (Edge edge in loopEdges) {
       final sourceNode = edge.source;
-      final loopEdgesOnNode = edges.where((edge2) => edge2.source == sourceNode && edge2.target == sourceNode).toList();
-      if (loopEdgesOnNode.length == 2) {
-        pathPerEdge[loopEdgesOnNode[0]] =
-            edgePainter.drawLoop(canvas, sourceNode, EdgeType.aware, isSelected: loopEdgesOnNode[0] == selectedObject);
-        pathPerEdge[loopEdgesOnNode[1]] = edgePainter.drawLoop(canvas, sourceNode, EdgeType.oblivious,
-            small: true, isSelected: loopEdgesOnNode[1] == selectedObject);
+      final loopEdges = edges.where((edge2) => edge2.source == sourceNode && edge2.target == sourceNode).toList();
+      if (loopEdges.length == 2) {
+        final firstLoopEdgeIndex = edges.indexOf(loopEdges[0]);
+        edgePaths[firstLoopEdgeIndex] =
+            edgePainter.drawLoop(canvas, sourceNode, EdgeType.aware, isSelected: loopEdges[0] == selectedObject);
+
+        final secondLoopEdgeIndex = edges.indexOf(loopEdges[1]);
+        edgePaths[secondLoopEdgeIndex] =
+            edgePainter.drawLoop(canvas, sourceNode, EdgeType.oblivious, small: true, isSelected: loopEdges[1] == selectedObject);
       } else {
-        pathPerEdge[edge] = edgePainter.drawLoop(canvas, sourceNode, edge.type, isSelected: edge == selectedObject);
+        final edgeIndex = edges.indexOf(edge);
+        edgePaths[edgeIndex] = edgePainter.drawLoop(canvas, sourceNode, edge.type, isSelected: edge == selectedObject);
       }
     }
 
@@ -81,15 +104,24 @@ class GraphPainter extends CustomPainter {
           : EdgeShape.straight;
 
       final siblingEdge = getSiblingEdge(edges, edge);
-      pathPerEdge[edge] = edgePainter.drawEdge(canvas, edge,
+
+      final edgeIndex = edges.indexOf(edge);
+      edgePaths[edgeIndex] = edgePainter.drawEdge(canvas, edge,
           shape: edgeShape, isSelected: edge == selectedObject || (siblingEdge != null && siblingEdge == selectedObject));
     }
 
-    return pathPerEdge;
+    return edgePaths;
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true; // TODO optimize?
+  bool shouldRepaint(GraphPainter oldDelegate) {
+    return nodes.toString() != oldDelegate.nodes.toString() ||
+        edges.toString() != oldDelegate.edges.toString() ||
+        newEdge != oldDelegate.newEdge ||
+        selectedObject.toString() != oldDelegate.selectedObject.toString() ||
+        canvasPosition != oldDelegate.canvasPosition ||
+        canvasScale != oldDelegate.canvasScale;
+  }
 
   void drawGrid(Canvas canvas, Size canvasSize) {
     final paint = Paint()

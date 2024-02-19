@@ -23,6 +23,15 @@ class Edge implements GraphObject {
     _validate(source, target);
   }
 
+  @override
+  Edge copyWith({Node? source, Node? target, EdgeType? type}) {
+    return Edge(
+      source ?? this.source,
+      target ?? this.target,
+      type ?? this.type,
+    );
+  }
+
   void _validate(Node source, Node target) {
     if (source == target && source is! TagNode) {
       throw ArgumentError("Only 'Tag' node can connect with itself");

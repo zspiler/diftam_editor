@@ -16,6 +16,9 @@ abstract class Node implements GraphObject {
 
   Node(this.position);
 
+  @override
+  Node copyWith({Offset? position});
+
   String get label;
 
   @override
@@ -40,11 +43,20 @@ class TagNode extends Node {
   TagNode(Offset position, this.id, [this.name]) : super(position);
 
   @override
+  TagNode copyWith({Offset? position, String? id, String? name}) {
+    return TagNode(
+      position ?? this.position,
+      id ?? this.id,
+      name ?? this.name,
+    );
+  }
+
+  @override
   String get label => name ?? id;
 
   @override
   String toNodeString() {
-    return 'Tag ($id, $label)';
+    return 'TagNode ($id, $label, $position)';
   }
 
   @override
@@ -75,7 +87,7 @@ abstract class BoundaryNode extends Node {
 
   @override
   String toNodeString() {
-    return 'BoundaryNode ($descriptor)';
+    return 'BoundaryNode ($position, $descriptor)';
   }
 
   @override
@@ -95,8 +107,16 @@ class EntryNode extends BoundaryNode {
   EntryNode(Offset position, String descriptor) : super(position, descriptor);
 
   @override
+  EntryNode copyWith({Offset? position, String? descriptor}) {
+    return EntryNode(
+      position ?? this.position,
+      descriptor ?? this.descriptor,
+    );
+  }
+
+  @override
   String toNodeString() {
-    return 'EntryNode{$descriptor}';
+    return 'EntryNode{$position, $descriptor}';
   }
 
   @override
@@ -114,8 +134,16 @@ class ExitNode extends BoundaryNode {
   ExitNode(Offset position, String descriptor) : super(position, descriptor);
 
   @override
+  EntryNode copyWith({Offset? position, String? descriptor}) {
+    return EntryNode(
+      position ?? this.position,
+      descriptor ?? this.descriptor,
+    );
+  }
+
+  @override
   String toNodeString() {
-    return 'ExitNode{$descriptor}';
+    return 'ExitNode{$position, $descriptor}';
   }
 
   @override
