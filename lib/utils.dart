@@ -1,5 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'policy/policy.dart';
+import 'graph_painter/node_painter.dart';
+import 'package:vector_math/vector_math_64.dart' as vector;
 
 String generateRandomString(int len) {
   var r = Random();
@@ -33,4 +36,23 @@ T? firstOrNull<T>(List<T> list, bool Function(T element) predicate) {
   } else {
     return elements.first;
   }
+}
+
+bool isNodeHit(Node node, Offset position, int nodePadding) {
+  final nodeSize = NodePainter.calculateNodeSize(node, padding: nodePadding);
+
+  return node.position.dx < position.dx &&
+      node.position.dx + nodeSize.width > position.dx &&
+      node.position.dy < position.dy &&
+      node.position.dy + nodeSize.height > position.dy;
+}
+
+Offset adjustPositionForCanvasTransform(Offset position, Offset canvasPosition, double canvasScale) {
+  Matrix4 inverseTransformation = Matrix4.identity()
+    ..scale(canvasScale, canvasScale)
+    ..translate(canvasPosition.dx, canvasPosition.dy)
+    ..invert();
+
+  vector.Vector3 transformedPositionVector = inverseTransformation.transform3(vector.Vector3(position.dx, position.dy, 0));
+  return Offset(transformedPositionVector.x, transformedPositionVector.y);
 }

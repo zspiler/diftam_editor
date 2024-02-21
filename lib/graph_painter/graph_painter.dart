@@ -12,12 +12,12 @@ class GraphPainter extends CustomPainter {
   late final GraphObject? selectedObject;
   late final NodePainter nodePainter;
   late final EdgePainter edgePainter;
-  final (Offset, Offset)? newEdge;
+  final (Offset, Offset)? previewEdge;
   final Function(List<Path> edgePaths) emitEdgePaths;
   final Offset canvasPosition;
   final double canvasScale;
 
-  GraphPainter(List<Node> originalNodes, List<Edge> originalEdges, this.newEdge, this.emitEdgePaths,
+  GraphPainter(List<Node> originalNodes, List<Edge> originalEdges, this.previewEdge, this.emitEdgePaths,
       GraphObject? originalSelectedObject, this.canvasPosition, this.canvasScale, Preferences preferences) {
     /*
     We clone 'nodes' and 'edges' to simplify calculation of graph diff which is required to optimize repaints with ('shouldRepaint' method).
@@ -60,8 +60,8 @@ class GraphPainter extends CustomPainter {
       nodePainter.drawNode(canvas, node, isSelected: selectedObject == node);
     }
 
-    if (newEdge != null) {
-      edgePainter.drawEdgeInProgress(canvas, newEdge!);
+    if (previewEdge != null) {
+      edgePainter.drawPreviewEdge(canvas, previewEdge!);
     }
   }
 
@@ -117,7 +117,7 @@ class GraphPainter extends CustomPainter {
   bool shouldRepaint(GraphPainter oldDelegate) {
     return nodes.toString() != oldDelegate.nodes.toString() ||
         edges.toString() != oldDelegate.edges.toString() ||
-        newEdge != oldDelegate.newEdge ||
+        previewEdge != oldDelegate.previewEdge ||
         selectedObject.toString() != oldDelegate.selectedObject.toString() ||
         canvasPosition != oldDelegate.canvasPosition ||
         canvasScale != oldDelegate.canvasScale;

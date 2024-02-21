@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:poc/keyboard_shortcuts.dart';
-import 'package:vector_math/vector_math_64.dart' as vector;
 import 'graph_painter/node_painter.dart';
 import 'graph_painter/graph_painter.dart';
 import 'policy/policy.dart';
@@ -11,7 +10,6 @@ import 'utils.dart';
 import 'info_panels/edge_info_panel.dart';
 import 'info_panels/tag_node_info_panel.dart';
 import 'info_panels/boundary_node_info_panel.dart';
-import 'info_panels/info_panel_positioner.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
 import 'preferences_manager.dart';
@@ -73,90 +71,15 @@ class _CanvasViewState extends State<CanvasView> {
     return _drawingNodeType != null;
   }
 
-  bool isNodeHit(Node node, Offset position) {
-    final nodeSize = NodePainter.calculateNodeSize(node, padding: widget.preferences.nodePadding);
-
-    return node.position.dx < position.dx &&
-        node.position.dx + nodeSize.width > position.dx &&
-        node.position.dy < position.dy &&
-        node.position.dy + nodeSize.height > position.dy;
+  Edge? getEdgeAtPosition(Offset position) {
+    return firstOrNull(edges, ((edge) {
+      final edgePath = edgePaths[edges.indexOf(edge)];
+      return isPointNearBezierPath(position, edgePath);
+    }));
   }
 
-  bool isEdgeHit(int edgeIndex, Offset position) {
-    final path = edgePaths[edgeIndex];
-
-    return isPointNearBezierPath(position, path);
-  }
-
-  void stopEdgeDrawing() {
-    setState(() {
-      newEdgeSourceNode = null;
-      draggingStartPoint = null;
-      draggingEndPoint = null;
-      _drawingEdgeType = null;
-    });
-  }
-
-  void stopNodeDrawing() {
-    setState(() {
-      _drawingNodeType = null;
-    });
-  }
-
-  void handleCanvasPanning(Offset scrollDelta) {
-    final adjustedScrollDelta = adjustPanningScrollDeltaForPlatforms(scrollDelta);
-    setState(() {
-      canvasPosition -= adjustedScrollDelta / 1.5 / canvasScale;
-    });
-  }
-
-  Offset adjustPanningScrollDeltaForPlatforms(Offset scrollDelta) {
-    if (KeyboardShortcutManager.isShiftKeyPressed(RawKeyboard.instance) && Platform.isMacOS && !kIsWeb) {
-      return Offset(scrollDelta.dy, 0);
-    }
-
-    return scrollDelta;
-  }
-
-  void zoomCanvas({bool zoomIn = true}) {
-    const maxZoom = 50.0;
-    const minZoom = 0.1;
-
-    const delta = 0.125;
-    final zoomFactor = zoomIn ? 1 + delta : 1 - delta;
-    final newScale = canvasScale * zoomFactor;
-
-    if (newScale >= maxZoom || newScale <= minZoom) {
-      return;
-    }
-
-    final oldScale = canvasScale;
-
-    setState(() {
-      canvasScale = newScale;
-    });
-
-    final scaleChange = canvasScale - oldScale;
-
-    final adjustedCursorPosition = (adjustPositionForCanvasTransform(cursorPosition) + canvasPosition) / oldScale; // NOTE ?
-    final offsetX = -(adjustedCursorPosition.dx * scaleChange);
-    final offsetY = -(adjustedCursorPosition.dy * scaleChange);
-
-    setState(() {
-      canvasPosition += Offset(offsetX, offsetY);
-    });
-  }
-
-  void resetZoomAndPosition() {
-    setState(() {
-      canvasPosition = Offset(0, 0);
-      canvasScale = 1.0;
-    });
-  }
-
-  void enterSelectionMode() {
-    stopEdgeDrawing();
-    stopNodeDrawing();
+  Node? getNodeAtPosition(Offset position) {
+    return firstOrNull(nodes, ((node) => isNodeHit(node, position, widget.preferences.nodePadding)));
   }
 
   void enterEdgeDrawingMode(EdgeType edgeType) {
@@ -181,6 +104,26 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
+  void enterSelectionMode() {
+    stopEdgeDrawing();
+    stopNodeDrawing();
+  }
+
+  void stopEdgeDrawing() {
+    setState(() {
+      newEdgeSourceNode = null;
+      draggingStartPoint = null;
+      draggingEndPoint = null;
+      _drawingEdgeType = null;
+    });
+  }
+
+  void stopNodeDrawing() {
+    setState(() {
+      _drawingNodeType = null;
+    });
+  }
+
   void deleteObject(GraphObject object) {
     CustomDialog.showConfirmationDialog(context,
         confirmButtonText: 'Delete', title: 'Are you sure you want to delete this object?', onConfirm: () {
@@ -202,21 +145,6 @@ class _CanvasViewState extends State<CanvasView> {
         });
       }
     });
-  }
-
-  GraphObject? getObjectAtCursor() {
-    for (var node in nodes) {
-      if (isNodeHit(node, adjustPositionForCanvasTransform(cursorPosition))) {
-        return node;
-      }
-    }
-
-    for (var i = 0; i < edges.length; i++) {
-      if (isEdgeHit(i, cursorPosition)) {
-        return edges[i];
-      }
-    }
-    return null;
   }
 
   void createEdge(Node sourceNode, Node targetNode, EdgeType edgeType) {
@@ -258,34 +186,66 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
-  void onTapUp(TapUpDetails details) {
-    final position = adjustPositionForCanvasTransform(details.localPosition);
+  // CANVAS ZOOM & PAN
 
-    if (isInSelectionMode()) {
-      setState(() {
-        selectedObject = hoveredObject;
-      });
-    } else if (isInNodeCreationMode()) {
-      if (_drawingNodeType == null) {
-        // TODO
-        return;
-      }
-      if (_drawingNodeType == NodeType.tag) {
-        showNewTagNodeDialog(position);
-      } else {
-        showNewBoundaryNodeDialog(position);
-      }
-    }
+  void panCanvas(Offset scrollDelta) {
+    final adjustedScrollDelta = adjustPanningScrollDeltaForPlatforms(scrollDelta);
+    setState(() {
+      canvasPosition -= adjustedScrollDelta / 1.5 / canvasScale;
+    });
   }
+
+  Offset adjustPanningScrollDeltaForPlatforms(Offset scrollDelta) {
+    if (KeyboardUtils.isShiftPressed() && Platform.isMacOS && !kIsWeb) {
+      return Offset(scrollDelta.dy, 0);
+    }
+
+    return scrollDelta;
+  }
+
+  void zoomCanvas({bool zoomIn = true}) {
+    const maxZoom = 50.0;
+    const minZoom = 0.1;
+
+    const delta = 0.125;
+    final zoomFactor = zoomIn ? 1 + delta : 1 - delta;
+    final newScale = canvasScale * zoomFactor;
+
+    if (newScale >= maxZoom || newScale <= minZoom) {
+      return;
+    }
+
+    final oldScale = canvasScale;
+
+    setState(() {
+      canvasScale = newScale;
+    });
+
+    final scaleChange = canvasScale - oldScale;
+
+    final adjustedCursorPosition =
+        (adjustPositionForCanvasTransform(cursorPosition, canvasPosition, canvasScale) + canvasPosition) / oldScale; // NOTE ?
+    final offsetX = -(adjustedCursorPosition.dx * scaleChange);
+    final offsetY = -(adjustedCursorPosition.dy * scaleChange);
+
+    setState(() {
+      canvasPosition += Offset(offsetX, offsetY);
+    });
+  }
+
+  void resetZoomAndPosition() {
+    setState(() {
+      canvasPosition = Offset(0, 0);
+      canvasScale = 1.0;
+    });
+  }
+
+  // DIALOGS
 
   void showNewTagNodeDialog(Offset position) {
     CustomDialog.showInputDialog(context, title: 'Create new tag', hint: 'Enter tag name (optional)', acceptEmptyInput: true,
         onConfirm: (String inputText) {
-      if (inputText.isEmpty) {
-        createNode(position, NodeType.tag);
-      } else {
-        createNode(position, NodeType.tag, nameOrDescriptor: inputText);
-      }
+      createNode(position, NodeType.tag, nameOrDescriptor: inputText.isEmpty ? null : inputText);
       stopNodeDrawing();
     });
   }
@@ -295,12 +255,7 @@ class _CanvasViewState extends State<CanvasView> {
         title: 'Create new ${_drawingNodeType!.value} node',
         hint: 'Enter descriptor',
         onConfirm: (String inputText) {
-          if (_drawingNodeType == NodeType.entry && entryNodeWithDescriptorExists(nodes, inputText) ||
-              _drawingNodeType == NodeType.exit && exitNodeWithDescriptorExists(nodes, inputText)) {
-            SnackbarGlobal.info('$_drawingNodeType node with descriptor $inputText already exists!');
-          } else {
-            createNode(position, _drawingNodeType!, nameOrDescriptor: inputText);
-          }
+          createNode(position, _drawingNodeType!, nameOrDescriptor: inputText);
           stopNodeDrawing();
         },
         isInputValid: (String inputText) =>
@@ -309,53 +264,66 @@ class _CanvasViewState extends State<CanvasView> {
         errorMessage: '${_drawingNodeType!.value} node with this descriptor already exists!');
   }
 
-  void onTapDown(TapDownDetails details) {
-    final position = adjustPositionForCanvasTransform(details.localPosition);
+  // GESTURES
 
-    if (isInEdgeDrawingMode()) {
-      for (var node in nodes) {
-        if (isNodeHit(node, position)) {
-          if (draggingStartPoint == null) {
-            // NOTE probably dont need here since its called on hover but ok
-            setState(() {
-              draggingStartPoint = position;
-              newEdgeSourceNode = node;
-            });
-          } else {
-            if (newEdgeSourceNode != null && _drawingEdgeType != null) {
-              createEdge(newEdgeSourceNode!, node, _drawingEdgeType!);
-            }
-            stopEdgeDrawing();
-          }
-          return;
-        }
+  void onTapUp(TapUpDetails details) {
+    final position = adjustPositionForCanvasTransform(details.localPosition, canvasPosition, canvasScale);
+
+    if (isInSelectionMode()) {
+      setState(() {
+        selectedObject = hoveredObject;
+      });
+    } else if (isInNodeCreationMode()) {
+      if (_drawingNodeType == NodeType.tag) {
+        showNewTagNodeDialog(position);
+      } else if (_drawingNodeType != null) {
+        showNewBoundaryNodeDialog(position);
+      }
+    }
+  }
+
+  void onTapDown(TapDownDetails details) {
+    if (!isInEdgeDrawingMode()) {
+      return;
+    }
+
+    final adjustedCursorPosition = adjustPositionForCanvasTransform(details.localPosition, canvasPosition, canvasScale);
+
+    final nodeAtCursor = getNodeAtPosition(adjustedCursorPosition);
+    if (nodeAtCursor == null) {
+      stopEdgeDrawing();
+      return;
+    }
+
+    if (draggingStartPoint == null) {
+      setState(() {
+        draggingStartPoint = adjustedCursorPosition;
+        newEdgeSourceNode = nodeAtCursor;
+      });
+    } else {
+      if (newEdgeSourceNode != null && _drawingEdgeType != null) {
+        createEdge(newEdgeSourceNode!, nodeAtCursor, _drawingEdgeType!);
       }
       stopEdgeDrawing();
     }
   }
 
   void onPanStart(DragStartDetails details) {
-    final position = adjustPositionForCanvasTransform(details.localPosition);
-    updateDraggedNode(position);
-  }
-
-  void updateDraggedNode(Offset position) {
     if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
-    for (var node in nodes) {
-      if (isNodeHit(node, position)) {
-        setState(() {
-          draggedNode = node;
-        });
-        break;
-      }
+
+    final position = adjustPositionForCanvasTransform(details.localPosition, canvasPosition, canvasScale);
+    final node = getNodeAtPosition(position);
+    if (node != null) {
+      setState(() {
+        draggedNode = node;
+      });
     }
   }
 
   void onPanUpdate(DragUpdateDetails details) {
+    if (isInEdgeDrawingMode() || isInNodeCreationMode() || draggedNode == null) return;
+
     final delta = Offset(details.delta.dx, details.delta.dy) / canvasScale;
-
-    if (isInEdgeDrawingMode() || isInNodeCreationMode() || draggedNode == null) return; // TODO null handling
-
     var newX = draggedNode!.position.dx + delta.dx;
     var newY = draggedNode!.position.dy + delta.dy;
 
@@ -364,32 +332,53 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
-  Offset adjustPositionForCanvasTransform(Offset position) {
-    Matrix4 inverseTransformation = Matrix4.identity()
-      ..scale(canvasScale, canvasScale)
-      ..translate(canvasPosition.dx, canvasPosition.dy)
-      ..invert();
-
-    vector.Vector3 transformedPositionVector = inverseTransformation.transform3(vector.Vector3(position.dx, position.dy, 0));
-    return Offset(transformedPositionVector.x, transformedPositionVector.y);
-  }
-
-  (Offset, Offset)? getEdgeInProgress() {
+  (Offset, Offset)? getPreviewEdgePositions() {
     if (isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null) {
       return (draggingStartPoint!, draggingEndPoint!);
     }
     return null;
   }
 
+  // KEYBOARD SHORTCUTS
+
   /*
   Returns `true` if any app shortcuts were detected & handled, `false` otherwise.
    */
   bool onKeyDown(RawKeyDownEvent event) {
+    if (handleSelectionShortcuts(event)) return true;
+    if (handleZoomShortcuts(event)) return true;
+    return false;
+  }
+
+  bool handleZoomShortcuts(RawKeyDownEvent event) {
+    if (KeyboardUtils.isMetaPressed() && event.logicalKey == LogicalKeyboardKey.equal ||
+        event.logicalKey == LogicalKeyboardKey.add ||
+        event.logicalKey == LogicalKeyboardKey.numpadAdd) {
+      zoomCanvas();
+      return true;
+    }
+
+    if (KeyboardUtils.isMetaPressed() && event.logicalKey == LogicalKeyboardKey.minus ||
+        event.logicalKey == LogicalKeyboardKey.numpadSubtract) {
+      zoomCanvas(zoomIn: false);
+      return true;
+    }
+
+    if (KeyboardUtils.isMetaPressed() && event.logicalKey == LogicalKeyboardKey.digit0) {
+      resetZoomAndPosition();
+      return true;
+    }
+
+    return false;
+  }
+
+  bool handleSelectionShortcuts(RawKeyDownEvent event) {
     if (selectedObject != null) {
-      if (KeyboardShortcutManager.isDeleteKeyPressed(RawKeyboard.instance)) {
+      if (KeyboardUtils.isDeletePressed()) {
         deleteObject(selectedObject!);
         return true;
-      } else if (KeyboardShortcutManager.isDeselectKeyPressed(RawKeyboard.instance)) {
+      }
+      if (KeyboardUtils.isEscapePressed()) {
         setState(() {
           selectedObject = null;
         });
@@ -397,29 +386,11 @@ class _CanvasViewState extends State<CanvasView> {
       }
     }
 
-    if (KeyboardShortcutManager.isCancelDrawingKeyPressed(RawKeyboard.instance)) {
+    if (KeyboardUtils.isEscapePressed()) {
       if (!isInSelectionMode()) {
         stopNodeDrawing();
         stopEdgeDrawing();
       }
-      return true;
-    }
-
-    if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.equal ||
-        event.logicalKey == LogicalKeyboardKey.add ||
-        event.logicalKey == LogicalKeyboardKey.numpadAdd) {
-      zoomCanvas();
-      return true;
-    }
-
-    if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.minus ||
-        event.logicalKey == LogicalKeyboardKey.numpadSubtract) {
-      zoomCanvas(zoomIn: false);
-      return true;
-    }
-
-    if (KeyboardShortcutManager.isMetaPressed(RawKeyboard.instance) && event.logicalKey == LogicalKeyboardKey.digit0) {
-      resetZoomAndPosition();
       return true;
     }
 
@@ -433,10 +404,10 @@ class _CanvasViewState extends State<CanvasView> {
         onPointerSignal: (pointerSignal) {
           if (pointerSignal is! PointerScrollEvent) return;
 
-          if (KeyboardShortcutManager.isScrollKeyPresseed(RawKeyboard.instance)) {
+          if (KeyboardUtils.isScrollModifierPresseed()) {
             zoomCanvas(zoomIn: pointerSignal.scrollDelta.dy < 0);
           } else {
-            handleCanvasPanning(pointerSignal.scrollDelta);
+            panCanvas(pointerSignal.scrollDelta);
           }
         },
         onPointerHover: (event) {
@@ -444,13 +415,14 @@ class _CanvasViewState extends State<CanvasView> {
             cursorPosition = event.localPosition;
           });
 
+          final adjustedCursorPosition = adjustPositionForCanvasTransform(cursorPosition, canvasPosition, canvasScale);
           if (isInEdgeDrawingMode()) {
             setState(() {
-              draggingEndPoint = adjustPositionForCanvasTransform(cursorPosition);
+              draggingEndPoint = adjustedCursorPosition;
             });
           } else if (isInSelectionMode()) {
             setState(() {
-              hoveredObject = getObjectAtCursor();
+              hoveredObject = getNodeAtPosition(adjustedCursorPosition) ?? getEdgeAtPosition(cursorPosition);
             });
           }
         },
@@ -464,14 +436,11 @@ class _CanvasViewState extends State<CanvasView> {
               focusNode: focusNode,
               autofocus: true,
               onKey: (FocusNode node, RawKeyEvent event) {
-                if (event is! RawKeyDownEvent) {
+                if (event is! RawKeyDownEvent || !onKeyDown(event)) {
                   return KeyEventResult.ignored;
                 }
-                final shortcutsHandled = onKeyDown(event);
-                if (shortcutsHandled) {
-                  return KeyEventResult.handled;
-                }
-                return KeyEventResult.ignored;
+
+                return KeyEventResult.handled;
               },
               child: GestureDetector(
                   onTapUp: onTapUp,
@@ -486,7 +455,7 @@ class _CanvasViewState extends State<CanvasView> {
                       painter: GraphPainter(
                         nodes,
                         edges,
-                        getEdgeInProgress(),
+                        getPreviewEdgePositions(),
                         (newEdgePaths) => edgePaths = newEdgePaths,
                         selectedObject,
                         canvasPosition,
@@ -518,44 +487,38 @@ class _CanvasViewState extends State<CanvasView> {
         ),
       ),
       if (selectedObject is Edge)
-        InfoPanelPositioner(
-          child: EdgeInfoPanel(
-              edge: selectedObject as Edge,
-              siblingEdge: getSiblingEdge(edges, selectedObject as Edge),
-              isOnlyEdgeTypeBetweenNodes: isOnlyEdgeTypeBetweenNodes(edges, selectedObject as Edge),
-              deleteObject: deleteObject,
-              changeEdgeType: (newEdgeType) {
-                final siblingEdge = getSiblingEdge(edges, selectedObject as Edge);
-                final edgesToModify = siblingEdge != null ? [selectedObject as Edge, siblingEdge] : [selectedObject as Edge];
-                setState(() {
-                  for (var edge in edgesToModify) {
-                    edge.type = newEdgeType;
-                  }
-                });
-              }),
-        ),
+        EdgeInfoPanel(
+            edge: selectedObject as Edge,
+            siblingEdge: getSiblingEdge(edges, selectedObject as Edge),
+            isOnlyEdgeTypeBetweenNodes: isOnlyEdgeTypeBetweenNodes(edges, selectedObject as Edge),
+            deleteObject: deleteObject,
+            changeEdgeType: (newEdgeType) {
+              final siblingEdge = getSiblingEdge(edges, selectedObject as Edge);
+              final edgesToModify = siblingEdge != null ? [selectedObject as Edge, siblingEdge] : [selectedObject as Edge];
+              setState(() {
+                for (var edge in edgesToModify) {
+                  edge.type = newEdgeType;
+                }
+              });
+            }),
       if (selectedObject is TagNode)
-        InfoPanelPositioner(
-            child: TagNodeInfoPanel(
+        TagNodeInfoPanel(
           node: selectedObject as TagNode,
           nodes: nodes,
           deleteObject: deleteObject,
           editName: (newName) {
-            // NOTE Could also replace emit new object and replace existing one?
             setState(() => (selectedObject as TagNode).name = newName);
           },
-        )),
+        ),
       if (selectedObject is BoundaryNode)
-        InfoPanelPositioner(
-            child: BoundaryNodeInfoPanel(
+        BoundaryNodeInfoPanel(
           node: selectedObject as BoundaryNode,
           nodes: nodes,
           deleteObject: deleteObject,
           editDescriptor: (newDescriptor) {
-            // NOTE Could also replace emit new object and replace existing one?
             setState(() => (selectedObject as BoundaryNode).descriptor = newDescriptor);
           },
-        )),
+        ),
     ]);
   }
 }

@@ -38,7 +38,7 @@ class EdgePainter {
       ..color = color;
   }
 
-  void drawEdgeInProgress(Canvas canvas, (Offset, Offset) points) {
+  void drawPreviewEdge(Canvas canvas, (Offset, Offset) points) {
     var (sourcePoint, targetPoint) = points;
     sourcePoint = Offset((sourcePoint.dx + canvasPosition.dx) * canvasScale, (sourcePoint.dy + canvasPosition.dy) * canvasScale);
     targetPoint = Offset((targetPoint.dx + canvasPosition.dx) * canvasScale, (targetPoint.dy + canvasPosition.dy) * canvasScale);
