@@ -16,9 +16,10 @@ class GraphPainter extends CustomPainter {
   final Function(List<Path> edgePaths) emitEdgePaths;
   final Offset canvasPosition;
   final double canvasScale;
+  final Preferences preferences;
 
   GraphPainter(List<Node> originalNodes, List<Edge> originalEdges, this.previewEdge, this.emitEdgePaths,
-      GraphObject? originalSelectedObject, this.canvasPosition, this.canvasScale, Preferences preferences) {
+      GraphObject? originalSelectedObject, this.canvasPosition, this.canvasScale, this.preferences) {
     /*
     We clone 'nodes' and 'edges' to simplify calculation of graph diff which is required to optimize repaints with ('shouldRepaint' method).
     Without cloning, diff is not detected since we modify graph object properties without replacing objects themselves and
@@ -120,7 +121,8 @@ class GraphPainter extends CustomPainter {
         previewEdge != oldDelegate.previewEdge ||
         selectedObject.toString() != oldDelegate.selectedObject.toString() ||
         canvasPosition != oldDelegate.canvasPosition ||
-        canvasScale != oldDelegate.canvasScale;
+        canvasScale != oldDelegate.canvasScale ||
+        oldDelegate.preferences != preferences;
   }
 
   void drawGrid(Canvas canvas, Size canvasSize) {
