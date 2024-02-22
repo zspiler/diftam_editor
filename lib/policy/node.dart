@@ -82,6 +82,17 @@ abstract class BoundaryNode extends Node {
 
   BoundaryNode(Offset position, this.descriptor) : super(position);
 
+  factory BoundaryNode.create(NodeType nodeType, Offset position, String descriptor) {
+    switch (nodeType) {
+      case NodeType.entry:
+        return EntryNode(position, descriptor);
+      case NodeType.exit:
+        return ExitNode(position, descriptor);
+      default:
+        throw Exception('$nodeType is not a boundary node!');
+    }
+  }
+
   @override
   String get label => descriptor;
 

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 import '../policy/policy.dart';
-import '../grid.dart';
 import '../preferences_manager.dart';
 import 'node_painter.dart';
+import '../canvas.dart';
 
 enum EdgeShape {
   straight,
@@ -13,14 +13,13 @@ enum EdgeShape {
 }
 
 class EdgePainter {
-  final Offset canvasPosition;
-  final double canvasScale;
+  final CanvasState canvasState;
   final int strokeWidth;
   final Color obliviousEdgeColor;
   final Color awareEdgeColor;
   final int nodePadding;
 
-  EdgePainter({required this.canvasPosition, required this.canvasScale, required Preferences preferences})
+  EdgePainter({required this.canvasState, required Preferences preferences})
       : strokeWidth = preferences.edgeStrokeWidth,
         obliviousEdgeColor = preferences.obliviousEdgeColor,
         awareEdgeColor = preferences.awareEdgeColor,
@@ -34,18 +33,20 @@ class EdgePainter {
 
     return Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * canvasScale
+      ..strokeWidth = strokeWidth * canvasState.scale
       ..color = color;
   }
 
   void drawPreviewEdge(Canvas canvas, (Offset, Offset) points) {
     var (sourcePoint, targetPoint) = points;
-    sourcePoint = Offset((sourcePoint.dx + canvasPosition.dx) * canvasScale, (sourcePoint.dy + canvasPosition.dy) * canvasScale);
-    targetPoint = Offset((targetPoint.dx + canvasPosition.dx) * canvasScale, (targetPoint.dy + canvasPosition.dy) * canvasScale);
+    sourcePoint = Offset((sourcePoint.dx + canvasState.position.dx) * canvasState.scale,
+        (sourcePoint.dy + canvasState.position.dy) * canvasState.scale);
+    targetPoint = Offset((targetPoint.dx + canvasState.position.dx) * canvasState.scale,
+        (targetPoint.dy + canvasState.position.dy) * canvasState.scale);
 
     final paintStyleFaded = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * canvasScale
+      ..strokeWidth = strokeWidth * canvasState.scale
       ..color = Colors.grey.withOpacity(0.7);
 
     canvas.drawLine(sourcePoint, targetPoint, paintStyleFaded);
@@ -72,8 +73,8 @@ class EdgePainter {
   Path drawCurvedEdge(Canvas canvas, Offset start, Offset end, EdgeShape shape, Paint paintStyle) {
     const baseVerticalAlignmentThreshold = 70;
     const baseDisplacementValue = 50;
-    final verticalAlignmentThreshold = baseVerticalAlignmentThreshold * canvasScale;
-    final displacementValue = baseDisplacementValue * canvasScale;
+    final verticalAlignmentThreshold = baseVerticalAlignmentThreshold * canvasState.scale;
+    final displacementValue = baseDisplacementValue * canvasState.scale;
 
     bool areNodesVerticallyAligned = (start.dx - end.dx).abs() < verticalAlignmentThreshold;
 
@@ -112,13 +113,13 @@ class EdgePainter {
   Path drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool isSelected = false}) {
     final paintStyle = getEdgePaintStyle(edgeType, isSelected: isSelected);
 
-    final loopWidth = 60.0 / (small ? 1.5 : 1) * canvasScale;
-    final loopHeight = 70.0 / (small ? 1.5 : 1) * canvasScale;
+    final loopWidth = 60.0 / (small ? 1.5 : 1) * canvasState.scale;
+    final loopHeight = 70.0 / (small ? 1.5 : 1) * canvasState.scale;
 
-    final nodeX = (snapToGrid(node.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
-    final nodeY = (snapToGrid(node.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
+    final nodeX = (snapToGrid(node.position.dx) + canvasState.position.dx) * canvasState.scale;
+    final nodeY = (snapToGrid(node.position.dy) + canvasState.position.dy) * canvasState.scale;
 
-    final nodeSize = NodePainter.calculateNodeSize(node, padding: nodePadding) * canvasScale;
+    final nodeSize = NodePainter.calculateNodeSize(node, padding: nodePadding) * canvasState.scale;
 
     final boxTopCenterX = nodeX + nodeSize.width / 2;
     final boxTopCenterY = nodeY;
@@ -152,13 +153,13 @@ class EdgePainter {
   }
 
   List<Offset> calculateIntersectionPoints(Node node1, Node node2) {
-    final x1 = (snapToGrid(node1.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
-    final y1 = (snapToGrid(node1.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
-    final x2 = (snapToGrid(node2.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
-    final y2 = (snapToGrid(node2.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
+    final x1 = (snapToGrid(node1.position.dx) + canvasState.position.dx) * canvasState.scale;
+    final y1 = (snapToGrid(node1.position.dy) + canvasState.position.dy) * canvasState.scale;
+    final x2 = (snapToGrid(node2.position.dx) + canvasState.position.dx) * canvasState.scale;
+    final y2 = (snapToGrid(node2.position.dy) + canvasState.position.dy) * canvasState.scale;
 
-    final node1Size = NodePainter.calculateNodeSize(node1, padding: nodePadding) * canvasScale;
-    final node2Size = NodePainter.calculateNodeSize(node2, padding: nodePadding) * canvasScale;
+    final node1Size = NodePainter.calculateNodeSize(node1, padding: nodePadding) * canvasState.scale;
+    final node2Size = NodePainter.calculateNodeSize(node2, padding: nodePadding) * canvasState.scale;
 
     final node1Offset = Offset(x1 + node1Size.width / 2, y1 + node1Size.height / 2);
     final node2Offset = Offset(x2 + node2Size.width / 2, y2 + node2Size.height / 2);
@@ -193,12 +194,12 @@ class EdgePainter {
     double edgeAngle = atan2(direction.dy - point.dy, direction.dx - point.dx);
 
     Offset arrowPoint1 = Offset(
-      point.dx + arrowLength * cos(edgeAngle + arrowAngle) * canvasScale,
-      point.dy + arrowLength * sin(edgeAngle + arrowAngle) * canvasScale,
+      point.dx + arrowLength * cos(edgeAngle + arrowAngle) * canvasState.scale,
+      point.dy + arrowLength * sin(edgeAngle + arrowAngle) * canvasState.scale,
     );
     Offset arrowPoint2 = Offset(
-      point.dx + arrowLength * cos(edgeAngle - arrowAngle) * canvasScale,
-      point.dy + arrowLength * sin(edgeAngle - arrowAngle) * canvasScale,
+      point.dx + arrowLength * cos(edgeAngle - arrowAngle) * canvasState.scale,
+      point.dy + arrowLength * sin(edgeAngle - arrowAngle) * canvasState.scale,
     );
 
     canvas.drawLine(point, arrowPoint1, paint);

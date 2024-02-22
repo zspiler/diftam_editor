@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../policy/policy.dart';
-import '../grid.dart';
 import '../preferences_manager.dart';
+import '../canvas.dart';
 
 class NodePainter {
-  final Offset canvasPosition;
-  final double canvasScale;
   final int strokeWidth;
   final Color tagNodeColor;
   final Color entryNodeColor;
   final Color exitNodeColor;
   final int nodePadding;
+  final CanvasState canvasState;
 
   NodePainter({
-    required this.canvasPosition,
-    required this.canvasScale,
+    required this.canvasState,
     required Preferences preferences,
   })  : strokeWidth = preferences.nodeStrokeWidth,
         tagNodeColor = preferences.tagNodeColor,
@@ -40,18 +38,18 @@ class NodePainter {
   Paint getNodePaintStyle(Node node, {bool isSelected = false}) {
     return Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * canvasScale
+      ..strokeWidth = strokeWidth * canvasState.scale
       ..color = isSelected ? Colors.white : getNodeColor(node);
   }
 
   void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
-    final x = (snapToGrid(node.position.dx, gridSize) + canvasPosition.dx) * canvasScale;
-    final y = (snapToGrid(node.position.dy, gridSize) + canvasPosition.dy) * canvasScale;
+    final x = (snapToGrid(node.position.dx) + canvasState.position.dx) * canvasState.scale;
+    final y = (snapToGrid(node.position.dy) + canvasState.position.dy) * canvasState.scale;
 
-    final nodeSize = calculateNodeSize(node, padding: nodePadding) * canvasScale;
+    final nodeSize = calculateNodeSize(node, padding: nodePadding) * canvasState.scale;
 
     canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTWH(x, y, nodeSize.width, nodeSize.height), getNodeRadius(node) * canvasScale),
+        RRect.fromRectAndRadius(Rect.fromLTWH(x, y, nodeSize.width, nodeSize.height), getNodeRadius(node) * canvasState.scale),
         getNodePaintStyle(
           node,
           isSelected: isSelected,
@@ -80,15 +78,15 @@ class NodePainter {
   static Size calculateNodeSize(Node node, {required int padding}) {
     var width = min(getNodeTextPainter(node.label).width, 100) + 15.0 * padding;
     var height = 25.0 * padding;
-    width = snapToGrid(width, gridSize);
-    height = snapToGrid(height, gridSize);
+    width = snapToGrid(width);
+    height = snapToGrid(height);
     return Size(width, height);
   }
 
   void drawText(Canvas canvas, double x, double y, String text, Node node) {
-    final nodeSize = calculateNodeSize(node, padding: nodePadding) * canvasScale;
+    final nodeSize = calculateNodeSize(node, padding: nodePadding) * canvasState.scale;
 
-    final textPainter = getNodeTextPainter(text, scale: canvasScale);
+    final textPainter = getNodeTextPainter(text, scale: canvasState.scale);
 
     textPainter.paint(
         canvas, Offset(x + nodeSize.width / 2 - textPainter.width * 0.5, y + nodeSize.height / 2 - textPainter.height * 0.5));

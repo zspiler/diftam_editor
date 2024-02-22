@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'node_painter.dart';
 import 'edge_painter.dart';
 import '../policy/policy.dart';
-import '../grid.dart';
 import '../preferences_manager.dart';
+import '../canvas.dart';
 
 class GraphPainter extends CustomPainter {
   late final List<Node> nodes;
@@ -14,12 +14,11 @@ class GraphPainter extends CustomPainter {
   late final EdgePainter edgePainter;
   final (Offset, Offset)? previewEdge;
   final Function(List<Path> edgePaths) emitEdgePaths;
-  final Offset canvasPosition;
-  final double canvasScale;
+  final CanvasState canvasState;
   final Preferences preferences;
 
   GraphPainter(List<Node> originalNodes, List<Edge> originalEdges, this.previewEdge, this.emitEdgePaths,
-      GraphObject? originalSelectedObject, this.canvasPosition, this.canvasScale, this.preferences) {
+      GraphObject? originalSelectedObject, this.canvasState, this.preferences) {
     /*
     We clone 'nodes' and 'edges' to simplify calculation of graph diff which is required to optimize repaints with ('shouldRepaint' method).
     Without cloning, diff is not detected since we modify graph object properties without replacing objects themselves and
@@ -40,13 +39,11 @@ class GraphPainter extends CustomPainter {
     }
 
     nodePainter = NodePainter(
-      canvasPosition: canvasPosition,
-      canvasScale: canvasScale,
+      canvasState: canvasState,
       preferences: preferences,
     );
     edgePainter = EdgePainter(
-      canvasPosition: canvasPosition,
-      canvasScale: canvasScale,
+      canvasState: canvasState,
       preferences: preferences,
     );
   }
@@ -120,20 +117,19 @@ class GraphPainter extends CustomPainter {
         edges.toString() != oldDelegate.edges.toString() ||
         previewEdge != oldDelegate.previewEdge ||
         selectedObject.toString() != oldDelegate.selectedObject.toString() ||
-        canvasPosition != oldDelegate.canvasPosition ||
-        canvasScale != oldDelegate.canvasScale ||
+        canvasState.toString() != oldDelegate.canvasState.toString() ||
         oldDelegate.preferences != preferences;
   }
 
   void drawGrid(Canvas canvas, Size canvasSize) {
     final paint = Paint()
       ..color = Colors.grey.withAlpha(50)
-      ..strokeWidth = canvasScale;
+      ..strokeWidth = canvasState.scale;
 
-    final scaledGridSize = gridSize * canvasScale;
+    final scaledGridSize = gridSize * canvasState.scale;
 
-    final startX = ((canvasPosition.dx * canvasScale) % scaledGridSize) - scaledGridSize;
-    final startY = ((canvasPosition.dy * canvasScale) % scaledGridSize) - scaledGridSize;
+    final startX = ((canvasState.position.dx * canvasState.scale) % scaledGridSize) - scaledGridSize;
+    final startY = ((canvasState.position.dy * canvasState.scale) % scaledGridSize) - scaledGridSize;
 
     final numberOfHorizontalLines = (canvasSize.width / scaledGridSize).ceil() + 1;
     final numberOfVerticalLines = (canvasSize.height / scaledGridSize).ceil() + 1;

@@ -4,7 +4,7 @@ import 'policy/policy.dart';
 import 'graph_painter/node_painter.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 
-String generateRandomString(int len) {
+String generateRandomString([len = 5]) {
   var r = Random();
   const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
   return List.generate(len, (index) => _chars[r.nextInt(_chars.length)]).join();
@@ -56,3 +56,32 @@ Offset adjustPositionForCanvasTransform(Offset position, Offset canvasPosition, 
   vector.Vector3 transformedPositionVector = inverseTransformation.transform3(vector.Vector3(position.dx, position.dy, 0));
   return Offset(transformedPositionVector.x, transformedPositionVector.y);
 }
+
+// void createEdge(Node sourceNode, Node targetNode, EdgeType edgeType) {
+//   try {
+//     final newEdge = Edge(sourceNode, targetNode, edgeType);
+//     final equivalentEdgeExists =
+//         edges.any((edge) => edge.source == newEdge.source && edge.target == newEdge.target && edge.type == newEdge.type);
+//     if (!equivalentEdgeExists) {
+//       setState(() {
+//         edges.add(newEdge);
+//       });
+//     }
+//   } on ArgumentError catch (e) {
+//     SnackbarGlobal.info(e.message);
+//   }
+// }
+
+// void createNode(Offset position, NodeType nodeType, {String? nameOrDescriptor}) {
+//   final tempPosition = Offset(0, 0);
+//   final Node newNode = nodeType == NodeType.tag
+//       ? TagNode(tempPosition, generateRandomString(), nameOrDescriptor)
+//       : BoundaryNode.create(nodeType, tempPosition, nameOrDescriptor!);
+
+//   final nodeSize = NodePainter.calculateNodeSize(newNode, padding: widget.preferences.nodePadding) * canvasScale;
+//   newNode.position = Offset(position.dx - nodeSize.width / 2, position.dy - nodeSize.height / 2);
+
+//   setState(() {
+//     nodes.add(newNode);
+//   });
+// }

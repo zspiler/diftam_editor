@@ -15,6 +15,7 @@ import 'ui/snackbar.dart';
 import 'preferences_manager.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'canvas.dart';
 
 class CanvasView extends StatefulWidget {
   final List<Node> nodes;
@@ -35,18 +36,19 @@ class _CanvasViewState extends State<CanvasView> {
   var edges = <Edge>[];
   var edgePaths = <Path>[];
 
+  CanvasState canvasState = CanvasState();
+  Offset cursorPosition = Offset.zero;
+
   Offset? draggingStartPoint;
   Offset? draggingEndPoint;
   Node? draggedNode;
-  Node? newEdgeSourceNode;
-  Offset cursorPosition = Offset.zero;
-  Offset canvasPosition = Offset.zero;
-  double canvasScale = 1.0;
+
   GraphObject? hoveredObject;
   GraphObject? selectedObject;
 
-  EdgeType? _drawingEdgeType; // TODO private?
-  NodeType? _drawingNodeType; // TODO private?
+  Node? newEdgeSourceNode;
+  EdgeType? _drawingEdgeType;
+  NodeType? _drawingNodeType;
 
   late FocusNode focusNode;
 
@@ -150,35 +152,19 @@ class _CanvasViewState extends State<CanvasView> {
   void createEdge(Node sourceNode, Node targetNode, EdgeType edgeType) {
     try {
       final newEdge = Edge(sourceNode, targetNode, edgeType);
-      final edgeExists =
-          edges.any((edge) => edge.source == newEdge.source && edge.target == newEdge.target && edge.type == newEdge.type);
-      if (!edgeExists) {
-        setState(() {
-          edges.add(newEdge);
-        });
-      }
+      edges.add(newEdge);
     } on ArgumentError catch (e) {
       SnackbarGlobal.info(e.message);
     }
   }
 
   void createNode(Offset position, NodeType nodeType, {String? nameOrDescriptor}) {
-    // TODO refactor (nameOrDescriptor 😬)
-    final randomId = generateRandomString(4);
-
     final tempPosition = Offset(0, 0);
-    late final Node newNode;
-    if (nodeType == NodeType.tag) {
-      newNode = TagNode(tempPosition, randomId, nameOrDescriptor);
-    } else {
-      if (nodeType == NodeType.entry) {
-        newNode = EntryNode(tempPosition, nameOrDescriptor!);
-      } else {
-        newNode = ExitNode(tempPosition, nameOrDescriptor!);
-      }
-    }
+    final Node newNode = nodeType == NodeType.tag
+        ? TagNode(tempPosition, generateRandomString(), nameOrDescriptor)
+        : BoundaryNode.create(nodeType, tempPosition, nameOrDescriptor!);
 
-    final nodeSize = NodePainter.calculateNodeSize(newNode, padding: widget.preferences.nodePadding) * canvasScale;
+    final nodeSize = NodePainter.calculateNodeSize(newNode, padding: widget.preferences.nodePadding) * canvasState.scale;
     newNode.position = Offset(position.dx - nodeSize.width / 2, position.dy - nodeSize.height / 2);
 
     setState(() {
@@ -190,8 +176,9 @@ class _CanvasViewState extends State<CanvasView> {
 
   void panCanvas(Offset scrollDelta) {
     final adjustedScrollDelta = adjustPanningScrollDeltaForPlatforms(scrollDelta);
+    final newCanvasPosition = canvasState.position - adjustedScrollDelta / 1.5 / canvasState.scale;
     setState(() {
-      canvasPosition -= adjustedScrollDelta / 1.5 / canvasScale;
+      canvasState = canvasState.copyWith(position: newCanvasPosition);
     });
   }
 
@@ -209,34 +196,35 @@ class _CanvasViewState extends State<CanvasView> {
 
     const delta = 0.125;
     final zoomFactor = zoomIn ? 1 + delta : 1 - delta;
-    final newScale = canvasScale * zoomFactor;
+    final newScale = canvasState.scale * zoomFactor;
 
     if (newScale >= maxZoom || newScale <= minZoom) {
       return;
     }
 
-    final oldScale = canvasScale;
+    final oldScale = canvasState.scale;
 
     setState(() {
-      canvasScale = newScale;
+      canvasState = canvasState.copyWith(scale: newScale);
     });
 
-    final scaleChange = canvasScale - oldScale;
+    final scaleChange = canvasState.scale - oldScale;
 
     final adjustedCursorPosition =
-        (adjustPositionForCanvasTransform(cursorPosition, canvasPosition, canvasScale) + canvasPosition) / oldScale; // NOTE ?
+        (adjustPositionForCanvasTransform(cursorPosition, canvasState.position, canvasState.scale) + canvasState.position) /
+            oldScale; // NOTE ?
     final offsetX = -(adjustedCursorPosition.dx * scaleChange);
     final offsetY = -(adjustedCursorPosition.dy * scaleChange);
 
+    final newCanvasPosition = canvasState.position + Offset(offsetX, offsetY);
     setState(() {
-      canvasPosition += Offset(offsetX, offsetY);
+      canvasState = canvasState.copyWith(position: newCanvasPosition);
     });
   }
 
   void resetZoomAndPosition() {
     setState(() {
-      canvasPosition = Offset(0, 0);
-      canvasScale = 1.0;
+      canvasState = CanvasState(position: Offset.zero, scale: 1.0);
     });
   }
 
@@ -267,7 +255,7 @@ class _CanvasViewState extends State<CanvasView> {
   // GESTURES
 
   void onTapUp(TapUpDetails details) {
-    final position = adjustPositionForCanvasTransform(details.localPosition, canvasPosition, canvasScale);
+    final position = adjustPositionForCanvasTransform(details.localPosition, canvasState.position, canvasState.scale);
 
     if (isInSelectionMode()) {
       setState(() {
@@ -287,7 +275,8 @@ class _CanvasViewState extends State<CanvasView> {
       return;
     }
 
-    final adjustedCursorPosition = adjustPositionForCanvasTransform(details.localPosition, canvasPosition, canvasScale);
+    final adjustedCursorPosition =
+        adjustPositionForCanvasTransform(details.localPosition, canvasState.position, canvasState.scale);
 
     final nodeAtCursor = getNodeAtPosition(adjustedCursorPosition);
     if (nodeAtCursor == null) {
@@ -302,7 +291,11 @@ class _CanvasViewState extends State<CanvasView> {
       });
     } else {
       if (newEdgeSourceNode != null && _drawingEdgeType != null) {
-        createEdge(newEdgeSourceNode!, nodeAtCursor, _drawingEdgeType!);
+        final equivalentEdgeExists =
+            edges.any((edge) => edge.source == newEdgeSourceNode && edge.target == nodeAtCursor && edge.type == _drawingEdgeType);
+        if (!equivalentEdgeExists) {
+          createEdge(newEdgeSourceNode!, nodeAtCursor, _drawingEdgeType!);
+        }
       }
       stopEdgeDrawing();
     }
@@ -311,19 +304,18 @@ class _CanvasViewState extends State<CanvasView> {
   void onPanStart(DragStartDetails details) {
     if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
 
-    final position = adjustPositionForCanvasTransform(details.localPosition, canvasPosition, canvasScale);
-    final node = getNodeAtPosition(position);
-    if (node != null) {
-      setState(() {
-        draggedNode = node;
-      });
-    }
+    final position = adjustPositionForCanvasTransform(details.localPosition, canvasState.position, canvasState.scale);
+    final nodeAtCursor = getNodeAtPosition(position);
+
+    setState(() {
+      draggedNode = nodeAtCursor;
+    });
   }
 
   void onPanUpdate(DragUpdateDetails details) {
     if (isInEdgeDrawingMode() || isInNodeCreationMode() || draggedNode == null) return;
 
-    final delta = Offset(details.delta.dx, details.delta.dy) / canvasScale;
+    final delta = Offset(details.delta.dx, details.delta.dy) / canvasState.scale;
     var newX = draggedNode!.position.dx + delta.dx;
     var newY = draggedNode!.position.dy + delta.dy;
 
@@ -415,7 +407,8 @@ class _CanvasViewState extends State<CanvasView> {
             cursorPosition = event.localPosition;
           });
 
-          final adjustedCursorPosition = adjustPositionForCanvasTransform(cursorPosition, canvasPosition, canvasScale);
+          final adjustedCursorPosition =
+              adjustPositionForCanvasTransform(cursorPosition, canvasState.position, canvasState.scale);
           if (isInEdgeDrawingMode()) {
             setState(() {
               draggingEndPoint = adjustedCursorPosition;
@@ -458,8 +451,7 @@ class _CanvasViewState extends State<CanvasView> {
                         getPreviewEdgePositions(),
                         (newEdgePaths) => edgePaths = newEdgePaths,
                         selectedObject,
-                        canvasPosition,
-                        canvasScale,
+                        canvasState,
                         widget.preferences,
                       ),
                     ),
