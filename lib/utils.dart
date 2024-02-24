@@ -6,8 +6,8 @@ import 'package:vector_math/vector_math_64.dart' as vector;
 
 String generateRandomString([len = 5]) {
   var r = Random();
-  const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-  return List.generate(len, (index) => _chars[r.nextInt(_chars.length)]).join();
+  const chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  return List.generate(len, (index) => chars[r.nextInt(chars.length)]).join();
 }
 
 bool isPointNearBezierPath(Offset point, Path path) {

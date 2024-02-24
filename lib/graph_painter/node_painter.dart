@@ -62,7 +62,7 @@ class NodePainter {
     const textStyle = TextStyle(color: Colors.white, fontSize: 18);
     TextSpan span = TextSpan(style: textStyle, text: nodeId);
     if (nodeId.length > 15) {
-      span = TextSpan(style: textStyle, text: nodeId.substring(0, 12) + '...');
+      span = TextSpan(style: textStyle, text: '${nodeId.substring(0, 12)}...');
     }
 
     final textPainter = TextPainter(

@@ -81,7 +81,7 @@ class EdgeInfoPanel extends StatelessWidget {
               ),
               Padding(
                 padding: rowPadding,
-                child: Text('${edge.type.value}'),
+                child: Text(edge.type.value),
               ),
             ],
           ),

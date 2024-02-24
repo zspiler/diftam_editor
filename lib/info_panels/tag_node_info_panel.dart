@@ -36,7 +36,7 @@ class TagNodeInfoPanel extends StatelessWidget {
               ),
               Padding(
                 padding: rowPadding,
-                child: Text('${node.id}'),
+                child: Text(node.id),
               ),
               Container() //
             ],
@@ -49,7 +49,7 @@ class TagNodeInfoPanel extends StatelessWidget {
               ),
               Padding(
                 padding: rowPadding,
-                child: Text('${node.name ?? '/'}'),
+                child: Text(node.name ?? '/'),
               ),
               Tooltip(
                 message: 'Edit label',

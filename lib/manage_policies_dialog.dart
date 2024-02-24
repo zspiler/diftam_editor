@@ -12,7 +12,7 @@ class ManagePoliciesDialog extends StatefulWidget {
   const ManagePoliciesDialog({required this.policies, required this.onChange, required this.onDeletePress, super.key});
 
   @override
-  _ManagePoliciesDialogState createState() => _ManagePoliciesDialogState();
+  State<ManagePoliciesDialog> createState() => _ManagePoliciesDialogState();
 }
 
 class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
@@ -67,59 +67,53 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
       accumulator.add(TableRow(children: [
         TableCell(
           verticalAlignment: TableCellVerticalAlignment.middle,
-          child: Container(child: Text(name, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.left)),
+          child: Text(name, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.left),
         ),
         TableCell(
             verticalAlignment: TableCellVerticalAlignment.middle,
-            child: Container(
-              child: Align(
-                alignment: Alignment.center,
-                child: Tooltip(
-                  message: 'Rename',
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: Icon(Icons.edit, size: 16.0),
-                      onPressed: () => _onRename(policy),
-                    ),
+            child: Align(
+              alignment: Alignment.center,
+              child: Tooltip(
+                message: 'Rename',
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: Icon(Icons.edit, size: 16.0),
+                    onPressed: () => _onRename(policy),
                   ),
                 ),
               ),
             )),
         TableCell(
           verticalAlignment: TableCellVerticalAlignment.middle,
-          child: Container(
-            child: Align(
-              alignment: Alignment.center,
-              child: Tooltip(
-                  message: "Export",
-                  child: IconButton(
-                    icon: Icon(Icons.download),
-                    onPressed: () async {
-                      try {
-                        await exportPolicy(policy);
-                      } catch (e) {
-                        SnackbarGlobal.error('Failed to save policy');
-                      }
-                    },
-                  )),
-            ),
+          child: Align(
+            alignment: Alignment.center,
+            child: Tooltip(
+                message: "Export",
+                child: IconButton(
+                  icon: Icon(Icons.download),
+                  onPressed: () async {
+                    try {
+                      await exportPolicy(policy);
+                    } catch (e) {
+                      SnackbarGlobal.error('Failed to save policy');
+                    }
+                  },
+                )),
           ),
         ),
         _policies.length > 1
             ? TableCell(
                 verticalAlignment: TableCellVerticalAlignment.middle,
-                child: Container(
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Tooltip(
-                        message: "Delete",
-                        child: IconButton(
-                          icon: Icon(Icons.delete_rounded, color: Colors.red),
-                          onPressed: () => _onDelete(policy),
-                        )),
-                  ),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Tooltip(
+                      message: "Delete",
+                      child: IconButton(
+                        icon: Icon(Icons.delete_rounded, color: Colors.red),
+                        onPressed: () => _onDelete(policy),
+                      )),
                 ),
               )
             : TableCell(
@@ -140,7 +134,7 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      child: Container(
+      child: SizedBox(
         width: 400,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 32.0),
@@ -155,7 +149,7 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       SizedBox(height: 16),
-                      Container(
+                      SizedBox(
                         width: 250,
                         child: Table(children: buildPoliciesTableRows(), columnWidths: const {
                           0: FlexColumnWidth(1),

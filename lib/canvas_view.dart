@@ -20,10 +20,10 @@ import 'canvas.dart';
 class CanvasView extends StatefulWidget {
   final List<Node> nodes;
   final List<Edge> edges;
-  FocusNode focusNode;
-  Preferences preferences;
+  final FocusNode focusNode;
+  final Preferences preferences;
 
-  CanvasView({super.key, required this.nodes, required this.edges, required this.focusNode, required this.preferences});
+  const CanvasView({super.key, required this.nodes, required this.edges, required this.focusNode, required this.preferences});
 
   @override
   State<CanvasView> createState() => _CanvasViewState();

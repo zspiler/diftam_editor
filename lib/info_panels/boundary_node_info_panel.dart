@@ -36,7 +36,7 @@ class BoundaryNodeInfoPanel extends StatelessWidget {
               ),
               Padding(
                 padding: rowPadding,
-                child: Text('${node.descriptor}'),
+                child: Text(node.descriptor),
               ),
               Tooltip(
                 message: 'Edit descriptor',
@@ -49,7 +49,7 @@ class BoundaryNodeInfoPanel extends StatelessWidget {
                       CustomDialog.showInputDialog(context,
                           title: 'Edit descriptor',
                           hint: 'Enter new descriptor',
-                          initialText: (node as BoundaryNode).descriptor,
+                          initialText: node.descriptor,
                           onConfirm: (String inputText) {
                             editDescriptor(inputText);
                           },

@@ -58,7 +58,7 @@ class CustomDialog {
     // TODO AlertDialog useless? (we're not using actions)
     AlertDialog alert = AlertDialog(
       title: Text(title),
-      content: Container(
+      content: SizedBox(
         // TODO responsive (padding: EdgeInsets.all?)
         height: 150,
         width: 300,
@@ -91,8 +91,8 @@ class CustomDialog {
               );
 
               Widget continueButton = TextButton(
-                child: Text(confirmButtonText ?? "OK"),
                 onPressed: onContinuePress,
+                child: Text(confirmButtonText ?? "OK"),
               );
 
               return KeyboardListener(

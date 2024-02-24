@@ -20,7 +20,7 @@ class GraphPainter extends CustomPainter {
   GraphPainter(List<Node> originalNodes, List<Edge> originalEdges, this.previewEdge, this.emitEdgePaths,
       GraphObject? originalSelectedObject, this.canvasState, this.preferences) {
     /*
-    We clone 'nodes' and 'edges' to simplify calculation of graph diff which is required to optimize repaints with ('shouldRepaint' method).
+    We clone 'nodes' and 'edges' to simplify calculation of graph diff which is required to optimize repaints (with 'shouldRepaint' method).
     Without cloning, diff is not detected since we modify graph object properties without replacing objects themselves and
     oldDelegate holds object references which do not change unless objects are added/removed.
     An alternative would be to always replace graph objects when modifying them (TODO).

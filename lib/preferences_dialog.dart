@@ -9,7 +9,7 @@ class PreferencesDialog extends StatefulWidget {
   const PreferencesDialog({super.key, required this.onChange});
 
   @override
-  _PreferencesDialogState createState() => _PreferencesDialogState();
+  State<PreferencesDialog> createState() => _PreferencesDialogState();
 }
 
 class _PreferencesDialogState extends State<PreferencesDialog> {
@@ -102,7 +102,7 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
     }
 
     return Dialog(
-      child: Container(
+      child: SizedBox(
         width: 400,
         height: 1000,
         child: Padding(
@@ -189,8 +189,8 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
                   }, children: buildColorPreferencesTableRows()),
                   SizedBox(height: 30),
                   TextButton(
-                    child: Text("Reset"),
                     onPressed: _clearPreferences,
+                    child: Text("Reset"),
                   ),
                   SizedBox(height: 10),
                   TextButton(
