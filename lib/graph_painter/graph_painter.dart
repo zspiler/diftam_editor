@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'node_painter.dart';
 import 'edge_painter.dart';
+import 'grid_painter.dart';
 import '../policy/policy.dart';
 import '../preferences_manager.dart';
 import '../canvas.dart';
@@ -12,6 +13,7 @@ class GraphPainter extends CustomPainter {
   late final GraphObject? selectedObject;
   late final NodePainter nodePainter;
   late final EdgePainter edgePainter;
+  late final GridPainter gridPainter;
   final (Offset, Offset)? previewEdge;
   final Function(List<Path> edgePaths) emitEdgePaths;
   final CanvasState canvasState;
@@ -46,13 +48,16 @@ class GraphPainter extends CustomPainter {
       canvasState: canvasState,
       preferences: preferences,
     );
+    gridPainter = GridPainter(
+      canvasState: canvasState,
+    );
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    drawGrid(canvas, size);
-    final edgePaths = drawEdges(canvas, edges);
-    emitEdgePaths(edgePaths);
+    gridPainter.drawGrid(canvas, size);
+
+    emitEdgePaths(drawEdges(canvas, edges));
 
     for (var node in nodes) {
       nodePainter.drawNode(canvas, node, isSelected: selectedObject == node);
@@ -119,29 +124,5 @@ class GraphPainter extends CustomPainter {
         selectedObject.toString() != oldDelegate.selectedObject.toString() ||
         canvasState.toString() != oldDelegate.canvasState.toString() ||
         oldDelegate.preferences != preferences;
-  }
-
-  void drawGrid(Canvas canvas, Size canvasSize) {
-    final paint = Paint()
-      ..color = Colors.grey.withAlpha(50)
-      ..strokeWidth = canvasState.scale;
-
-    final scaledGridSize = gridSize * canvasState.scale;
-
-    final startX = ((canvasState.position.dx * canvasState.scale) % scaledGridSize) - scaledGridSize;
-    final startY = ((canvasState.position.dy * canvasState.scale) % scaledGridSize) - scaledGridSize;
-
-    final numberOfHorizontalLines = (canvasSize.width / scaledGridSize).ceil() + 1;
-    final numberOfVerticalLines = (canvasSize.height / scaledGridSize).ceil() + 1;
-
-    for (var i = 0; i < numberOfHorizontalLines; i++) {
-      final x = startX + i * scaledGridSize;
-      canvas.drawLine(Offset(x, 0), Offset(x, canvasSize.height), paint);
-    }
-
-    for (var i = 0; i < numberOfVerticalLines; i++) {
-      final y = startY + i * scaledGridSize;
-      canvas.drawLine(Offset(0, y), Offset(canvasSize.width, y), paint);
-    }
   }
 }
