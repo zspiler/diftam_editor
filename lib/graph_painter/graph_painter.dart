@@ -73,45 +73,44 @@ class GraphPainter extends CustomPainter {
     Because edges can be curved, we need the paths to detect whether an edge is under cursor (for selection).
    */
   List<Path> drawEdges(Canvas canvas, List<Edge> edges) {
-    final List<Path> edgePaths = List.generate(edges.length, (_) => Path());
+    final pathPerRegularEdge = drawRegularEdges(canvas, edges);
+    final pathPerLoopEdge = drawLoopEdges(canvas, edges);
 
-    final loopEdges = edges.where((edge) => edge.source == edge.target).toList();
-    final nonLoopEdges = edges.where((edge) => edge.source != edge.target).toList();
+    return edges.map((edge) => pathPerRegularEdge[edge] ?? pathPerLoopEdge[edge] ?? Path()).toList();
+  }
 
-    for (Edge edge in loopEdges) {
-      final sourceNode = edge.source;
-      final loopEdges = edges.where((edge2) => edge2.source == sourceNode && edge2.target == sourceNode).toList();
-      if (loopEdges.length == 2) {
-        final firstLoopEdgeIndex = edges.indexOf(loopEdges[0]);
-        edgePaths[firstLoopEdgeIndex] =
-            edgePainter.drawLoop(canvas, sourceNode, EdgeType.aware, isSelected: loopEdges[0] == selectedObject);
+  Map<Edge, Path> drawRegularEdges(Canvas canvas, List<Edge> edges) {
+    final Map<Edge, Path> edgePaths = {};
 
-        final secondLoopEdgeIndex = edges.indexOf(loopEdges[1]);
-        edgePaths[secondLoopEdgeIndex] =
-            edgePainter.drawLoop(canvas, sourceNode, EdgeType.oblivious, small: true, isSelected: loopEdges[1] == selectedObject);
-      } else {
-        final edgeIndex = edges.indexOf(edge);
-        edgePaths[edgeIndex] = edgePainter.drawLoop(canvas, sourceNode, edge.type, isSelected: edge == selectedObject);
-      }
-    }
+    final regularEdges = edges.where((edge) => edge.source != edge.target).toList();
 
-    for (Edge edge in nonLoopEdges) {
-      var areEdgesOfDifferentTypesBetweenSameNodes = edges.any((otherEdge) =>
-          edge != otherEdge &&
-          edge.type != otherEdge.type &&
-          ((edge.source == otherEdge.source && edge.target == otherEdge.target) ||
-              (edge.source == otherEdge.target && edge.target == otherEdge.source)));
-
-      final edgeShape = areEdgesOfDifferentTypesBetweenSameNodes
+    for (Edge edge in regularEdges) {
+      final edgeShape = anyEdgeOfDifferentTypeBetweenSameNodes(edges, edge)
           ? (edge.type == EdgeType.oblivious ? EdgeShape.curvedUp : EdgeShape.curvedDown)
           : EdgeShape.straight;
 
       final siblingEdge = getSiblingEdge(edges, edge);
-
-      final edgeIndex = edges.indexOf(edge);
-      edgePaths[edgeIndex] = edgePainter.drawEdge(canvas, edge,
+      edgePaths[edge] = edgePainter.drawEdge(canvas, edge,
           shape: edgeShape, isSelected: edge == selectedObject || (siblingEdge != null && siblingEdge == selectedObject));
     }
+
+    return edgePaths;
+  }
+
+  Map<Edge, Path> drawLoopEdges(Canvas canvas, List<Edge> edges) {
+    final Map<Edge, Path> edgePaths = {};
+
+    getLoopEdgesByNode(edges).forEach((sourceNode, loopEdges) {
+      if (loopEdges.length == 1) {
+        edgePaths[loopEdges.first] =
+            edgePainter.drawLoop(canvas, sourceNode, loopEdges.first.type, isSelected: loopEdges.first == selectedObject);
+      } else {
+        for (final edge in loopEdges) {
+          edgePaths[edge] = edgePainter.drawLoop(canvas, sourceNode, edge.type,
+              isSelected: edge == selectedObject, small: loopEdges.indexOf(edge) > 0);
+        }
+      }
+    });
 
     return edgePaths;
   }
@@ -120,9 +119,9 @@ class GraphPainter extends CustomPainter {
   bool shouldRepaint(GraphPainter oldDelegate) {
     return nodes.toString() != oldDelegate.nodes.toString() ||
         edges.toString() != oldDelegate.edges.toString() ||
-        previewEdge != oldDelegate.previewEdge ||
         selectedObject.toString() != oldDelegate.selectedObject.toString() ||
         canvasState.toString() != oldDelegate.canvasState.toString() ||
+        previewEdge != oldDelegate.previewEdge ||
         oldDelegate.preferences != preferences;
   }
 }

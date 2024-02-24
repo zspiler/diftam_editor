@@ -20,3 +20,21 @@ Edge? getSiblingEdge(List<Edge> edges, Edge edge) {
 bool isOnlyEdgeTypeBetweenNodes(List<Edge> edges, Edge edge) {
   return edges.where((e) => e.source == edge.source && e.target == edge.target && e.type != edge.type).isEmpty;
 }
+
+Map<Node, List<Edge>> getLoopEdgesByNode(List<Edge> edges) {
+  final Map<Node, List<Edge>> loopEdgesByNode = {};
+  for (final edge in edges) {
+    if (edge.source == edge.target) {
+      loopEdgesByNode.putIfAbsent(edge.source, () => []).add(edge);
+    }
+  }
+  return loopEdgesByNode;
+}
+
+bool anyEdgeOfDifferentTypeBetweenSameNodes(List<Edge> edges, Edge edge) {
+  return edges.any((otherEdge) =>
+      edge != otherEdge &&
+      edge.type != otherEdge.type &&
+      ((edge.source == otherEdge.source && edge.target == otherEdge.target) ||
+          (edge.source == otherEdge.target && edge.target == otherEdge.source)));
+}
