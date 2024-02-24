@@ -56,32 +56,3 @@ Offset adjustPositionForCanvasTransform(Offset position, Offset canvasPosition, 
   vector.Vector3 transformedPositionVector = inverseTransformation.transform3(vector.Vector3(position.dx, position.dy, 0));
   return Offset(transformedPositionVector.x, transformedPositionVector.y);
 }
-
-// void createEdge(Node sourceNode, Node targetNode, EdgeType edgeType) {
-//   try {
-//     final newEdge = Edge(sourceNode, targetNode, edgeType);
-//     final equivalentEdgeExists =
-//         edges.any((edge) => edge.source == newEdge.source && edge.target == newEdge.target && edge.type == newEdge.type);
-//     if (!equivalentEdgeExists) {
-//       setState(() {
-//         edges.add(newEdge);
-//       });
-//     }
-//   } on ArgumentError catch (e) {
-//     SnackbarGlobal.info(e.message);
-//   }
-// }
-
-// void createNode(Offset position, NodeType nodeType, {String? nameOrDescriptor}) {
-//   final tempPosition = Offset(0, 0);
-//   final Node newNode = nodeType == NodeType.tag
-//       ? TagNode(tempPosition, generateRandomString(), nameOrDescriptor)
-//       : BoundaryNode.create(nodeType, tempPosition, nameOrDescriptor!);
-
-//   final nodeSize = NodePainter.calculateNodeSize(newNode, padding: widget.preferences.nodePadding) * canvasScale;
-//   newNode.position = Offset(position.dx - nodeSize.width / 2, position.dy - nodeSize.height / 2);
-
-//   setState(() {
-//     nodes.add(newNode);
-//   });
-// }
