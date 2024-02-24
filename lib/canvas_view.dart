@@ -16,6 +16,7 @@ import 'preferences_manager.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'canvas.dart';
+import 'theme.dart';
 
 class CanvasView extends StatefulWidget {
   final List<Node> nodes;
@@ -28,8 +29,6 @@ class CanvasView extends StatefulWidget {
   @override
   State<CanvasView> createState() => _CanvasViewState();
 }
-
-const darkBlue = Color.fromARGB(255, 20, 54, 91);
 
 class _CanvasViewState extends State<CanvasView> {
   var nodes = <Node>[];

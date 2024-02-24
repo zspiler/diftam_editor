@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:poc/import_export.dart';
 import 'package:poc/manage_policies_dialog.dart';
 import 'package:poc/preferences_dialog.dart';
@@ -8,13 +11,14 @@ import 'policy/policy.dart';
 import 'policy_tab_bar.dart';
 import 'preferences_manager.dart';
 import 'ui/custom_dialog.dart';
-import 'package:file_picker/file_picker.dart';
+import 'dev_utils.dart';
+import 'theme.dart';
 
 void main() async {
   await PreferencesManager.init();
 
   runApp(MaterialApp(
-      theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: Colors.blue),
+      theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: darkBlue),
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: SnackbarGlobal.key,
       home: const MyApp()));
@@ -35,38 +39,15 @@ class _MyAppState extends State<MyApp> {
 
   Preferences preferences = Preferences();
 
-  // TODO Development only, remove before release!
-  void createMockPolicy() {
-    // TODO ensure unique IDS?
-    final priv = TagNode(Offset(500, 350), 'privID', 'priv');
-    final pub = TagNode(Offset(700, 350), 'pubID', 'pub');
-    final stdin = EntryNode(Offset(300, 250), 'stdin');
-    final stdout = ExitNode(Offset(900, 250), 'stdout');
-
-    final policy = Policy(name: 'Policy 1', nodes: [
-      priv,
-      pub,
-      stdin,
-      stdout
-    ], edges: [
-      Edge(stdin, priv, EdgeType.aware),
-      Edge(priv, pub, EdgeType.oblivious),
-      Edge(priv, pub, EdgeType.aware),
-      Edge(pub, pub, EdgeType.aware),
-      Edge(pub, pub, EdgeType.oblivious),
-      Edge(pub, priv, EdgeType.aware),
-      Edge(pub, stdout, EdgeType.aware),
-    ]);
-
-    addPolicy(policy);
-  }
-
   @override
   void initState() {
     super.initState();
 
     preferences = PreferencesManager.getPreferences();
-    createMockPolicy();
+
+    if (kDebugMode) {
+      addPolicy(getMockPolicy());
+    }
   }
 
   @override
@@ -153,7 +134,7 @@ class _MyAppState extends State<MyApp> {
             },
             onDeletePress: (int index) {
               final newPoliciesLength = policies.length - 1;
-              if (selectedPolicyIndex >= newPoliciesLength) {
+              if (newPoliciesLength > 0 && selectedPolicyIndex >= newPoliciesLength) {
                 selectPolicy(selectedPolicyIndex -= 1);
               }
             },
@@ -163,9 +144,33 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    const clickableTextSpanStyle = TextStyle(color: Colors.blue);
     return Scaffold(
       body: Stack(
         children: [
+          if (policies.isEmpty)
+            Center(
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text('No policies created yet.', style: TextStyle(color: Colors.white)),
+              SizedBox(height: 8),
+              RichText(
+                text: TextSpan(
+                  text: '',
+                  style: TextStyle(color: Colors.white),
+                  children: [
+                    TextSpan(text: 'Please '),
+                    TextSpan(
+                        text: 'create', style: clickableTextSpanStyle, recognizer: TapGestureRecognizer()..onTap = onAddPolicy),
+                    TextSpan(text: ' or '),
+                    TextSpan(
+                        text: 'import',
+                        style: clickableTextSpanStyle,
+                        recognizer: TapGestureRecognizer()..onTap = onImportPolicy),
+                    TextSpan(text: ' a policy.'),
+                  ],
+                ),
+              ),
+            ])),
           IndexedStack(
               index: selectedPolicyIndex,
               children: policies.asMap().entries.map((entry) {

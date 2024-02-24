@@ -78,5 +78,5 @@ class Edge implements GraphObject {
           }
           return (node as BoundaryNode).descriptor == json['target'];
         }),
-        type = EdgeType.fromString(json['type']); // TODO ?
+        type = EdgeType.fromString(json['type']);
 }

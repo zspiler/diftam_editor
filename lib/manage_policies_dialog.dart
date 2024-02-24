@@ -103,22 +103,18 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
                 )),
           ),
         ),
-        _policies.length > 1
-            ? TableCell(
-                verticalAlignment: TableCellVerticalAlignment.middle,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Tooltip(
-                      message: "Delete",
-                      child: IconButton(
-                        icon: Icon(Icons.delete_rounded, color: Colors.red),
-                        onPressed: () => _onDelete(policy),
-                      )),
-                ),
-              )
-            : TableCell(
-                child: Container(),
-              )
+        TableCell(
+          verticalAlignment: TableCellVerticalAlignment.middle,
+          child: Align(
+            alignment: Alignment.center,
+            child: Tooltip(
+                message: "Delete",
+                child: IconButton(
+                  icon: Icon(Icons.delete_rounded, color: Colors.red),
+                  onPressed: () => _onDelete(policy),
+                )),
+          ),
+        )
       ]));
 
       if (policy != _policies.last) {
@@ -144,23 +140,25 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
               Text('Manage policies', style: Theme.of(context).textTheme.headlineLarge),
               SizedBox(height: 10),
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      SizedBox(height: 16),
-                      SizedBox(
-                        width: 250,
-                        child: Table(children: buildPoliciesTableRows(), columnWidths: const {
-                          0: FlexColumnWidth(1),
-                          1: IntrinsicColumnWidth(),
-                          2: IntrinsicColumnWidth(),
-                          3: IntrinsicColumnWidth(),
-                        }),
+                child: _policies.isEmpty
+                    ? Center(child: Text('No policies created yet.'))
+                    : SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            SizedBox(height: 16),
+                            SizedBox(
+                              width: 250,
+                              child: Table(children: buildPoliciesTableRows(), columnWidths: const {
+                                0: FlexColumnWidth(1),
+                                1: IntrinsicColumnWidth(),
+                                2: IntrinsicColumnWidth(),
+                                3: IntrinsicColumnWidth(),
+                              }),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
               ),
               SizedBox(height: 10),
               TextButton(

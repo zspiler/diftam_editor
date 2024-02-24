@@ -7,9 +7,9 @@ export 'graph_object.dart';
 export 'utils.dart';
 
 class Policy {
-  late String name; // TODO late OK?
-  late final List<Node> nodes; // TODO late OK?
-  late final List<Edge> edges; // TODO late OK?
+  late String name;
+  late final List<Node> nodes;
+  late final List<Edge> edges;
 
   Policy({required this.name, List<Node>? nodes, List<Edge>? edges})
       : nodes = nodes ?? [],
