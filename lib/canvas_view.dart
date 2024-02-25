@@ -330,62 +330,12 @@ class _CanvasViewState extends State<CanvasView> {
     return null;
   }
 
-  // KEYBOARD SHORTCUTS
-
-  /*
-  Returns `true` if any app shortcuts were detected & handled, `false` otherwise.
-   */
-  bool onKeyDown(RawKeyDownEvent event) {
-    if (handleSelectionShortcuts(event)) return true;
-    if (handleZoomShortcuts(event)) return true;
-    return false;
-  }
-
-  bool handleZoomShortcuts(RawKeyDownEvent event) {
-    if (KeyboardUtils.isMetaPressed() && event.logicalKey == LogicalKeyboardKey.equal ||
-        event.logicalKey == LogicalKeyboardKey.add ||
-        event.logicalKey == LogicalKeyboardKey.numpadAdd) {
-      zoomCanvas();
-      return true;
-    }
-
-    if (KeyboardUtils.isMetaPressed() && event.logicalKey == LogicalKeyboardKey.minus ||
-        event.logicalKey == LogicalKeyboardKey.numpadSubtract) {
-      zoomCanvas(zoomIn: false);
-      return true;
-    }
-
-    if (KeyboardUtils.isMetaPressed() && event.logicalKey == LogicalKeyboardKey.digit0) {
-      resetZoomAndPosition();
-      return true;
-    }
-
-    return false;
-  }
-
-  bool handleSelectionShortcuts(RawKeyDownEvent event) {
-    if (selectedObject != null) {
-      if (KeyboardUtils.isDeletePressed()) {
-        deleteObject(selectedObject!);
-        return true;
+  void moveNodes(Offset offset) {
+    setState(() {
+      for (var node in nodes) {
+        node.position += offset;
       }
-      if (KeyboardUtils.isEscapePressed()) {
-        setState(() {
-          selectedObject = null;
-        });
-        return true;
-      }
-    }
-
-    if (KeyboardUtils.isEscapePressed()) {
-      if (!isInSelectionMode()) {
-        stopNodeDrawing();
-        stopEdgeDrawing();
-      }
-      return true;
-    }
-
-    return false;
+    });
   }
 
   @override
@@ -424,37 +374,52 @@ class _CanvasViewState extends State<CanvasView> {
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
             color: darkBlue,
-            child: Focus(
-              focusNode: focusNode,
-              autofocus: true,
-              onKey: (FocusNode node, RawKeyEvent event) {
-                if (event is! RawKeyDownEvent || !onKeyDown(event)) {
-                  return KeyEventResult.ignored;
-                }
-
-                return KeyEventResult.handled;
+            child: CallbackShortcuts(
+              bindings: {
+                SingleActivator(LogicalKeyboardKey.delete): () {
+                  if (selectedObject != null) {
+                    deleteObject(selectedObject!);
+                  }
+                },
+                SingleActivator(LogicalKeyboardKey.escape): () {
+                  selectedObject = null;
+                  stopNodeDrawing();
+                  stopEdgeDrawing();
+                },
+                SingleActivator(LogicalKeyboardKey.equal, meta: true): zoomCanvas,
+                SingleActivator(LogicalKeyboardKey.add, meta: true): zoomCanvas,
+                SingleActivator(LogicalKeyboardKey.minus, meta: true): () => zoomCanvas(zoomIn: false),
+                SingleActivator(LogicalKeyboardKey.digit0, meta: true): resetZoomAndPosition,
+                SingleActivator(LogicalKeyboardKey.arrowUp): () => moveNodes(Offset(0, -gridSize)),
+                SingleActivator(LogicalKeyboardKey.arrowDown): () => moveNodes(Offset(0, gridSize)),
+                SingleActivator(LogicalKeyboardKey.arrowLeft): () => moveNodes(Offset(-gridSize, 0)),
+                SingleActivator(LogicalKeyboardKey.arrowRight): () => moveNodes(Offset(gridSize, 0)),
               },
-              child: GestureDetector(
-                  onTapUp: onTapUp,
-                  onTapDown: onTapDown,
-                  onPanStart: onPanStart,
-                  onPanUpdate: onPanUpdate,
-                  onPanEnd: (details) {
-                    draggedNode = null;
-                  },
-                  child: RepaintBoundary(
-                    child: CustomPaint(
-                      painter: GraphPainter(
-                        nodes,
-                        edges,
-                        getPreviewEdgePositions(),
-                        (newEdgePaths) => edgePaths = newEdgePaths,
-                        selectedObject,
-                        canvasState,
-                        widget.preferences,
+              child: Focus(
+                focusNode: focusNode,
+                autofocus: true,
+                child: GestureDetector(
+                    onTapUp: onTapUp,
+                    onTapDown: onTapDown,
+                    onPanStart: onPanStart,
+                    onPanUpdate: onPanUpdate,
+                    onPanEnd: (details) {
+                      draggedNode = null;
+                    },
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        painter: GraphPainter(
+                          nodes,
+                          edges,
+                          getPreviewEdgePositions(),
+                          (newEdgePaths) => edgePaths = newEdgePaths,
+                          selectedObject,
+                          canvasState,
+                          widget.preferences,
+                        ),
                       ),
-                    ),
-                  )),
+                    )),
+              ),
             ),
           ),
         ),

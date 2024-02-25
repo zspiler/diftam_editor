@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-const gridSize = 25;
+const gridSize = 25.0;
 
 double snapToGrid(double value) {
-  return (value / gridSize).round() * gridSize * 1.0;
+  return (value / gridSize).round() * gridSize;
 }
 
 class CanvasState {

@@ -12,6 +12,7 @@ import 'policy_tab_bar.dart';
 import 'preferences_manager.dart';
 import 'ui/custom_dialog.dart';
 import 'dev_utils.dart';
+import 'keyboard_shortcuts_dialog.dart';
 import 'theme.dart';
 
 void main() async {
@@ -210,6 +211,20 @@ class _MyAppState extends State<MyApp> {
                             });
                           },
                         ),
+                      );
+                    },
+                  ))),
+          Positioned(
+              top: 16,
+              right: 16,
+              child: Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: Icon(Icons.keyboard),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) => KeyboardShortcutsDialog(),
                       );
                     },
                   )))

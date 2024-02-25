@@ -64,7 +64,7 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
     List<TableRow> rowsWithSpacers = _policies.fold<List<TableRow>>([], (List<TableRow> accumulator, policy) {
       final name = policy.name;
 
-      accumulator.add(TableRow(children: [
+      final row = TableRow(children: [
         TableCell(
           verticalAlignment: TableCellVerticalAlignment.middle,
           child: Text(name, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.left),
@@ -115,7 +115,9 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
                 )),
           ),
         )
-      ]));
+      ]);
+
+      accumulator.add(row);
 
       if (policy != _policies.last) {
         accumulator.add(buildTableSpacer(10));
