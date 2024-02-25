@@ -15,6 +15,7 @@ import 'dev_utils.dart';
 import 'theme.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // SharedPreferences requires Flutter engine bindings to be initialized!
   await PreferencesManager.init();
 
   runApp(MaterialApp(
