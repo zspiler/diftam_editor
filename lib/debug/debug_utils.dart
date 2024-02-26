@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'policy/policy.dart';
+import '../policy/policy.dart';
 
 Policy getMockPolicy() {
   // TODO ensure unique IDS?

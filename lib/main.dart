@@ -11,7 +11,7 @@ import 'policy/policy.dart';
 import 'policy_tab_bar.dart';
 import 'preferences_manager.dart';
 import 'ui/custom_dialog.dart';
-import 'dev_utils.dart';
+import 'debug/debug_utils.dart';
 import 'keyboard_shortcuts_dialog.dart';
 import 'theme.dart';
 
