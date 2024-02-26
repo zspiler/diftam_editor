@@ -1,16 +1,29 @@
 # poc
 
-A new Flutter project.
+### How to run 
 
-## Getting Started
+#### Web
+`flutter run -d chrome`
 
-This project is a starting point for a Flutter application.
+#### MacOS
 
-A few resources to get you started if this is your first Flutter project:
+`flutter run -d MacOS`
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+To run the MacOS app need to have XCode and some other tools installed: 
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+https://docs.flutter.dev/get-started/install/macos/desktop
+
+In my case, I also had to have at least one Simulator installed before 
+the MacOS app could be run (?).
+
+*TLDR*
+
+`sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer`
+
+`sudo xcodebuild -runFirstLaunch`
+
+`brew install cocoapods` (if using Homebrew)
+
+*Something not working?*
+
+`flutter doctor`
