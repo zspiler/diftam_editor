@@ -157,11 +157,11 @@ class _CanvasViewState extends State<CanvasView> {
     }
   }
 
-  void createNode(Offset position, NodeType nodeType, {String? nameOrDescriptor}) {
+  void createNode(Offset position, NodeType nodeType, {required String labelOrDescriptor}) {
     final tempPosition = Offset(0, 0);
     final Node newNode = nodeType == NodeType.tag
-        ? TagNode(tempPosition, generateRandomString(), nameOrDescriptor)
-        : BoundaryNode.create(nodeType, tempPosition, nameOrDescriptor!);
+        ? TagNode(tempPosition, labelOrDescriptor)
+        : BoundaryNode.create(nodeType, tempPosition, labelOrDescriptor);
 
     final nodeSize = NodePainter.calculateNodeSize(newNode, padding: widget.preferences.nodePadding) * canvasState.scale;
     newNode.position = Offset(position.dx - nodeSize.width / 2, position.dy - nodeSize.height / 2);
@@ -230,11 +230,17 @@ class _CanvasViewState extends State<CanvasView> {
   // DIALOGS
 
   void showNewTagNodeDialog(Offset position) {
-    CustomDialog.showInputDialog(context, title: 'Create new tag', hint: 'Enter tag name (optional)', acceptEmptyInput: true,
-        onConfirm: (String inputText) {
-      createNode(position, NodeType.tag, nameOrDescriptor: inputText.isEmpty ? null : inputText);
-      stopNodeDrawing();
-    });
+    CustomDialog.showInputDialog(
+      context,
+      title: 'Create new tag',
+      hint: 'Enter tag label',
+      onConfirm: (String inputText) {
+        createNode(position, NodeType.tag, labelOrDescriptor: inputText);
+        stopNodeDrawing();
+      },
+      isInputValid: (String inputText) => !nodes.any((node) => node is TagNode && node.label == inputText),
+      errorMessage: 'Please choose a unique tag label',
+    );
   }
 
   void showNewBoundaryNodeDialog(Offset position) {
@@ -242,7 +248,7 @@ class _CanvasViewState extends State<CanvasView> {
         title: 'Create new ${_drawingNodeType!.value} node',
         hint: 'Enter descriptor',
         onConfirm: (String inputText) {
-          createNode(position, _drawingNodeType!, nameOrDescriptor: inputText);
+          createNode(position, _drawingNodeType!, labelOrDescriptor: inputText);
           stopNodeDrawing();
         },
         isInputValid: (String inputText) =>
@@ -462,8 +468,8 @@ class _CanvasViewState extends State<CanvasView> {
           node: selectedObject as TagNode,
           nodes: nodes,
           deleteObject: deleteObject,
-          editName: (newName) {
-            setState(() => (selectedObject as TagNode).name = newName);
+          editLabel: (newLabel) {
+            setState(() => (selectedObject as TagNode).label = newLabel);
           },
         ),
       if (selectedObject is BoundaryNode)

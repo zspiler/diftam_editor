@@ -3,8 +3,8 @@ import 'policy/policy.dart';
 
 Policy getMockPolicy() {
   // TODO ensure unique IDS?
-  final priv = TagNode(Offset(500, 350), 'privID', 'priv');
-  final pub = TagNode(Offset(700, 350), 'pubID', 'pub');
+  final priv = TagNode(Offset(500, 350), 'priv');
+  final pub = TagNode(Offset(700, 350), 'pub');
   final stdin = EntryNode(Offset(300, 250), 'stdin');
   final stdout = ExitNode(Offset(900, 250), 'stdout');
 

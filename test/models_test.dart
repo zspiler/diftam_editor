@@ -9,14 +9,12 @@ void main() {
         "nodes": [
           {
             "type": "Tag",
-            "id": "privID",
-            "name": "priv",
+            "label": "priv",
             "position": {"x": 500.0, "y": 350.0}
           },
           {
             "type": "Tag",
-            "id": "pubID",
-            "name": "pub",
+            "label": "pub",
             "position": {"x": 700.0, "y": 350.0}
           },
           {
@@ -31,18 +29,18 @@ void main() {
           }
         ],
         "edges": [
-          {"source": "stdin", "target": "privID", "type": "Aware"},
-          {"source": "privID", "target": "pubID", "type": "Oblivious"},
-          {"source": "privID", "target": "pubID", "type": "Aware"},
-          {"source": "pubID", "target": "pubID", "type": "Aware"},
-          {"source": "pubID", "target": "pubID", "type": "Oblivious"},
-          {"source": "pubID", "target": "privID", "type": "Aware"},
-          {"source": "pubID", "target": "stdout", "type": "Aware"}
+          {"source": "stdin", "target": "priv", "type": "Aware"},
+          {"source": "priv", "target": "pub", "type": "Oblivious"},
+          {"source": "priv", "target": "pub", "type": "Aware"},
+          {"source": "pub", "target": "pub", "type": "Aware"},
+          {"source": "pub", "target": "pub", "type": "Oblivious"},
+          {"source": "pub", "target": "priv", "type": "Aware"},
+          {"source": "pub", "target": "stdout", "type": "Aware"}
         ]
       };
 
-      final priv = TagNode(Offset(500, 350), 'privID', 'priv');
-      final pub = TagNode(Offset(700, 350), 'pubID', 'pub');
+      final priv = TagNode(Offset(500, 350), 'priv');
+      final pub = TagNode(Offset(700, 350), 'pub');
       final stdin = EntryNode(Offset(300, 250), 'stdin');
       final stdout = ExitNode(Offset(900, 250), 'stdout');
 

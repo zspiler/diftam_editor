@@ -37,47 +37,39 @@ abstract class Node implements GraphObject {
 }
 
 class TagNode extends Node {
-  final String id;
-  String? name;
+  String label;
 
-  TagNode(Offset position, this.id, [this.name]) : super(position);
+  TagNode(Offset position, this.label) : super(position);
 
   @override
-  TagNode copyWith({Offset? position, String? id, String? name}) {
+  TagNode copyWith({Offset? position, String? label}) {
     return TagNode(
       position ?? this.position,
-      id ?? this.id,
-      name ?? this.name,
+      label ?? this.label,
     );
   }
 
   @override
-  String get label => name ?? id;
-
-  @override
   String toNodeString() {
-    return 'TagNode ($id, $label, $position)';
+    return 'TagNode ($label, $position)';
   }
 
   @override
   Map<String, dynamic> toJson() {
     return {
       'type': NodeType.tag.value,
-      'id': id,
-      'name': name,
+      'label': label,
       ...super.toJson(),
     };
   }
 
   TagNode.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        name = json['name'],
+      : label = json['label'],
         super.fromJson(json);
 }
 
 abstract class BoundaryNode extends Node {
-  // TODO descriptor could just be 'id'? Edge.fromJson would be simpler
-
+  // TODO descriptor and 'label' in TagNode could just be 'id'? Edge.fromJson would be simpler
   String descriptor;
 
   BoundaryNode(Offset position, this.descriptor) : super(position);

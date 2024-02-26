@@ -7,10 +7,10 @@ class TagNodeInfoPanel extends StatelessWidget {
   final TagNode node;
   final List<Node> nodes;
   final void Function(GraphObject object) deleteObject;
-  final void Function(String?) editName;
+  final void Function(String) editLabel;
 
   const TagNodeInfoPanel(
-      {super.key, required this.node, required this.nodes, required this.deleteObject, required this.editName});
+      {super.key, required this.node, required this.nodes, required this.deleteObject, required this.editLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -32,24 +32,11 @@ class TagNodeInfoPanel extends StatelessWidget {
             children: [
               Padding(
                 padding: rowPadding,
-                child: Text('ID:'),
-              ),
-              Padding(
-                padding: rowPadding,
-                child: Text(node.id),
-              ),
-              Container() //
-            ],
-          ),
-          TableRow(
-            children: [
-              Padding(
-                padding: rowPadding,
                 child: Text('Label:'),
               ),
               Padding(
                 padding: rowPadding,
-                child: Text(node.name ?? '/'),
+                child: Text(node.label),
               ),
               Tooltip(
                 message: 'Edit label',
@@ -63,14 +50,13 @@ class TagNodeInfoPanel extends StatelessWidget {
                         context,
                         title: 'Edit label',
                         hint: 'Enter new label',
-                        acceptEmptyInput: true,
-                        initialText: node.name,
+                        initialText: node.label,
                         onConfirm: (String inputText) {
                           // NOTE we could also edit 'node' here and emit generic onChange event (to rerender)
-                          editName(inputText.isNotEmpty ? inputText : null);
+                          editLabel(inputText);
                         },
                         isInputValid: (String inputText) =>
-                            !nodes.any((node) => node != node && node is TagNode && node.name == inputText),
+                            !nodes.any((node2) => node2 != node && node2 is TagNode && node2.label == inputText),
                         errorMessage: 'Please choose a unique tag label',
                       );
                     },

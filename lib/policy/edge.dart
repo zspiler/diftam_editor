@@ -56,11 +56,11 @@ class Edge implements GraphObject {
   }
 
   Map<String, dynamic> toJson() {
-    String getNodeId(Node node) => node is TagNode ? node.id : (node as BoundaryNode).descriptor;
+    String getNodeLabel(Node node) => node is TagNode ? node.label : (node as BoundaryNode).descriptor;
 
     return {
-      'source': getNodeId(source),
-      'target': getNodeId(target),
+      'source': getNodeLabel(source),
+      'target': getNodeLabel(target),
       'type': type.value,
     };
   }
@@ -68,13 +68,13 @@ class Edge implements GraphObject {
   Edge.fromJson(Map<String, dynamic> json, List<Node> nodes)
       : source = nodes.firstWhere((node) {
           if (node is TagNode) {
-            return node.id == json['source'];
+            return node.label == json['source'];
           }
           return (node as BoundaryNode).descriptor == json['source'];
         }),
         target = nodes.firstWhere((node) {
           if (node is TagNode) {
-            return node.id == json['target'];
+            return node.label == json['target'];
           }
           return (node as BoundaryNode).descriptor == json['target'];
         }),
