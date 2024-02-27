@@ -6,7 +6,7 @@ class KeyboardShortcutsDialog extends StatelessWidget {
   static const iconSize = 20.0;
   static const shortcuts = [
     ShortcutInfo(description: 'Deselect', icons: [Text('Esc')]),
-    ShortcutInfo(description: 'Delete', icons: [Text('Delete'), Icon(Icons.backspace, size: iconSize)]),
+    ShortcutInfo(description: 'Delete object', icons: [Text('Delete'), Icon(Icons.backspace, size: iconSize)]),
     ShortcutInfo(description: 'Zoom in', icons: [Icon(Icons.add, size: iconSize)], meta: true),
     ShortcutInfo(description: 'Zoom out', icons: [Icon(Icons.remove, size: iconSize)], meta: true),
     ShortcutInfo(description: 'Reset zoom', icons: [Icon(Icons.exposure_zero, size: iconSize)], meta: true),
