@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:poc/import_export.dart';
-import 'package:poc/manage_policies_dialog.dart';
-import 'package:poc/preferences_dialog.dart';
+import 'package:poc/dialogs/manage_policies_dialog.dart';
+import 'package:poc/dialogs/preferences_dialog.dart';
 import 'canvas_view.dart';
 import 'ui/snackbar.dart';
 import 'policy/policy.dart';
@@ -12,8 +12,8 @@ import 'policy_tab_bar.dart';
 import 'preferences_manager.dart';
 import 'ui/custom_dialog.dart';
 import 'debug/debug_utils.dart';
-import 'keyboard_shortcuts_dialog.dart';
-import 'combine_policies_dialog.dart';
+import 'dialogs/keyboard_shortcuts_dialog.dart';
+import 'dialogs/combine_policies_dialog.dart';
 import 'theme.dart';
 
 void main() async {

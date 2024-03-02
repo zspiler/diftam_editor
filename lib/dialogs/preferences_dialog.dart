@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'preferences_manager.dart';
-import 'ui/number_input.dart';
-import 'ui/color_picker.dart';
+import '../preferences_manager.dart';
+import '../ui/number_input.dart';
+import '../ui/color_picker.dart';
 
 class PreferencesDialog extends StatefulWidget {
   final Function(Preferences newPreferences) onChange;
