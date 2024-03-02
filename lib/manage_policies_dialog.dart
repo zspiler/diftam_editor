@@ -133,7 +133,8 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       child: SizedBox(
-        width: 400,
+        width: 500, // TODO responsive
+        height: 700, // TODO responsive
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 32.0),
           child: Column(
@@ -150,7 +151,7 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
                           children: [
                             SizedBox(height: 16),
                             SizedBox(
-                              width: 250,
+                              width: 400,
                               child: Table(children: buildPoliciesTableRows(), columnWidths: const {
                                 0: FlexColumnWidth(1),
                                 1: IntrinsicColumnWidth(),

@@ -7,6 +7,7 @@ class PolicyTabBar extends StatelessWidget {
   final Function() onAddPressed;
   final Function() onImportPressed;
   final Function() onManagePressed;
+  final Function() onCombinePressed;
   final int currentPolicyIndex;
 
   const PolicyTabBar(this.policies, this.currentPolicyIndex,
@@ -14,7 +15,8 @@ class PolicyTabBar extends StatelessWidget {
       required this.onSelect,
       required this.onAddPressed,
       required this.onImportPressed,
-      required this.onManagePressed})
+      required this.onManagePressed,
+      required this.onCombinePressed})
       : super(key: key);
 
   @override
@@ -24,38 +26,20 @@ class PolicyTabBar extends StatelessWidget {
 
     return Row(
       children: [
-        ...policies.asMap().entries.map((policy) {
-          final index = policy.key;
-          return SizedBox(
-            height: 40,
-            child: TextButton(
-              style: ButtonStyle(
-                splashFactory: NoSplash.splashFactory,
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(index == 0 ? 10 : 0),
-                  bottomLeft: Radius.circular(index == 0 ? 10 : 0),
-                ))),
-                foregroundColor: foregroundColor,
-                backgroundColor: index == currentPolicyIndex ? MaterialStateProperty.all<Color>(Colors.blue) : backgroundColor,
-              ),
-              onPressed: () => onSelect(index),
-              child: Text(policy.value.name),
-            ),
-          );
-        }).toList(),
         Tooltip(
-          message: 'Create policy',
+          message: 'Manage policies',
           child: SizedBox(
             height: 40,
             child: TextButton(
               style: ButtonStyle(
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
+                shape: MaterialStateProperty.all(
+                  RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                ),
                 foregroundColor: foregroundColor,
                 backgroundColor: backgroundColor,
               ),
-              onPressed: onAddPressed,
-              child: Icon(Icons.add),
+              onPressed: onManagePressed,
+              child: Icon(Icons.list),
             ),
           ),
         ),
@@ -74,25 +58,61 @@ class PolicyTabBar extends StatelessWidget {
             ),
           ),
         ),
+        if (policies.length > 1)
+          Tooltip(
+            message: 'Combine policies',
+            child: SizedBox(
+              height: 40,
+              child: TextButton(
+                style: ButtonStyle(
+                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero,
+                  )),
+                  foregroundColor: foregroundColor,
+                  backgroundColor: backgroundColor,
+                ),
+                onPressed: onCombinePressed,
+                child: Icon(Icons.merge),
+              ),
+            ),
+          ),
         Tooltip(
-          message: 'Manage policies',
+          message: 'Create policy',
           child: SizedBox(
             height: 40,
             child: TextButton(
               style: ButtonStyle(
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(topRight: Radius.circular(10), bottomRight: Radius.circular(10)),
-                  ),
-                ),
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero,
+                )),
                 foregroundColor: foregroundColor,
                 backgroundColor: backgroundColor,
               ),
-              onPressed: onManagePressed,
-              child: Icon(Icons.list),
+              onPressed: onAddPressed,
+              child: Icon(Icons.add),
             ),
           ),
         ),
+        ...policies.asMap().entries.map((policy) {
+          final index = policy.key;
+          return SizedBox(
+            height: 40,
+            child: TextButton(
+              style: ButtonStyle(
+                splashFactory: NoSplash.splashFactory,
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(policy.value == policies.last ? 10 : 0),
+                  bottomRight: Radius.circular(policy.value == policies.last ? 10 : 0),
+                ))),
+                foregroundColor: foregroundColor,
+                backgroundColor: index == currentPolicyIndex ? MaterialStateProperty.all(Colors.blue) : backgroundColor,
+              ),
+              onPressed: () => onSelect(index),
+              child: Text(policy.value.name),
+            ),
+          );
+        }).toList(),
       ],
     );
   }

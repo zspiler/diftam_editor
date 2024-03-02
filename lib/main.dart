@@ -13,6 +13,7 @@ import 'preferences_manager.dart';
 import 'ui/custom_dialog.dart';
 import 'debug/debug_utils.dart';
 import 'keyboard_shortcuts_dialog.dart';
+import 'combine_policies_dialog.dart';
 import 'theme.dart';
 
 void main() async {
@@ -48,7 +49,8 @@ class _MyAppState extends State<MyApp> {
     preferences = PreferencesManager.getPreferences();
 
     if (kDebugMode) {
-      addPolicy(getMockPolicy());
+      getMockPolicies().forEach(addPolicy);
+      addPolicy(policies[0] * policies[1]);
     }
   }
 
@@ -74,7 +76,12 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void onAddPolicy() {
+  void addAndSelectPolicy(Policy policy) {
+    addPolicy(policy);
+    selectPolicy(policies.indexOf(policy));
+  }
+
+  void onAddPolicyPress() {
     var newPolicyName = 'Policy ${policies.length + 1}';
     CustomDialog.showInputDialog(
       context,
@@ -86,15 +93,14 @@ class _MyAppState extends State<MyApp> {
         if (inputText.isNotEmpty) {
           newPolicyName = inputText;
         }
-        addPolicy(Policy(name: newPolicyName));
-        selectPolicy(policies.length - 1);
+        addAndSelectPolicy(Policy(name: newPolicyName));
       },
       isInputValid: (String inputText) => !policies.any((policy) => policy.name == inputText),
       errorMessage: 'Policy with this name already exists!',
     );
   }
 
-  void onImportPolicy() async {
+  void onImportPolicyPress() async {
     // NOTE this package supports saving file via dialog, but only on Desktop!
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -118,12 +124,11 @@ class _MyAppState extends State<MyApp> {
       SnackbarGlobal.error(e.toString());
       return;
     }
-    addPolicy(policy);
-    selectPolicy(policies.length - 1);
+    addAndSelectPolicy(policy);
     // TODO Desktop
   }
 
-  void onManagePolicies() {
+  void onManagePoliciesPress() {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -144,6 +149,16 @@ class _MyAppState extends State<MyApp> {
         });
   }
 
+  void onCombinePoliciesPress() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => CombinePoliciesDialog(
+        policies: policies,
+        onCombine: addAndSelectPolicy,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const clickableTextSpanStyle = TextStyle(color: Colors.blue);
@@ -162,12 +177,14 @@ class _MyAppState extends State<MyApp> {
                   children: [
                     TextSpan(text: 'Please '),
                     TextSpan(
-                        text: 'create', style: clickableTextSpanStyle, recognizer: TapGestureRecognizer()..onTap = onAddPolicy),
+                        text: 'create',
+                        style: clickableTextSpanStyle,
+                        recognizer: TapGestureRecognizer()..onTap = onAddPolicyPress),
                     TextSpan(text: ' or '),
                     TextSpan(
                         text: 'import',
                         style: clickableTextSpanStyle,
-                        recognizer: TapGestureRecognizer()..onTap = onImportPolicy),
+                        recognizer: TapGestureRecognizer()..onTap = onImportPolicyPress),
                     TextSpan(text: ' a policy.'),
                   ],
                 ),
@@ -189,11 +206,15 @@ class _MyAppState extends State<MyApp> {
               bottom: 0,
               child: Align(
                   alignment: Alignment.bottomCenter,
-                  child: PolicyTabBar(policies, selectedPolicyIndex,
-                      onSelect: selectPolicy,
-                      onAddPressed: onAddPolicy,
-                      onImportPressed: onImportPolicy,
-                      onManagePressed: onManagePolicies))),
+                  child: PolicyTabBar(
+                    policies,
+                    selectedPolicyIndex,
+                    onSelect: selectPolicy,
+                    onAddPressed: onAddPolicyPress,
+                    onImportPressed: onImportPolicyPress,
+                    onManagePressed: onManagePoliciesPress,
+                    onCombinePressed: onCombinePoliciesPress,
+                  ))),
           Positioned(
               top: 16,
               left: 16,

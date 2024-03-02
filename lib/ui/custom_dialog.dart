@@ -5,7 +5,7 @@ class CustomDialog {
   static void showConfirmationDialog(BuildContext context,
       {String? confirmButtonText, String? cancelButtonText, required String title, required Function onConfirm}) {
     Widget continueButton = TextButton(
-      child: Text(confirmButtonText ?? "OK"),
+      child: Text(confirmButtonText ?? "Confirm"),
       onPressed: () {
         onConfirm();
         Navigator.of(context).pop();
