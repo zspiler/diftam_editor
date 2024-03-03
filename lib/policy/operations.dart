@@ -74,7 +74,7 @@ Policy cartesianProduct(Policy policy1, Policy policy2) {
     edges.add(Edge(nodes[edge.source], nodes[edge.destination], edge.type));
   }
 
-  return Policy(name: '$policy1.name x ${policy2.name}', nodes: nodes, edges: edges);
+  return Policy(name: '${policy1.name} x ${policy2.name}', nodes: nodes, edges: edges);
 }
 
 class _CombinedNode {

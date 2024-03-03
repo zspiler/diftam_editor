@@ -133,44 +133,45 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       child: SizedBox(
-        width: 500, // TODO responsive
-        height: 700, // TODO responsive
+        width: MediaQuery.of(context).size.width * 0.3,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 32.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text('Manage policies', style: Theme.of(context).textTheme.headlineLarge),
-              SizedBox(height: 10),
-              Expanded(
-                child: _policies.isEmpty
-                    ? Center(child: Text('No policies created yet.'))
-                    : SingleChildScrollView(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            SizedBox(height: 16),
-                            SizedBox(
-                              width: 400,
-                              child: Table(children: buildPoliciesTableRows(), columnWidths: const {
-                                0: FlexColumnWidth(1),
-                                1: IntrinsicColumnWidth(),
-                                2: IntrinsicColumnWidth(),
-                                3: IntrinsicColumnWidth(),
-                              }),
-                            ),
-                          ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Text('Manage policies', style: Theme.of(context).textTheme.headlineLarge),
+                SizedBox(height: 10),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.3,
+                  child: _policies.isEmpty
+                      ? Center(child: Text('No policies created yet.'))
+                      : SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              SizedBox(height: 16),
+                              SizedBox(
+                                width: 400,
+                                child: Table(children: buildPoliciesTableRows(), columnWidths: const {
+                                  0: FlexColumnWidth(1),
+                                  1: IntrinsicColumnWidth(),
+                                  2: IntrinsicColumnWidth(),
+                                  3: IntrinsicColumnWidth(),
+                                }),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-              ),
-              SizedBox(height: 10),
-              TextButton(
-                child: Text("Close"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
+                ),
+                SizedBox(height: 10),
+                TextButton(
+                  child: Text("Close"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

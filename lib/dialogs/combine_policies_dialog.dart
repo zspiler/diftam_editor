@@ -25,61 +25,63 @@ class _CombinePoliciesDialogState extends State<CombinePoliciesDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       child: SizedBox(
-        width: 500, // TODO responsive
-        height: 700, // TODO responsive
+        width: MediaQuery.of(context).size.width * 0.3,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 32.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text('Combine policies', style: Theme.of(context).textTheme.headlineLarge),
-              SizedBox(height: 10),
-              Expanded(
-                child: policies.isEmpty
-                    ? Center(child: Text('No policies created yet.'))
-                    : ListView.builder(
-                        itemCount: policies.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return CheckboxListTile(
-                            title: Text(policies[index].name),
-                            value: selectedPolicies.contains(policies[index]),
-                            enabled: selectedPolicies.length < 2 || selectedPolicies.contains(policies[index]),
-                            onChanged: (bool? value) {
-                              if (value == true) {
-                                if (selectedPolicies.length < 2) {
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Text('Combine policies', style: Theme.of(context).textTheme.headlineLarge),
+                SizedBox(height: 10),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.3,
+                  child: policies.isEmpty
+                      ? Center(child: Text('No policies created yet.'))
+                      : ListView.builder(
+                          itemCount: policies.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return CheckboxListTile(
+                              title: Text(policies[index].name),
+                              value: selectedPolicies.contains(policies[index]),
+                              enabled: selectedPolicies.length < 2 || selectedPolicies.contains(policies[index]),
+                              onChanged: (bool? value) {
+                                if (value == true) {
+                                  if (selectedPolicies.length < 2) {
+                                    setState(() {
+                                      selectedPolicies.add(policies[index]);
+                                    });
+                                  }
+                                } else {
                                   setState(() {
-                                    selectedPolicies.add(policies[index]);
+                                    selectedPolicies.remove(policies[index]);
                                   });
                                 }
-                              } else {
-                                setState(() {
-                                  selectedPolicies.remove(policies[index]);
-                                });
-                              }
-                              // (context as Element).markNeedsBuild();
-                            },
-                          );
-                        },
-                      ),
-              ),
-              SizedBox(height: 10),
-              TextButton(
-                child: Text("Combine"),
-                onPressed: () {
-                  final product = selectedPolicies[0] * selectedPolicies[1];
-                  widget.onCombine(product);
-                  Navigator.of(context).pop();
-                },
-                style: selectedPolicies.length < 2 ? ButtonStyle(foregroundColor: MaterialStateProperty.all(Colors.grey)) : null,
-              ),
-              SizedBox(height: 10),
-              TextButton(
-                child: Text("Close"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
+                                // (context as Element).markNeedsBuild();
+                              },
+                            );
+                          },
+                        ),
+                ),
+                SizedBox(height: 10),
+                TextButton(
+                  child: Text("Combine"),
+                  onPressed: () {
+                    final product = selectedPolicies[0] * selectedPolicies[1];
+                    widget.onCombine(product);
+                    Navigator.of(context).pop();
+                  },
+                  style:
+                      selectedPolicies.length < 2 ? ButtonStyle(foregroundColor: MaterialStateProperty.all(Colors.grey)) : null,
+                ),
+                SizedBox(height: 10),
+                TextButton(
+                  child: Text("Close"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
