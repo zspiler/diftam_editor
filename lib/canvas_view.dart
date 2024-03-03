@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:D2SC_editor/keyboard_shortcuts.dart';
+import 'package:D2SC_editor/keyboard_utils.dart';
 import 'graph_painter/node_painter.dart';
 import 'graph_painter/graph_painter.dart';
 import 'policy/policy.dart';
@@ -146,6 +146,12 @@ class _CanvasViewState extends State<CanvasView> {
         });
       }
     });
+  }
+
+  void deleteSelectedObject() {
+    if (selectedObject != null) {
+      deleteObject(selectedObject!);
+    }
   }
 
   void createEdge(Node sourceNode, Node targetNode, EdgeType edgeType) {
@@ -382,11 +388,8 @@ class _CanvasViewState extends State<CanvasView> {
             color: darkBlue,
             child: CallbackShortcuts(
               bindings: {
-                SingleActivator(LogicalKeyboardKey.delete): () {
-                  if (selectedObject != null) {
-                    deleteObject(selectedObject!);
-                  }
-                },
+                SingleActivator(LogicalKeyboardKey.delete): deleteSelectedObject,
+                SingleActivator(LogicalKeyboardKey.backspace): deleteSelectedObject,
                 SingleActivator(LogicalKeyboardKey.escape): () {
                   selectedObject = null;
                   stopNodeDrawing();
