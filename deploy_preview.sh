@@ -1,4 +1,4 @@
-BUILD_REPO="/Users/zanspiler/diploma/poc-web-preview";
+BUILD_REPO="/Users/zanspiler/diploma/D2SC-editor-web-preview";
 flutter build web;
 sed -i '' '/^[[:space:]]*<base href="\/">[[:space:]]*$/d' build/web/index.html;
 cp -r build/web/* $BUILD_REPO;

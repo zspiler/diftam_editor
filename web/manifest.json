@@ -1,6 +1,6 @@
 {
-    "name": "poc",
-    "short_name": "poc",
+    "name": "D2SC_editor",
+    "short_name": "D2SC_editor",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

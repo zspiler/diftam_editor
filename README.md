@@ -1,4 +1,4 @@
-# poc
+# D2SC editor
 
 ### How to run 
 

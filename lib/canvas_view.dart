@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:poc/keyboard_shortcuts.dart';
+import 'package:D2SC_editor/keyboard_shortcuts.dart';
 import 'graph_painter/node_painter.dart';
 import 'graph_painter/graph_painter.dart';
 import 'policy/policy.dart';

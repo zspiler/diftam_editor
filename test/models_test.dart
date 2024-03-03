@@ -1,4 +1,4 @@
-import 'package:poc/policy/policy.dart';
+import 'package:D2SC_editor/policy/policy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
