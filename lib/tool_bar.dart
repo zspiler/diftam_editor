@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'policy/policy.dart';
 
-class MyMenuBar extends StatelessWidget {
+class ToolBar extends StatelessWidget {
   final VoidCallback onSelectionPress;
   final VoidCallback onObliviousConnectionPress;
   final VoidCallback onAwareConnectionPress;
@@ -12,7 +12,7 @@ class MyMenuBar extends StatelessWidget {
   final NodeType? drawingNodeType;
   final bool isInSelectionMode;
 
-  const MyMenuBar({
+  const ToolBar({
     super.key,
     required this.onSelectionPress,
     required this.onObliviousConnectionPress,

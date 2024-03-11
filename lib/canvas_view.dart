@@ -5,7 +5,7 @@ import 'package:D2SC_editor/keyboard_utils.dart';
 import 'graph_painter/node_painter.dart';
 import 'graph_painter/graph_painter.dart';
 import 'policy/policy.dart';
-import 'menu_bar.dart';
+import 'tool_bar.dart';
 import 'utils.dart';
 import 'info_panels/edge_info_panel.dart';
 import 'info_panels/tag_node_info_panel.dart';
@@ -439,7 +439,7 @@ class _CanvasViewState extends State<CanvasView> {
         right: 0,
         child: Align(
           alignment: Alignment.topCenter,
-          child: MyMenuBar(
+          child: ToolBar(
               onSelectionPress: enterSelectionMode,
               onAwareConnectionPress: () => enterEdgeDrawingMode(EdgeType.aware),
               onObliviousConnectionPress: () => enterEdgeDrawingMode(EdgeType.oblivious),
