@@ -55,8 +55,8 @@ class _CanvasViewState extends State<CanvasView> {
   void initState() {
     super.initState();
 
-    nodes = List.from(widget.nodes);
-    edges = List.from(widget.edges);
+    nodes = widget.nodes;
+    edges = widget.edges;
     focusNode = widget.focusNode;
   }
 
