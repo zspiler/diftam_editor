@@ -35,9 +35,18 @@ Policy cartesianProduct(Policy policy1, Policy policy2) {
           var combinedNode1 = combinedNodes[i];
           var combinedNode2 = combinedNodes[j];
 
-          if (combinedNode1 == combinedNode2 ||
-              (compareFirstComponent ? combinedNode1.node2 != combinedNode2.node2 : combinedNode1.node1 != combinedNode2.node1)) {
+          if (combinedNode1 == combinedNode2) {
             continue;
+          }
+
+          if (compareFirstComponent) {
+            if (combinedNode1.node2 != combinedNode2.node2) {
+              continue;
+            }
+          } else {
+            if (combinedNode1.node1 != combinedNode2.node1) {
+              continue;
+            }
           }
 
           final comparedComponent1 = compareFirstComponent ? combinedNode1.node1 : combinedNode1.node2;
@@ -83,4 +92,9 @@ class _CombinedNode {
   final NodeType type;
 
   _CombinedNode({required this.node1, required this.node2, required this.type});
+
+  @override
+  String toString() {
+    return 'CombinedNode{node1: $node1, node2: $node2, type: $type}';
+  }
 }
