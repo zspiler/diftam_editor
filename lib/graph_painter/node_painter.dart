@@ -21,14 +21,10 @@ class NodePainter {
         exitNodeColor = preferences.exitNodeColor,
         nodePadding = preferences.nodePadding;
 
-  Radius getNodeRadius(Node node) {
-    return node.runtimeType == TagNode ? Radius.circular(nodePadding * 8) : const Radius.circular(2);
-  }
-
   Color getNodeColor(Node node) {
-    if (node.runtimeType == TagNode) {
+    if (node is TagNode) {
       return tagNodeColor;
-    } else if (node.runtimeType == EntryNode) {
+    } else if (node is EntryNode) {
       return entryNodeColor;
     } else {
       return exitNodeColor;
@@ -42,14 +38,32 @@ class NodePainter {
       ..color = isSelected ? Colors.white : getNodeColor(node);
   }
 
+  ({Radius topLeft, Radius bottomLeft, Radius topRight, Radius bottomRight}) getNodeRadii(Node node) {
+    final largeRadius = Radius.circular(nodePadding * 8);
+    final defaultRadius = Radius.circular(nodePadding * 2);
+
+    return (
+      topLeft: node is TagNode || node is EntryNode ? largeRadius : defaultRadius,
+      bottomLeft: node is TagNode || node is EntryNode ? largeRadius : defaultRadius,
+      topRight: node is TagNode || node is ExitNode ? largeRadius : defaultRadius,
+      bottomRight: node is TagNode || node is ExitNode ? largeRadius : defaultRadius
+    );
+  }
+
   void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
     final x = (snapToGrid(node.position.dx) + canvasState.position.dx) * canvasState.scale;
     final y = (snapToGrid(node.position.dy) + canvasState.position.dy) * canvasState.scale;
 
     final nodeSize = calculateNodeSize(node, padding: nodePadding) * canvasState.scale;
 
+    final nodeRadii = getNodeRadii(node);
+
     canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTWH(x, y, nodeSize.width, nodeSize.height), getNodeRadius(node) * canvasState.scale),
+        RRect.fromRectAndCorners(Rect.fromLTWH(x, y, nodeSize.width, nodeSize.height),
+            topLeft: nodeRadii.topLeft * canvasState.scale,
+            bottomLeft: nodeRadii.bottomLeft * canvasState.scale,
+            topRight: nodeRadii.topRight * canvasState.scale,
+            bottomRight: nodeRadii.bottomRight * canvasState.scale),
         getNodePaintStyle(
           node,
           isSelected: isSelected,

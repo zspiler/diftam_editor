@@ -6,7 +6,7 @@ const defaultNodeStrokeWidth = 4;
 const defaultEdgeStrokeWidth = 4;
 const defaultTagNodeColor = Colors.lime;
 const defaultEntryNodeColor = Colors.grey;
-const defaultExitNodeColor = Color.fromARGB(255, 96, 96, 96);
+const defaultExitNodeColor = Colors.grey;
 const defaultObliviousEdgeColor = Colors.red;
 const defaultAwareEdgeColor = Colors.green;
 
