@@ -46,4 +46,20 @@ class Policy {
   Policy operator *(Policy otherPolicy) {
     return cartesianProduct(this, otherPolicy);
   }
+
+  static void validateEdges(List<Edge> edges) {
+    final Map<Node, int> numOfEdgesPerNode = {};
+
+    for (var edge in edges) {
+      if (edge.source is BoundaryNode) {
+        numOfEdgesPerNode[edge.source] = (numOfEdgesPerNode[edge.source] ?? 0) + 1;
+      } else if (edge.target is BoundaryNode) {
+        numOfEdgesPerNode[edge.target] = (numOfEdgesPerNode[edge.target] ?? 0) + 1;
+      }
+    }
+
+    if (numOfEdgesPerNode.values.any((numOfEdges) => numOfEdges > 1)) {
+      throw StateError("An 'Entry' or 'Exit' node can only have one outgoing/incoming edge!");
+    }
+  }
 }

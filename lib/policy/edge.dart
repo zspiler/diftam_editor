@@ -51,7 +51,7 @@ class Edge implements GraphObject {
     }
 
     if ((source is EntryNode || target is ExitNode) && type != EdgeType.boundary) {
-      throw ArgumentError("Only 'Boundary' edge can connect from / to 'Entry' and 'Exit' nodes!");
+      throw ArgumentError("Only 'Boundary' edges can connect from/to 'Entry' or 'Exit' nodes!");
     }
 
     if (source is TagNode && target is TagNode && type == EdgeType.boundary) {
