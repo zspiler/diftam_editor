@@ -5,6 +5,7 @@ class ToolBar extends StatelessWidget {
   final VoidCallback onSelectionPress;
   final VoidCallback onObliviousConnectionPress;
   final VoidCallback onAwareConnectionPress;
+  final VoidCallback onBoundaryConnectionPress;
   final VoidCallback onEntryNodePress;
   final VoidCallback onExitNodePress;
   final VoidCallback onTagNodePress;
@@ -17,6 +18,7 @@ class ToolBar extends StatelessWidget {
     required this.onSelectionPress,
     required this.onObliviousConnectionPress,
     required this.onAwareConnectionPress,
+    required this.onBoundaryConnectionPress,
     required this.onEntryNodePress,
     required this.onExitNodePress,
     required this.onTagNodePress,
@@ -55,6 +57,13 @@ class ToolBar extends StatelessWidget {
                 icon: Icon(Icons.arrow_forward, color: Colors.red),
                 onPressed: onObliviousConnectionPress,
                 style: IconButton.styleFrom(backgroundColor: drawingEdgeType == EdgeType.oblivious ? Colors.white : null),
+              )),
+          Tooltip(
+              message: "Boundary connection",
+              child: IconButton(
+                icon: Icon(Icons.arrow_forward, color: Color.fromARGB(255, 74, 195, 243)),
+                onPressed: onBoundaryConnectionPress,
+                style: IconButton.styleFrom(backgroundColor: drawingEdgeType == EdgeType.boundary ? Colors.white : null),
               )),
           Tooltip(
               message: "Tag node",

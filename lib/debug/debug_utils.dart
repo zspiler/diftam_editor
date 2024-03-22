@@ -14,13 +14,13 @@ Policy getMockPolicy() {
     stdin,
     stdout
   ], edges: [
-    Edge(stdin, priv, EdgeType.aware),
+    Edge(stdin, priv, EdgeType.boundary),
     Edge(priv, pub, EdgeType.oblivious),
     Edge(priv, pub, EdgeType.aware),
     Edge(pub, pub, EdgeType.aware),
     Edge(pub, pub, EdgeType.oblivious),
     Edge(pub, priv, EdgeType.aware),
-    Edge(pub, stdout, EdgeType.aware),
+    Edge(pub, stdout, EdgeType.boundary),
   ]);
 }
 
@@ -29,7 +29,7 @@ List<Policy> getMockPolicies() {
   Node x = TagNode(Offset(100, 100), 'X');
   Node y = TagNode(Offset(100, 250), 'Y');
 
-  Edge stdinX = Edge(stdin1, x, EdgeType.oblivious);
+  Edge stdinX = Edge(stdin1, x, EdgeType.boundary);
   Edge xy = Edge(x, y, EdgeType.aware);
 
   Policy p1 = Policy(name: 'Policy 1', nodes: [x, y, stdin1], edges: [xy, stdinX]);
@@ -40,7 +40,7 @@ List<Policy> getMockPolicies() {
   Node c = TagNode(Offset(400, 100), 'C');
   Node d = TagNode(Offset(550, 100), 'D');
 
-  Edge stdin2A = Edge(stdin2, a, EdgeType.oblivious);
+  Edge stdin2A = Edge(stdin2, a, EdgeType.boundary);
   Edge ab = Edge(a, b, EdgeType.oblivious);
   Edge bc = Edge(b, c, EdgeType.oblivious);
   Edge cd = Edge(c, d, EdgeType.oblivious);

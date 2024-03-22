@@ -17,19 +17,26 @@ class EdgePainter {
   final int strokeWidth;
   final Color obliviousEdgeColor;
   final Color awareEdgeColor;
+  final Color boundaryEdgeColor;
   final int nodePadding;
 
   EdgePainter({required this.canvasState, required Preferences preferences})
       : strokeWidth = preferences.edgeStrokeWidth,
         obliviousEdgeColor = preferences.obliviousEdgeColor,
         awareEdgeColor = preferences.awareEdgeColor,
+        boundaryEdgeColor = preferences.boundaryEdgeColor,
         nodePadding = preferences.nodePadding;
 
   Paint getEdgePaintStyle(EdgeType edgeType, {bool isSelected = false}) {
     const selectedEdgeColor = Colors.white;
-    final obliviousColor = isSelected ? selectedEdgeColor : obliviousEdgeColor;
-    final awareColor = isSelected ? selectedEdgeColor : awareEdgeColor;
-    final color = edgeType == EdgeType.oblivious ? obliviousColor : awareColor;
+
+    final color = isSelected
+        ? selectedEdgeColor
+        : switch (edgeType) {
+            EdgeType.oblivious => obliviousEdgeColor,
+            EdgeType.aware => awareEdgeColor,
+            EdgeType.boundary => boundaryEdgeColor
+          };
 
     return Paint()
       ..style = PaintingStyle.stroke

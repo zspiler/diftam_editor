@@ -3,7 +3,8 @@ import 'graph_object.dart';
 
 enum EdgeType {
   oblivious('Oblivious'),
-  aware('Aware');
+  aware('Aware'),
+  boundary('Boundary');
 
   final String value;
 
@@ -20,7 +21,7 @@ class Edge implements GraphObject {
   EdgeType type;
 
   Edge(this.source, this.target, this.type) {
-    _validate(source, target);
+    _validate(source, target, type);
   }
 
   @override
@@ -32,7 +33,7 @@ class Edge implements GraphObject {
     );
   }
 
-  void _validate(Node source, Node target) {
+  void _validate(Node source, Node target, EdgeType type) {
     if (source == target && source is! TagNode) {
       throw ArgumentError("Only 'Tag' node can connect with itself");
     }
@@ -47,6 +48,14 @@ class Edge implements GraphObject {
 
     if (target is EntryNode) {
       throw ArgumentError("'Entry' node cannot have any incoming edges!");
+    }
+
+    if ((source is EntryNode || target is ExitNode) && type != EdgeType.boundary) {
+      throw ArgumentError("Only 'Boundary' edge can connect from / to 'Entry' and 'Exit' nodes!");
+    }
+
+    if (source is TagNode && target is TagNode && type == EdgeType.boundary) {
+      throw ArgumentError("'Boundary' cannot not connect two 'Tag' nodes!");
     }
   }
 

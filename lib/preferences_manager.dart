@@ -9,6 +9,7 @@ const defaultEntryNodeColor = Colors.grey;
 const defaultExitNodeColor = Colors.grey;
 const defaultObliviousEdgeColor = Colors.red;
 const defaultAwareEdgeColor = Colors.green;
+const defaultBoundaryEdgeColor = Color.fromARGB(255, 74, 195, 243);
 
 enum PreferenceKey {
   nodePadding,
@@ -18,7 +19,8 @@ enum PreferenceKey {
   entryNodeColor,
   exitNodeColor,
   obliviousEdgeColor,
-  awareEdgeColor
+  awareEdgeColor,
+  boundaryEdgeColor,
 }
 
 class PreferencesManager {
@@ -47,6 +49,7 @@ class PreferencesManager {
       exitNodeColor: getExitNodeColor(),
       obliviousEdgeColor: getObliviousEdgeColor(),
       awareEdgeColor: getAwareEdgeColor(),
+      boundaryEdgeColor: getBoundaryEdgeColor(),
     );
   }
 
@@ -84,6 +87,10 @@ class PreferencesManager {
 
   static Color getAwareEdgeColor() {
     return _getColor(PreferenceKey.awareEdgeColor) ?? defaultAwareEdgeColor;
+  }
+
+  static Color getBoundaryEdgeColor() {
+    return _getColor(PreferenceKey.boundaryEdgeColor) ?? defaultBoundaryEdgeColor;
   }
 
   static void setNodeStrokeWidth(int value) {
@@ -133,27 +140,40 @@ class Preferences {
   Color exitNodeColor;
   Color obliviousEdgeColor;
   Color awareEdgeColor;
+  Color boundaryEdgeColor;
 
-  Preferences(
-      {int? nodePadding,
-      int? nodeStrokeWidth,
-      int? edgeStrokeWidth,
-      Color? tagNodeColor,
-      Color? entryNodeColor,
-      Color? exitNodeColor,
-      Color? obliviousEdgeColor,
-      Color? awareEdgeColor})
-      : nodePadding = nodePadding ?? defaultNodePadding,
+  Preferences({
+    int? nodePadding,
+    int? nodeStrokeWidth,
+    int? edgeStrokeWidth,
+    Color? tagNodeColor,
+    Color? entryNodeColor,
+    Color? exitNodeColor,
+    Color? obliviousEdgeColor,
+    Color? awareEdgeColor,
+    Color? boundaryEdgeColor,
+  })  : nodePadding = nodePadding ?? defaultNodePadding,
         nodeStrokeWidth = nodeStrokeWidth ?? defaultNodeStrokeWidth,
         edgeStrokeWidth = edgeStrokeWidth ?? defaultEdgeStrokeWidth,
         tagNodeColor = tagNodeColor ?? defaultTagNodeColor,
         entryNodeColor = entryNodeColor ?? defaultEntryNodeColor,
         exitNodeColor = exitNodeColor ?? defaultExitNodeColor,
         obliviousEdgeColor = obliviousEdgeColor ?? defaultObliviousEdgeColor,
-        awareEdgeColor = awareEdgeColor ?? defaultAwareEdgeColor;
+        awareEdgeColor = awareEdgeColor ?? defaultAwareEdgeColor,
+        boundaryEdgeColor = boundaryEdgeColor ?? defaultBoundaryEdgeColor;
 
   @override
   String toString() {
-    return 'Preferences{nodePadding: $nodePadding nodeStrokeWidth: $nodeStrokeWidth, edgeStrokeWidth: $edgeStrokeWidth, tagNodeColor: $tagNodeColor, entryNodeColor: $entryNodeColor, exitNodeColor: $exitNodeColor} obliviousEdgeColor: $obliviousEdgeColor, awareEdgeColor: $awareEdgeColor';
+    return '''Preferences {
+  nodePadding: $nodePadding 
+  nodeStrokeWidth: $nodeStrokeWidth,
+  edgeStrokeWidth: $edgeStrokeWidth,
+  tagNodeColor: $tagNodeColor,
+  entryNodeColor: $entryNodeColor,
+  exitNodeColor: $exitNodeColor,
+  obliviousEdgeColor: $obliviousEdgeColor, 
+  awareEdgeColor: $awareEdgeColor,
+  boundaryEdgeColor: $boundaryEdgeColor
+}''';
   }
 }

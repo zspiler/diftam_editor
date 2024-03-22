@@ -91,7 +91,7 @@ class EdgeInfoPanel extends StatelessWidget {
       Column(
         children: [
           SizedBox(width: 8.0),
-          if (isOnlyEdgeTypeBetweenNodes)
+          if (isOnlyEdgeTypeBetweenNodes && edge.type != EdgeType.boundary)
             Tooltip(
                 message: "Change edge type",
                 child: IconButton(

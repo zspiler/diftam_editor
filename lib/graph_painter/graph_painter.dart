@@ -85,7 +85,7 @@ class GraphPainter extends CustomPainter {
     final regularEdges = edges.where((edge) => edge.source != edge.target).toList();
 
     for (Edge edge in regularEdges) {
-      final edgeShape = anyEdgeOfDifferentTypeBetweenSameNodes(edges, edge)
+      final edgeShape = edge.type != EdgeType.boundary && anyEdgeOfDifferentTypeBetweenSameNodes(edges, edge)
           ? (edge.type == EdgeType.oblivious ? EdgeShape.curvedUp : EdgeShape.curvedDown)
           : EdgeShape.straight;
 

@@ -443,6 +443,7 @@ class _CanvasViewState extends State<CanvasView> {
               onSelectionPress: enterSelectionMode,
               onAwareConnectionPress: () => enterEdgeDrawingMode(EdgeType.aware),
               onObliviousConnectionPress: () => enterEdgeDrawingMode(EdgeType.oblivious),
+              onBoundaryConnectionPress: () => enterEdgeDrawingMode(EdgeType.boundary),
               onEntryNodePress: () => enterNodeDrawingMode(NodeType.entry),
               onExitNodePress: () => enterNodeDrawingMode(NodeType.exit),
               onTagNodePress: () => enterNodeDrawingMode(NodeType.tag),

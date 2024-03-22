@@ -29,13 +29,13 @@ void main() {
           }
         ],
         "edges": [
-          {"source": "stdin", "target": "priv", "type": "Aware"},
+          {"source": "stdin", "target": "priv", "type": "Boundary"},
           {"source": "priv", "target": "pub", "type": "Oblivious"},
           {"source": "priv", "target": "pub", "type": "Aware"},
           {"source": "pub", "target": "pub", "type": "Aware"},
           {"source": "pub", "target": "pub", "type": "Oblivious"},
           {"source": "pub", "target": "priv", "type": "Aware"},
-          {"source": "pub", "target": "stdout", "type": "Aware"}
+          {"source": "pub", "target": "stdout", "type": "Boundary"}
         ]
       };
 
@@ -50,13 +50,13 @@ void main() {
         stdin,
         stdout
       ], edges: [
-        Edge(stdin, priv, EdgeType.aware),
+        Edge(stdin, priv, EdgeType.boundary),
         Edge(priv, pub, EdgeType.oblivious),
         Edge(priv, pub, EdgeType.aware),
         Edge(pub, pub, EdgeType.aware),
         Edge(pub, pub, EdgeType.oblivious),
         Edge(pub, priv, EdgeType.aware),
-        Edge(pub, stdout, EdgeType.aware),
+        Edge(pub, stdout, EdgeType.boundary),
       ]);
 
       test('toJSON', () {
