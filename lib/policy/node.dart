@@ -37,7 +37,7 @@ abstract class Node implements GraphObject {
 }
 
 class TagNode extends Node {
-  String label;
+  String label; // TODO
 
   TagNode(Offset position, this.label) : super(position);
 
@@ -137,8 +137,8 @@ class ExitNode extends BoundaryNode {
   ExitNode(Offset position, String descriptor) : super(position, descriptor);
 
   @override
-  EntryNode copyWith({Offset? position, String? descriptor}) {
-    return EntryNode(
+  ExitNode copyWith({Offset? position, String? descriptor}) {
+    return ExitNode(
       position ?? this.position,
       descriptor ?? this.descriptor,
     );
