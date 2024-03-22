@@ -21,6 +21,7 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
   Color _exitNodeColor = Colors.white;
   Color _obliviousEdgeColor = Colors.white;
   Color _awareEdgeColor = Colors.white;
+  Color _boundaryEdgeColor = Colors.white;
 
   @override
   void initState() {
@@ -39,6 +40,7 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
       _exitNodeColor = preferences.exitNodeColor;
       _obliviousEdgeColor = preferences.obliviousEdgeColor;
       _awareEdgeColor = preferences.awareEdgeColor;
+      _boundaryEdgeColor = preferences.boundaryEdgeColor;
     });
   }
 
@@ -70,6 +72,7 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
         (Color newColor) => setPreference(PreferencesManager.setObliviousEdgeColor, newColor)
       ),
       ('Aware edge', _awareEdgeColor, (Color newColor) => setPreference(PreferencesManager.setAwareEdgeColor, newColor)),
+      ('Boundary edge', _boundaryEdgeColor, (Color newColor) => setPreference(PreferencesManager.setBoundaryEdgeColor, newColor)),
     ];
 
     TableRow buildTableSpacer(double height) => TableRow(children: [SizedBox(height: height), SizedBox(height: height)]);

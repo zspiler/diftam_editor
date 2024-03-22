@@ -121,6 +121,10 @@ class PreferencesManager {
     _setColor(PreferenceKey.awareEdgeColor, color);
   }
 
+  static void setBoundaryEdgeColor(Color color) async {
+    _setColor(PreferenceKey.boundaryEdgeColor, color);
+  }
+
   static Color? _getColor(PreferenceKey key) {
     int? colorValue = preferences.getInt(key.name);
     return colorValue == null ? null : Color(colorValue);
