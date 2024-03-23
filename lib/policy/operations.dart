@@ -1,67 +1,58 @@
 import 'policy.dart';
 import 'utils.dart';
 
+typedef _CombinedNode = ({Node source1, Node source2, NodeType type});
+typedef _CombinedEdge = ({_CombinedNode source, _CombinedNode destination, EdgeType type});
+
 Policy tensorProduct(Policy policy1, Policy policy2) {
-  final nodes1 = policy1.nodes;
-  final nodes2 = policy2.nodes;
-
-  final List<_CombinedNode> combinedNodes = cartesianProduct(nodes1, nodes2)
-      .where((pair) => pair.$1.runtimeType == pair.$2.runtimeType)
-      .map((pair) => _CombinedNode(source1: pair.$1, source2: pair.$2, type: pair.$1.type))
-      .toList();
-
-  // Find new edges
-  final List<({_CombinedNode source, _CombinedNode destination, EdgeType type})> newEdges = [];
-
-  cartesianProduct(combinedNodes, combinedNodes).forEach((pair) {
-    final node1 = pair.$1;
-    final node2 = pair.$2;
-
-    for (var edge1 in policy1.edges) {
-      if (edge1.source == node1.source1 && edge1.target == node2.source1) {
-        final siblingEdgeExists = policy2.edges
-            .any((edge2) => edge2.source == node1.source2 && edge2.target == node2.source2 && edge1.type == edge2.type);
-        if (siblingEdgeExists) {
-          newEdges.add((source: node1, destination: node2, type: edge1.type));
+  List<_CombinedEdge> combineEdges(Policy policy1, Policy policy2, List<_CombinedNode> combinedNodes) {
+    List<_CombinedEdge> newEdges = [];
+    for (var node1 in combinedNodes) {
+      for (var node2 in combinedNodes) {
+        for (var edge1 in policy1.edges) {
+          if (edge1.source == node1.source1 && edge1.target == node2.source1) {
+            final siblingEdgeExists = policy2.edges
+                .any((edge2) => edge2.source == node1.source2 && edge2.target == node2.source2 && edge1.type == edge2.type);
+            if (siblingEdgeExists) {
+              newEdges.add((source: node1, destination: node2, type: edge1.type));
+            }
+          }
         }
       }
     }
-  });
+    return newEdges;
+  }
 
-  // Generate nodes from temporary 'combinedNodes' which also hold information about original nodes
-  final List<Node> nodes = combinedNodes.map((node) {
-    final label = node.source1.label != node.source2.label
-        ? '${node.source1.label}/${node.source2.label}'
-        : node.source1.label; // we merge nodes with same label
-    final position = node.source1.position + node.source2.position; // for presentation purposes, we sum original positions
-    return node.type == NodeType.tag ? TagNode(position, label) : BoundaryNode.create(node.type, position, label);
-  }).toList();
+  List<Node> createNodesFromCombined(List<_CombinedNode> combinedNodes) {
+    return combinedNodes.map((node) {
+      final label = node.source1.label != node.source2.label ? '${node.source1.label}/${node.source2.label}' : node.source1.label;
+      final position = node.source1.position + node.source2.position;
+      return node.type == NodeType.tag ? TagNode(position, label) : BoundaryNode.create(node.type, position, label);
+    }).toList();
+  }
 
-  // Generate edges
-  final List<Edge> edges = newEdges.map((edge) {
-    final sourceNode = nodes[combinedNodes.indexOf(edge.source)];
-    final destinationNode = nodes[combinedNodes.indexOf(edge.destination)];
-    return Edge(sourceNode, destinationNode, edge.type);
-  }).toList();
+  List<Edge> createEdgesFromCombined(List<_CombinedEdge> newEdges, List<_CombinedNode> combinedNodes, List<Node> nodes) {
+    return newEdges.map((edge) {
+      final sourceNode = nodes[combinedNodes.indexOf(edge.source)];
+      final destinationNode = nodes[combinedNodes.indexOf(edge.destination)];
+      return Edge(sourceNode, destinationNode, edge.type);
+    }).toList();
+  }
+
+  final List<_CombinedNode> combinedNodes = cartesianProduct(policy1.nodes, policy2.nodes)
+      .where((pair) => pair.$1.runtimeType == pair.$2.runtimeType)
+      .map((pair) => (source1: pair.$1, source2: pair.$2, type: pair.$1.type))
+      .toList();
+  final List<_CombinedEdge> combinedEdges = combineEdges(policy1, policy2, combinedNodes);
+
+  final List<Node> nodes = createNodesFromCombined(combinedNodes);
+  final List<Edge> edges = createEdgesFromCombined(combinedEdges, combinedNodes, nodes);
 
   return Policy(name: '${policy1.name} x ${policy2.name}', nodes: nodes, edges: edges);
 }
 
-class _CombinedNode {
-  final Node source1;
-  final Node source2;
-  final NodeType type;
 
-  _CombinedNode({required this.source1, required this.source2, required this.type});
-
-  @override
-  String toString() {
-    return 'CombinedNode{${source1.label}, ${source2.label}, $type}';
-  }
-}
-
-
-// // TODO tests!
+// TODO tests!
 // Policy cartesianProduct(Policy policy1, Policy policy2) {
 //   final List<_CombinedNode> combinedNodes = [];
 
