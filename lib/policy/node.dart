@@ -26,6 +26,18 @@ abstract class Node implements GraphObject {
 
   String toNodeString();
 
+  NodeType get type {
+    if (this is TagNode) {
+      return NodeType.tag;
+    } else if (this is EntryNode) {
+      return NodeType.entry;
+    } else if (this is ExitNode) {
+      return NodeType.exit;
+    } else {
+      throw Exception('Unknown node type: $this');
+    }
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'position': {'x': position.dx, 'y': position.dy},

@@ -44,7 +44,7 @@ class Policy {
   }
 
   Policy operator *(Policy otherPolicy) {
-    return cartesianProduct(this, otherPolicy);
+    return tensorProduct(this, otherPolicy);
   }
 
   static void validateEdges(List<Edge> edges) {

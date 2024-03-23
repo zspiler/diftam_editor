@@ -40,6 +40,7 @@ class _AppState extends State<App> {
     if (kDebugMode) {
       getMockPolicies().forEach(addPolicy);
       addPolicy(policies[0] * policies[1]);
+      // addPolicy(getMockPolicy());
     }
   }
 
