@@ -8,6 +8,7 @@ class PolicyTabBar extends StatelessWidget {
   final Function() onImportPressed;
   final Function() onManagePressed;
   final Function() onCombinePressed;
+  final Function() onAnalyzePressed;
   final int currentPolicyIndex;
 
   const PolicyTabBar(this.policies, this.currentPolicyIndex,
@@ -16,7 +17,8 @@ class PolicyTabBar extends StatelessWidget {
       required this.onAddPressed,
       required this.onImportPressed,
       required this.onManagePressed,
-      required this.onCombinePressed})
+      required this.onCombinePressed,
+      required this.onAnalyzePressed})
       : super(key: key);
 
   @override
@@ -58,7 +60,7 @@ class PolicyTabBar extends StatelessWidget {
             ),
           ),
         ),
-        if (policies.length > 1)
+        if (policies.isNotEmpty) ...[
           Tooltip(
             message: 'Combine policies',
             child: SizedBox(
@@ -76,6 +78,24 @@ class PolicyTabBar extends StatelessWidget {
               ),
             ),
           ),
+          Tooltip(
+            message: 'Analyze policy',
+            child: SizedBox(
+              height: 40,
+              child: TextButton(
+                style: ButtonStyle(
+                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero,
+                  )),
+                  foregroundColor: foregroundColor,
+                  backgroundColor: backgroundColor,
+                ),
+                onPressed: onAnalyzePressed,
+                child: Icon(Icons.share_outlined),
+              ),
+            ),
+          ),
+        ],
         Tooltip(
           message: 'Create policy',
           child: SizedBox(

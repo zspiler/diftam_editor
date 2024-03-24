@@ -51,6 +51,45 @@ Policy tensorProduct(Policy policy1, Policy policy2) {
   return Policy(name: '${policy1.name} x ${policy2.name}', nodes: nodes, edges: edges);
 }
 
+typedef GraphComponent = List<Node>;
+
+List<GraphComponent> findGraphComponents(Policy policy, EdgeType edgeType) {
+  final List<Node> nodes = policy.nodes;
+  final List<Edge> edges = policy.edges;
+
+  final List<List<Node>> components = [];
+  final List<Node> visited = [];
+
+  void dfs(Node node, List<Node> component) {
+    if (visited.contains(node)) {
+      return;
+    }
+    visited.add(node);
+    component.add(node);
+    for (var edge in edges) {
+      if (edge.type == edgeType) {
+        // NOTE: We don't care about the direction of the edge
+        if (edge.source == node) {
+          dfs(edge.target, component);
+        } else if (edge.target == node) {
+          dfs(edge.source, component);
+        }
+      }
+    }
+  }
+
+  for (var node in nodes) {
+    if (!visited.contains(node)) {
+      List<Node> component = [];
+      dfs(node, component);
+      components.add(component);
+    }
+  }
+
+  return components;
+}
+
+
 
 // TODO tests!
 // Policy cartesianProduct(Policy policy1, Policy policy2) {

@@ -6,6 +6,7 @@ export 'edge.dart';
 export 'node.dart';
 export 'graph_object.dart';
 export 'utils.dart';
+export 'operations.dart';
 
 class Policy {
   late String name;

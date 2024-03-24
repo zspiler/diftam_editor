@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/highlight_box.dart';
 
 class KeyboardShortcutsDialog extends StatelessWidget {
   const KeyboardShortcutsDialog({super.key});
@@ -44,11 +45,11 @@ class KeyboardShortcutsDialog extends StatelessWidget {
               child: Row(
                 children: [
                   if (meta) ...[
-                    KeyIcon(child: Icon(Icons.keyboard_command_key, size: iconSize)),
+                    HighlightBox(child: Icon(Icons.keyboard_command_key, size: iconSize)),
                     Text(' + ', style: TextStyle(fontSize: 20))
                   ],
                   for (var i = 0; i < icons.length; i++) ...[
-                    KeyIcon(child: icons[i]),
+                    HighlightBox(child: icons[i]),
                     if (i < icons.length - 1) Text(' / ', style: TextStyle(fontSize: 20)),
                   ],
                 ],
@@ -121,24 +122,4 @@ class ShortcutInfo {
     required this.icons,
     this.meta,
   });
-}
-
-class KeyIcon extends StatelessWidget {
-  final Widget child;
-
-  const KeyIcon({
-    super.key,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(color: Color.fromARGB(255, 25, 24, 36), borderRadius: BorderRadius.all(Radius.circular(4))),
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Center(child: child),
-      ),
-    );
-  }
 }

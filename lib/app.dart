@@ -10,6 +10,7 @@ import 'canvas_view.dart';
 import 'debug/debug_utils.dart';
 import 'dialogs/combine_policies_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
+import 'dialogs/analysis_results.dialog.dart';
 import 'policy/policy.dart';
 import 'policy_tab_bar.dart';
 import 'preferences_manager.dart';
@@ -38,9 +39,9 @@ class _AppState extends State<App> {
     preferences = PreferencesManager.getPreferences();
 
     if (kDebugMode) {
-      getMockPolicies().forEach(addPolicy);
-      addPolicy(policies[0] * policies[1]);
-      // addPolicy(getMockPolicy());
+      // getMockPolicies().forEach(addPolicy);
+      // addPolicy(policies[0] * policies[1]);
+      addPolicy(getMockPolicy());
     }
   }
 
@@ -149,6 +150,15 @@ class _AppState extends State<App> {
     );
   }
 
+  void onAnalyzePoliciesPress() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AnalysisResultsDialog(
+        policy: policies[selectedPolicyIndex],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const clickableTextSpanStyle = TextStyle(color: Colors.blue);
@@ -204,6 +214,7 @@ class _AppState extends State<App> {
                     onImportPressed: onImportPolicyPress,
                     onManagePressed: onManagePoliciesPress,
                     onCombinePressed: onCombinePoliciesPress,
+                    onAnalyzePressed: onAnalyzePoliciesPress,
                   ))),
           Positioned(
               top: 16,
@@ -238,7 +249,7 @@ class _AppState extends State<App> {
                         builder: (BuildContext context) => KeyboardShortcutsDialog(),
                       );
                     },
-                  )))
+                  ))),
         ],
       ),
     );
