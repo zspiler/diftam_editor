@@ -1,5 +1,4 @@
 import 'policy.dart';
-import 'utils.dart';
 
 typedef _CombinedNode = ({Node source1, Node source2, NodeType type});
 typedef _CombinedEdge = ({_CombinedNode source, _CombinedNode destination, EdgeType type});
@@ -53,7 +52,7 @@ Policy tensorProduct(Policy policy1, Policy policy2) {
 
 typedef GraphComponent = List<Node>;
 
-List<GraphComponent> findGraphComponents(Policy policy, EdgeType edgeType) {
+List<GraphComponent> findComponents(Policy policy, EdgeType edgeType) {
   final List<Node> nodes = policy.nodes;
   final List<Edge> edges = policy.edges;
 
@@ -89,9 +88,57 @@ List<GraphComponent> findGraphComponents(Policy policy, EdgeType edgeType) {
   return components;
 }
 
+List<List<Node>> findCycles(Policy policy, EdgeType edgeType) {
+  final List<List<Node>> cycles = [];
+  final Map<Node, Node> parentMap = {};
+  final visited = <Node>{};
+  final finished = <Node>{};
+
+  void dfs(Node node, List<Node> path) {
+    if (visited.contains(node)) {
+      if (!finished.contains(node)) {
+        Node? current = node;
+        List<Node> cycle = [current];
+
+        while (true) {
+          current = parentMap[current];
+          if (current == null || current == node) {
+            break;
+          }
+          cycle.add(current);
+        }
+
+        cycle.add(node);
+        cycles.add(cycle.reversed.toList());
+      }
+      return;
+    }
+
+    if (finished.contains(node)) {
+      return;
+    }
+
+    visited.add(node);
+    path.add(node);
+
+    final neighbours = policy.edges.where((edge) => edge.type == edgeType && edge.source == node).map((edge) => edge.target);
+    for (var neighbour in neighbours) {
+      parentMap[neighbour] = node;
+      dfs(neighbour, List<Node>.from(path));
+    }
+
+    path.remove(node);
+    finished.add(node);
+  }
+
+  for (var node in policy.nodes) {
+    dfs(node, []);
+  }
+
+  return cycles;
+}
 
 
-// TODO tests!
 // Policy cartesianProduct(Policy policy1, Policy policy2) {
 //   final List<_CombinedNode> combinedNodes = [];
 
