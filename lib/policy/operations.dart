@@ -101,7 +101,7 @@ List<List<Node>> findCycles(Policy policy, EdgeType edgeType) {
         List<Node> cycle = [current];
 
         while (true) {
-          current = parentMap[current];
+          current = parentMap[current] != current ? parentMap[current] : null;
           if (current == null || current == node) {
             break;
           }
