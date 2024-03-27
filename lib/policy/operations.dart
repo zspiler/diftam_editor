@@ -26,7 +26,7 @@ Policy tensorProduct(Policy policy1, Policy policy2) {
     return combinedNodes.map((node) {
       final label = node.source1.label != node.source2.label ? '${node.source1.label}/${node.source2.label}' : node.source1.label;
       final position = node.source1.position + node.source2.position;
-      return node.type == NodeType.tag ? TagNode(position, label) : BoundaryNode.create(node.type, position, label);
+      return node.type == NodeType.tag ? TagNode(position, label) : Node.fromType(node.type, position, label);
     }).toList();
   }
 

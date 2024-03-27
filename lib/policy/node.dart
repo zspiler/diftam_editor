@@ -16,106 +16,88 @@ abstract class Node implements GraphObject {
 
   Node(this.position);
 
-  @override
-  Node copyWith({Offset? position});
-
-  String get label;
-
-  @override
-  String toString() => toNodeString(); // require that subclasses to implement their own toString method
-
-  String toNodeString();
-
-  NodeType get type {
-    if (this is TagNode) {
-      return NodeType.tag;
-    } else if (this is EntryNode) {
-      return NodeType.entry;
-    } else if (this is ExitNode) {
-      return NodeType.exit;
-    } else {
-      throw Exception('Unknown node type: $this');
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'position': {'x': position.dx, 'y': position.dy},
+  factory Node.fromType(NodeType type, Offset position, String labelOrDescriptor) {
+    return switch (type) {
+      NodeType.tag => TagNode(position, labelOrDescriptor),
+      NodeType.entry => EntryNode(position, labelOrDescriptor),
+      NodeType.exit => ExitNode(position, labelOrDescriptor),
     };
   }
 
   Node.fromJson(Map<String, dynamic> json)
       : position = Offset((json['position']['x'] as num).toDouble(), (json['position']['y'] as num).toDouble());
+
+  @override
+  Node copyWith({Offset? position});
+
+  String get label;
+  NodeType get type;
+
+  String toNodeString();
+
+  @override
+  String toString() => toNodeString(); // require that subclasses to implement their own toString method!
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type.value,
+      'position': {'x': position.dx, 'y': position.dy},
+    };
+  }
 }
 
 class TagNode extends Node {
-  String label; // TODO
+  @override
+  String label;
 
   TagNode(Offset position, this.label) : super(position);
 
   @override
   TagNode copyWith({Offset? position, String? label}) {
-    return TagNode(
-      position ?? this.position,
-      label ?? this.label,
-    );
-  }
-
-  @override
-  String toNodeString() {
-    return 'TagNode ($label, $position)';
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      'type': NodeType.tag.value,
-      'label': label,
-      ...super.toJson(),
-    };
+    return TagNode(position ?? this.position, label ?? this.label);
   }
 
   TagNode.fromJson(Map<String, dynamic> json)
       : label = json['label'],
         super.fromJson(json);
+
+  @override
+  NodeType get type => NodeType.tag;
+
+  @override
+  String toNodeString() => 'TagNode($label, $position)';
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      ...super.toJson(),
+      'label': label,
+    };
+  }
 }
 
 abstract class BoundaryNode extends Node {
-  // TODO descriptor and 'label' in TagNode could just be 'id'? Edge.fromJson would be simpler
   String descriptor;
 
   BoundaryNode(Offset position, this.descriptor) : super(position);
 
-  factory BoundaryNode.create(NodeType nodeType, Offset position, String descriptor) {
-    switch (nodeType) {
-      case NodeType.entry:
-        return EntryNode(position, descriptor);
-      case NodeType.exit:
-        return ExitNode(position, descriptor);
-      default:
-        throw Exception('$nodeType is not a boundary node!');
-    }
-  }
+  BoundaryNode.fromJson(Map<String, dynamic> json)
+      : descriptor = json['descriptor'],
+        super.fromJson(json);
 
   @override
   String get label => descriptor;
 
   @override
-  String toNodeString() {
-    return 'BoundaryNode ($position, $descriptor)';
-  }
+  String toNodeString() => 'BoundaryNode($descriptor, $position)';
 
   @override
   Map<String, dynamic> toJson() {
     return {
-      'descriptor': descriptor,
       ...super.toJson(),
+      'descriptor': descriptor,
     };
   }
-
-  BoundaryNode.fromJson(Map<String, dynamic> json)
-      : descriptor = json['descriptor'],
-        super.fromJson(json);
 }
 
 class EntryNode extends BoundaryNode {
@@ -123,26 +105,16 @@ class EntryNode extends BoundaryNode {
 
   @override
   EntryNode copyWith({Offset? position, String? descriptor}) {
-    return EntryNode(
-      position ?? this.position,
-      descriptor ?? this.descriptor,
-    );
-  }
-
-  @override
-  String toNodeString() {
-    return 'EntryNode{$position, $descriptor}';
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      'type': NodeType.entry.value,
-      ...super.toJson(),
-    };
+    return EntryNode(position ?? this.position, descriptor ?? this.descriptor);
   }
 
   EntryNode.fromJson(Map<String, dynamic> json) : super.fromJson(json);
+
+  @override
+  NodeType get type => NodeType.entry;
+
+  @override
+  String toNodeString() => 'EntryNode($descriptor, $position)';
 }
 
 class ExitNode extends BoundaryNode {
@@ -150,24 +122,14 @@ class ExitNode extends BoundaryNode {
 
   @override
   ExitNode copyWith({Offset? position, String? descriptor}) {
-    return ExitNode(
-      position ?? this.position,
-      descriptor ?? this.descriptor,
-    );
-  }
-
-  @override
-  String toNodeString() {
-    return 'ExitNode{$position, $descriptor}';
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      'type': NodeType.exit.value,
-      ...super.toJson(),
-    };
+    return ExitNode(position ?? this.position, descriptor ?? this.descriptor);
   }
 
   ExitNode.fromJson(Map<String, dynamic> json) : super.fromJson(json);
+
+  @override
+  NodeType get type => NodeType.exit;
+
+  @override
+  String toNodeString() => 'ExitNode($descriptor, $position)';
 }
