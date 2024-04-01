@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'policy/policy.dart';
 import 'graph_painter/node_painter.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
+import '../canvas.dart';
 
 String generateRandomString([len = 5]) {
   var r = Random();
@@ -47,10 +48,10 @@ bool isNodeHit(Node node, Offset position, int nodePadding) {
       node.position.dy + nodeSize.height > position.dy;
 }
 
-Offset adjustPositionForCanvasTransform(Offset position, Offset canvasPosition, double canvasScale) {
+Offset mapScreenPositionToCanvas(Offset position, CanvasState canvasState) {
   Matrix4 inverseTransformation = Matrix4.identity()
-    ..scale(canvasScale, canvasScale)
-    ..translate(canvasPosition.dx, canvasPosition.dy)
+    ..scale(canvasState.scale, canvasState.scale)
+    ..translate(canvasState.position.dx, canvasState.position.dy)
     ..invert();
 
   vector.Vector3 transformedPositionVector = inverseTransformation.transform3(vector.Vector3(position.dx, position.dy, 0));
