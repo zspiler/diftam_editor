@@ -3,10 +3,10 @@ import '../policy/policy.dart';
 
 Policy getMockPolicy() {
   // // TODO ensure unique IDS?
-  final priv = TagNode(Offset(500, 350), 'priv');
-  final pub = TagNode(Offset(700, 350), 'pub');
-  final stdin = EntryNode(Offset(300, 250), 'stdin');
-  final stdout = ExitNode(Offset(900, 250), 'stdout');
+  final priv = TagNode('priv', Offset(500, 350));
+  final pub = TagNode('pub', Offset(700, 350));
+  final stdin = EntryNode('stdin', Offset(300, 250));
+  final stdout = ExitNode('stdout', Offset(900, 250));
 
   return Policy(name: 'Policy 1', nodes: [
     priv,
@@ -67,10 +67,10 @@ List<Policy> getMockPolicies() {
 
   // return [p1, p2];
 
-  Node stdinPol1 = EntryNode(Offset(0, 0), 'stdin');
+  Node stdinPol1 = EntryNode('stdin', Offset(0, 0));
 
-  Node pub = TagNode(Offset(100, 100), 'pub');
-  Node priv = TagNode(Offset(300, 100), 'priv');
+  Node pub = TagNode('pub', Offset(100, 100));
+  Node priv = TagNode('priv', Offset(300, 100));
 
   Edge pubPriv = Edge(pub, priv, EdgeType.oblivious);
   Edge pubPub = Edge(pub, pub, EdgeType.oblivious);
@@ -79,10 +79,10 @@ List<Policy> getMockPolicies() {
 
   Policy p1 = Policy(name: 'Policy 1', nodes: [stdinPol1, pub, priv], edges: [pubPriv, pubPub, privPriv, stdinPub]);
 
-  Node stdinPol2 = EntryNode(Offset(0, 0), 'stdin');
+  Node stdinPol2 = EntryNode('stdin', Offset(0, 0));
 
-  Node low = TagNode(Offset(500, 100), 'low');
-  Node high = TagNode(Offset(700, 100), 'high');
+  Node low = TagNode('low', Offset(500, 100));
+  Node high = TagNode('high', Offset(700, 100));
 
   Edge highLow = Edge(high, low, EdgeType.oblivious);
   Edge highHigh = Edge(high, high, EdgeType.oblivious);

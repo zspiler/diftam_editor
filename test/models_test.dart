@@ -39,10 +39,10 @@ void main() {
         ]
       };
 
-      final priv = TagNode(Offset(500, 350), 'priv');
-      final pub = TagNode(Offset(700, 350), 'pub');
-      final stdin = EntryNode(Offset(300, 250), 'stdin');
-      final stdout = ExitNode(Offset(900, 250), 'stdout');
+      final priv = TagNode('priv', Offset(500, 350));
+      final pub = TagNode('pub', Offset(700, 350));
+      final stdin = EntryNode('stdin', Offset(300, 250));
+      final stdout = ExitNode('stdout', Offset(900, 250));
 
       final examplePolicy = Policy(name: 'Policy 1', nodes: [
         priv,

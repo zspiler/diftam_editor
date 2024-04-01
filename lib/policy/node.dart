@@ -14,13 +14,13 @@ enum NodeType {
 abstract class Node implements GraphObject {
   Offset position;
 
-  Node(this.position);
+  Node(Offset? position) : position = position ?? Offset(0, 0);
 
-  factory Node.fromType(NodeType type, Offset position, String labelOrDescriptor) {
+  factory Node.fromType(NodeType type, String labelOrDescriptor, [Offset? position]) {
     return switch (type) {
-      NodeType.tag => TagNode(position, labelOrDescriptor),
-      NodeType.entry => EntryNode(position, labelOrDescriptor),
-      NodeType.exit => ExitNode(position, labelOrDescriptor),
+      NodeType.tag => TagNode(labelOrDescriptor, position),
+      NodeType.entry => EntryNode(labelOrDescriptor, position),
+      NodeType.exit => ExitNode(labelOrDescriptor, position),
     };
   }
 
@@ -50,11 +50,11 @@ class TagNode extends Node {
   @override
   String label;
 
-  TagNode(Offset position, this.label) : super(position);
+  TagNode(this.label, [Offset? position]) : super(position);
 
   @override
   TagNode copyWith({Offset? position, String? label}) {
-    return TagNode(position ?? this.position, label ?? this.label);
+    return TagNode(label ?? this.label, position ?? this.position);
   }
 
   TagNode.fromJson(Map<String, dynamic> json)
@@ -79,7 +79,7 @@ class TagNode extends Node {
 abstract class BoundaryNode extends Node {
   String descriptor;
 
-  BoundaryNode(Offset position, this.descriptor) : super(position);
+  BoundaryNode(this.descriptor, [Offset? position]) : super(position);
 
   BoundaryNode.fromJson(Map<String, dynamic> json)
       : descriptor = json['descriptor'],
@@ -101,11 +101,11 @@ abstract class BoundaryNode extends Node {
 }
 
 class EntryNode extends BoundaryNode {
-  EntryNode(Offset position, String descriptor) : super(position, descriptor);
+  EntryNode(String descriptor, [Offset? position]) : super(descriptor, position);
 
   @override
   EntryNode copyWith({Offset? position, String? descriptor}) {
-    return EntryNode(position ?? this.position, descriptor ?? this.descriptor);
+    return EntryNode(descriptor ?? this.descriptor, position ?? this.position);
   }
 
   EntryNode.fromJson(Map<String, dynamic> json) : super.fromJson(json);
@@ -118,11 +118,11 @@ class EntryNode extends BoundaryNode {
 }
 
 class ExitNode extends BoundaryNode {
-  ExitNode(Offset position, String descriptor) : super(position, descriptor);
+  ExitNode(String descriptor, [Offset? position]) : super(descriptor, position);
 
   @override
   ExitNode copyWith({Offset? position, String? descriptor}) {
-    return ExitNode(position ?? this.position, descriptor ?? this.descriptor);
+    return ExitNode(descriptor ?? this.descriptor, position ?? this.position);
   }
 
   ExitNode.fromJson(Map<String, dynamic> json) : super.fromJson(json);

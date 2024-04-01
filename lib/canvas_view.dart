@@ -168,8 +168,7 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void createNode(Offset position, NodeType nodeType, {required String labelOrDescriptor}) {
-    final tempPosition = Offset(0, 0);
-    final Node newNode = Node.fromType(nodeType, tempPosition, labelOrDescriptor);
+    final Node newNode = Node.fromType(nodeType, labelOrDescriptor);
 
     final nodeSize = NodePainter.calculateNodeSize(newNode, padding: widget.preferences.nodePadding) * canvasState.scale;
     newNode.position = Offset(position.dx - nodeSize.width / 2, position.dy - nodeSize.height / 2);
