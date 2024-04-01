@@ -42,12 +42,22 @@ class GraphPainter extends CustomPainter {
 
     nodePainter = NodePainter(
       canvasState: canvasState,
-      preferences: preferences,
+      tagNodeColor: preferences.tagNodeColor,
+      entryNodeColor: preferences.entryNodeColor,
+      exitNodeColor: preferences.exitNodeColor,
+      strokeWidth: preferences.nodeStrokeWidth,
+      nodePadding: preferences.nodePadding,
     );
+
     edgePainter = EdgePainter(
       canvasState: canvasState,
-      preferences: preferences,
+      obliviousEdgeColor: preferences.obliviousEdgeColor,
+      awareEdgeColor: preferences.awareEdgeColor,
+      boundaryEdgeColor: preferences.boundaryEdgeColor,
+      strokeWidth: preferences.edgeStrokeWidth,
+      nodePadding: preferences.nodePadding,
     );
+
     gridPainter = GridPainter(
       canvasState: canvasState,
     );

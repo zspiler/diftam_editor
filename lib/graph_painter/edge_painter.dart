@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 import '../policy/policy.dart';
-import '../preferences_manager.dart';
 import 'node_painter.dart';
 import '../canvas.dart';
 
@@ -14,18 +13,20 @@ enum EdgeShape {
 
 class EdgePainter {
   final CanvasState canvasState;
-  final int strokeWidth;
   final Color obliviousEdgeColor;
   final Color awareEdgeColor;
   final Color boundaryEdgeColor;
+  final int strokeWidth;
   final int nodePadding;
 
-  EdgePainter({required this.canvasState, required Preferences preferences})
-      : strokeWidth = preferences.edgeStrokeWidth,
-        obliviousEdgeColor = preferences.obliviousEdgeColor,
-        awareEdgeColor = preferences.awareEdgeColor,
-        boundaryEdgeColor = preferences.boundaryEdgeColor,
-        nodePadding = preferences.nodePadding;
+  EdgePainter({
+    required this.canvasState,
+    required this.obliviousEdgeColor,
+    required this.awareEdgeColor,
+    required this.boundaryEdgeColor,
+    required this.strokeWidth,
+    required this.nodePadding,
+  });
 
   Paint getEdgePaintStyle(EdgeType edgeType, {bool isSelected = false}) {
     const selectedEdgeColor = Colors.white;

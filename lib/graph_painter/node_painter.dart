@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../policy/policy.dart';
-import '../preferences_manager.dart';
 import '../canvas.dart';
 
 class NodePainter {
-  final int strokeWidth;
+  final CanvasState canvasState;
   final Color tagNodeColor;
   final Color entryNodeColor;
   final Color exitNodeColor;
+  final int strokeWidth;
   final int nodePadding;
-  final CanvasState canvasState;
 
   NodePainter({
     required this.canvasState,
-    required Preferences preferences,
-  })  : strokeWidth = preferences.nodeStrokeWidth,
-        tagNodeColor = preferences.tagNodeColor,
-        entryNodeColor = preferences.entryNodeColor,
-        exitNodeColor = preferences.exitNodeColor,
-        nodePadding = preferences.nodePadding;
+    required this.tagNodeColor,
+    required this.entryNodeColor,
+    required this.exitNodeColor,
+    required this.strokeWidth,
+    required this.nodePadding,
+  });
 
   Color getNodeColor(Node node) {
     if (node is TagNode) {
