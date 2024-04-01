@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'dart:ui' show Offset;
 import 'graph_object.dart';
 
 enum NodeType {
