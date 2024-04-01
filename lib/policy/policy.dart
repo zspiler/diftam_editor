@@ -48,7 +48,9 @@ class Policy {
     return tensorProduct(this, otherPolicy);
   }
 
-  static void validateEdges(List<Edge> edges) {
+  static List<String> validateEdges(List<Edge> edges) {
+    final List<String> errors = [];
+
     final Map<Node, int> numOfEdgesPerNode = {};
 
     for (var edge in edges) {
@@ -60,7 +62,9 @@ class Policy {
     }
 
     if (numOfEdgesPerNode.values.any((numOfEdges) => numOfEdges > 1)) {
-      throw StateError("An 'Entry' or 'Exit' node can only have one outgoing/incoming edge!");
+      errors.add("An 'Entry' or 'Exit' node can only have one outgoing/incoming edge!");
     }
+
+    return errors;
   }
 }

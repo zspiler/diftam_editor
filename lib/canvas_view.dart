@@ -155,15 +155,19 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void createEdge(Node sourceNode, Node targetNode, EdgeType edgeType) {
+    late final Edge newEdge;
     try {
-      final newEdge = Edge(sourceNode, targetNode, edgeType);
-      Policy.validateEdges([...edges, newEdge]);
-
-      edges.add(newEdge);
+      newEdge = Edge(sourceNode, targetNode, edgeType);
     } on ArgumentError catch (e) {
       SnackbarGlobal.info(e.message);
-    } on StateError catch (e) {
-      SnackbarGlobal.info(e.message);
+    }
+
+    final validationErrors = Policy.validateEdges([...edges, newEdge]);
+    if (validationErrors.isNotEmpty) {
+      final message = validationErrors.join('\n');
+      SnackbarGlobal.error(message);
+    } else {
+      edges.add(newEdge);
     }
   }
 
