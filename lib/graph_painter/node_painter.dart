@@ -85,15 +85,12 @@ class NodePainter {
   static Size calculateNodeSize(Node node, {required int padding}) {
     var width = min(getNodeTextPainter(node.label).width, 100) + 15.0 * padding;
     var height = 25.0 * padding;
-    width = snapToGrid(width);
-    height = snapToGrid(height);
-    return Size(width, height);
+    return Size(snapToGrid(width), snapToGrid(height));
   }
 
   void drawText(Canvas canvas, double x, double y, String text, Node node) {
     final nodeSize = calculateNodeSize(node, padding: nodePadding);
     final textPainter = getNodeTextPainter(text);
-
     textPainter.paint(
         canvas, Offset(x + nodeSize.width / 2 - textPainter.width * 0.5, y + nodeSize.height / 2 - textPainter.height * 0.5));
   }

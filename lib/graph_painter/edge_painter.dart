@@ -93,7 +93,7 @@ class EdgePainter {
     path.quadraticBezierTo(controlPoint.dx, controlPoint.dy, end.dx, end.dy);
     canvas.drawPath(path, paintStyle);
 
-    // draw  arrowhead
+    // draw arrowhead
     Offset tangentDirection = Offset(end.dx - controlPoint.dx, end.dy - controlPoint.dy);
     drawArrowhead(canvas, end, end - tangentDirection, paintStyle);
 
@@ -113,19 +113,13 @@ class EdgePainter {
   Path drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool isSelected = false}) {
     final paintStyle = getEdgePaintStyle(edgeType, isSelected: isSelected);
 
-    final loopWidth = 60.0 / (small ? 1.5 : 1);
-    final loopHeight = 70.0 / (small ? 1.5 : 1);
-
     final nodePosition = snapPositionToGrid(node.position);
-
     final nodeSize = NodePainter.calculateNodeSize(node, padding: nodePadding);
-
-    final boxTopCenterX = nodePosition.dx + nodeSize.width / 2;
-    final boxTopCenterY = nodePosition.dy;
-
-    final Offset boxTopCenter = Offset(boxTopCenterX, boxTopCenterY);
+    final Offset boxTopCenter = Offset(nodePosition.dx + nodeSize.width / 2, nodePosition.dy);
 
     // control points for the Bezier curve
+    final loopWidth = 60.0 / (small ? 1.5 : 1);
+    final loopHeight = 70.0 / (small ? 1.5 : 1);
     final Offset controlPoint1 = boxTopCenter.translate(loopWidth, -loopHeight);
     final Offset controlPoint2 = boxTopCenter.translate(-loopWidth, -loopHeight);
 
@@ -145,6 +139,7 @@ class EdgePainter {
 
     canvas.drawPath(path, paintStyle);
 
+    // arrowhead
     final double angle = atan2(controlPoint2.dy - loopPoint.dy, controlPoint2.dx - loopPoint.dx) + pi / 2;
     drawArrowhead(canvas, loopPoint, Offset(loopPoint.dx + cos(angle), loopPoint.dy + sin(angle)), paintStyle, arrowLength: 15);
 
@@ -187,7 +182,6 @@ class EdgePainter {
 
   void drawArrowhead(Canvas canvas, Offset point, Offset direction, Paint paint, {double arrowLength = 20}) {
     double arrowAngle = pi / 6;
-
     double edgeAngle = atan2(direction.dy - point.dy, direction.dx - point.dx);
 
     Offset arrowPoint1 = Offset(
