@@ -4,7 +4,6 @@ import '../policy/policy.dart';
 import '../canvas.dart';
 
 class NodePainter {
-  final CanvasState canvasState;
   final Color tagNodeColor;
   final Color entryNodeColor;
   final Color exitNodeColor;
@@ -12,7 +11,6 @@ class NodePainter {
   final int nodePadding;
 
   NodePainter({
-    required this.canvasState,
     required this.tagNodeColor,
     required this.entryNodeColor,
     required this.exitNodeColor,
@@ -33,7 +31,7 @@ class NodePainter {
   Paint getNodePaintStyle(Node node, {bool isSelected = false}) {
     return Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * canvasState.scale
+      ..strokeWidth = strokeWidth.toDouble()
       ..color = isSelected ? Colors.white : getNodeColor(node);
   }
 
@@ -50,36 +48,32 @@ class NodePainter {
   }
 
   void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
-    final x = (snapToGrid(node.position.dx) + canvasState.position.dx) * canvasState.scale;
-    final y = (snapToGrid(node.position.dy) + canvasState.position.dy) * canvasState.scale;
-
-    final nodeSize = calculateNodeSize(node, padding: nodePadding) * canvasState.scale;
-
+    final nodePosition = snapPositionToGrid(node.position);
+    final nodeSize = calculateNodeSize(node, padding: nodePadding);
     final nodeRadii = getNodeRadii(node);
 
     canvas.drawRRect(
-        RRect.fromRectAndCorners(Rect.fromLTWH(x, y, nodeSize.width, nodeSize.height),
-            topLeft: nodeRadii.topLeft * canvasState.scale,
-            bottomLeft: nodeRadii.bottomLeft * canvasState.scale,
-            topRight: nodeRadii.topRight * canvasState.scale,
-            bottomRight: nodeRadii.bottomRight * canvasState.scale),
+        RRect.fromRectAndCorners(Rect.fromLTWH(nodePosition.dx, nodePosition.dy, nodeSize.width, nodeSize.height),
+            topLeft: nodeRadii.topLeft,
+            bottomLeft: nodeRadii.bottomLeft,
+            topRight: nodeRadii.topRight,
+            bottomRight: nodeRadii.bottomRight),
         getNodePaintStyle(
           node,
           isSelected: isSelected,
         ));
 
-    drawText(canvas, x, y, node.label, node);
+    drawText(canvas, nodePosition.dx, nodePosition.dy, node.label, node);
   }
 
-  static TextPainter getNodeTextPainter(String nodeId, {double scale = 1.0}) {
+  static TextPainter getNodeTextPainter(String nodeId) {
     const textStyle = TextStyle(color: Colors.white, fontSize: 18);
     TextSpan span = TextSpan(style: textStyle, text: nodeId);
     if (nodeId.length > 15) {
       span = TextSpan(style: textStyle, text: '${nodeId.substring(0, 12)}...');
     }
 
-    final textPainter = TextPainter(
-        text: span, textAlign: TextAlign.center, textDirection: TextDirection.ltr, textScaler: TextScaler.linear(scale));
+    final textPainter = TextPainter(text: span, textAlign: TextAlign.center, textDirection: TextDirection.ltr);
     textPainter.layout();
     return textPainter;
   }
@@ -97,9 +91,8 @@ class NodePainter {
   }
 
   void drawText(Canvas canvas, double x, double y, String text, Node node) {
-    final nodeSize = calculateNodeSize(node, padding: nodePadding) * canvasState.scale;
-
-    final textPainter = getNodeTextPainter(text, scale: canvasState.scale);
+    final nodeSize = calculateNodeSize(node, padding: nodePadding);
+    final textPainter = getNodeTextPainter(text);
 
     textPainter.paint(
         canvas, Offset(x + nodeSize.width / 2 - textPainter.width * 0.5, y + nodeSize.height / 2 - textPainter.height * 0.5));

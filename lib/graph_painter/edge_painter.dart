@@ -12,7 +12,6 @@ enum EdgeShape {
 }
 
 class EdgePainter {
-  final CanvasState canvasState;
   final Color obliviousEdgeColor;
   final Color awareEdgeColor;
   final Color boundaryEdgeColor;
@@ -20,7 +19,6 @@ class EdgePainter {
   final int nodePadding;
 
   EdgePainter({
-    required this.canvasState,
     required this.obliviousEdgeColor,
     required this.awareEdgeColor,
     required this.boundaryEdgeColor,
@@ -41,20 +39,16 @@ class EdgePainter {
 
     return Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * canvasState.scale
+      ..strokeWidth = strokeWidth.toDouble()
       ..color = color;
   }
 
   void drawPreviewEdge(Canvas canvas, (Offset, Offset) points) {
     var (sourcePoint, targetPoint) = points;
-    sourcePoint = Offset((sourcePoint.dx + canvasState.position.dx) * canvasState.scale,
-        (sourcePoint.dy + canvasState.position.dy) * canvasState.scale);
-    targetPoint = Offset((targetPoint.dx + canvasState.position.dx) * canvasState.scale,
-        (targetPoint.dy + canvasState.position.dy) * canvasState.scale);
 
     final paintStyleFaded = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * canvasState.scale
+      ..strokeWidth = strokeWidth.toDouble()
       ..color = Colors.grey.withOpacity(0.7);
 
     canvas.drawLine(sourcePoint, targetPoint, paintStyleFaded);
@@ -79,10 +73,8 @@ class EdgePainter {
   }
 
   Path drawCurvedEdge(Canvas canvas, Offset start, Offset end, EdgeShape shape, Paint paintStyle) {
-    const baseVerticalAlignmentThreshold = 70;
-    const baseDisplacementValue = 50;
-    final verticalAlignmentThreshold = baseVerticalAlignmentThreshold * canvasState.scale;
-    final displacementValue = baseDisplacementValue * canvasState.scale;
+    const verticalAlignmentThreshold = 70.0;
+    const displacementValue = 50.0;
 
     bool areNodesVerticallyAligned = (start.dx - end.dx).abs() < verticalAlignmentThreshold;
 
@@ -121,16 +113,15 @@ class EdgePainter {
   Path drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool isSelected = false}) {
     final paintStyle = getEdgePaintStyle(edgeType, isSelected: isSelected);
 
-    final loopWidth = 60.0 / (small ? 1.5 : 1) * canvasState.scale;
-    final loopHeight = 70.0 / (small ? 1.5 : 1) * canvasState.scale;
+    final loopWidth = 60.0 / (small ? 1.5 : 1);
+    final loopHeight = 70.0 / (small ? 1.5 : 1);
 
-    final nodeX = (snapToGrid(node.position.dx) + canvasState.position.dx) * canvasState.scale;
-    final nodeY = (snapToGrid(node.position.dy) + canvasState.position.dy) * canvasState.scale;
+    final nodePosition = snapPositionToGrid(node.position);
 
-    final nodeSize = NodePainter.calculateNodeSize(node, padding: nodePadding) * canvasState.scale;
+    final nodeSize = NodePainter.calculateNodeSize(node, padding: nodePadding);
 
-    final boxTopCenterX = nodeX + nodeSize.width / 2;
-    final boxTopCenterY = nodeY;
+    final boxTopCenterX = nodePosition.dx + nodeSize.width / 2;
+    final boxTopCenterY = nodePosition.dy;
 
     final Offset boxTopCenter = Offset(boxTopCenterX, boxTopCenterY);
 
@@ -161,16 +152,14 @@ class EdgePainter {
   }
 
   List<Offset> calculateIntersectionPoints(Node node1, Node node2) {
-    final x1 = (snapToGrid(node1.position.dx) + canvasState.position.dx) * canvasState.scale;
-    final y1 = (snapToGrid(node1.position.dy) + canvasState.position.dy) * canvasState.scale;
-    final x2 = (snapToGrid(node2.position.dx) + canvasState.position.dx) * canvasState.scale;
-    final y2 = (snapToGrid(node2.position.dy) + canvasState.position.dy) * canvasState.scale;
+    final node1Position = snapPositionToGrid(node1.position);
+    final node2Position = snapPositionToGrid(node2.position);
 
-    final node1Size = NodePainter.calculateNodeSize(node1, padding: nodePadding) * canvasState.scale;
-    final node2Size = NodePainter.calculateNodeSize(node2, padding: nodePadding) * canvasState.scale;
+    final node1Size = NodePainter.calculateNodeSize(node1, padding: nodePadding);
+    final node2Size = NodePainter.calculateNodeSize(node2, padding: nodePadding);
 
-    final node1Offset = Offset(x1 + node1Size.width / 2, y1 + node1Size.height / 2);
-    final node2Offset = Offset(x2 + node2Size.width / 2, y2 + node2Size.height / 2);
+    final node1Offset = Offset(node1Position.dx + node1Size.width / 2, node1Position.dy + node1Size.height / 2);
+    final node2Offset = Offset(node2Position.dx + node2Size.width / 2, node2Position.dy + node2Size.height / 2);
 
     final node1Center = Offset(node1Offset.dx, node1Offset.dy);
     final node2Center = Offset(node2Offset.dx, node2Offset.dy);
@@ -202,12 +191,12 @@ class EdgePainter {
     double edgeAngle = atan2(direction.dy - point.dy, direction.dx - point.dx);
 
     Offset arrowPoint1 = Offset(
-      point.dx + arrowLength * cos(edgeAngle + arrowAngle) * canvasState.scale,
-      point.dy + arrowLength * sin(edgeAngle + arrowAngle) * canvasState.scale,
+      point.dx + arrowLength * cos(edgeAngle + arrowAngle),
+      point.dy + arrowLength * sin(edgeAngle + arrowAngle),
     );
     Offset arrowPoint2 = Offset(
-      point.dx + arrowLength * cos(edgeAngle - arrowAngle) * canvasState.scale,
-      point.dy + arrowLength * sin(edgeAngle - arrowAngle) * canvasState.scale,
+      point.dx + arrowLength * cos(edgeAngle - arrowAngle),
+      point.dy + arrowLength * sin(edgeAngle - arrowAngle),
     );
 
     canvas.drawLine(point, arrowPoint1, paint);

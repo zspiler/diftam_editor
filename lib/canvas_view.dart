@@ -155,11 +155,12 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void createEdge(Node sourceNode, Node targetNode, EdgeType edgeType) {
-    late final Edge newEdge;
+    final Edge newEdge;
     try {
       newEdge = Edge(sourceNode, targetNode, edgeType);
     } on ArgumentError catch (e) {
       SnackbarGlobal.info(e.message);
+      return;
     }
 
     final validationErrors = Policy.validateEdges([...edges, newEdge]);
@@ -381,7 +382,7 @@ class _CanvasViewState extends State<CanvasView> {
             });
           } else if (isInSelectionMode()) {
             setState(() {
-              hoveredObject = getNodeAtPosition(adjustedCursorPosition) ?? getEdgeAtPosition(cursorPosition);
+              hoveredObject = getNodeAtPosition(adjustedCursorPosition) ?? getEdgeAtPosition(adjustedCursorPosition);
             });
           }
         },

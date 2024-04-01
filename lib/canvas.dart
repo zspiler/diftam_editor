@@ -6,6 +6,10 @@ double snapToGrid(double value) {
   return (value / gridSize).round() * gridSize;
 }
 
+Offset snapPositionToGrid(Offset position) {
+  return Offset(snapToGrid(position.dx), snapToGrid(position.dy));
+}
+
 class CanvasState {
   final Offset position;
   final double scale;

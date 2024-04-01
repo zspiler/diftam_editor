@@ -41,7 +41,6 @@ class GraphPainter extends CustomPainter {
     }
 
     nodePainter = NodePainter(
-      canvasState: canvasState,
       tagNodeColor: preferences.tagNodeColor,
       entryNodeColor: preferences.entryNodeColor,
       exitNodeColor: preferences.exitNodeColor,
@@ -50,7 +49,6 @@ class GraphPainter extends CustomPainter {
     );
 
     edgePainter = EdgePainter(
-      canvasState: canvasState,
       obliviousEdgeColor: preferences.obliviousEdgeColor,
       awareEdgeColor: preferences.awareEdgeColor,
       boundaryEdgeColor: preferences.boundaryEdgeColor,
@@ -66,6 +64,9 @@ class GraphPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     gridPainter.drawGrid(canvas, size);
+
+    canvas.scale(canvasState.scale);
+    canvas.translate(canvasState.position.dx, canvasState.position.dy);
 
     emitEdgePaths(drawEdges(canvas, edges));
 
