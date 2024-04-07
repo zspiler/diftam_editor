@@ -16,11 +16,11 @@ class GraphPainter extends CustomPainter {
   late final GridPainter gridPainter;
   final (Offset, Offset)? previewEdge;
   final Function(List<Path> edgePaths) emitEdgePaths;
-  final CanvasState canvasState;
+  final CanvasTransform canvasTransform;
   final Preferences preferences;
 
   GraphPainter(List<Node> originalNodes, List<Edge> originalEdges, this.previewEdge, this.emitEdgePaths,
-      GraphObject? originalSelectedObject, this.canvasState, this.preferences) {
+      GraphObject? originalSelectedObject, this.canvasTransform, this.preferences) {
     /*
     We clone 'nodes' and 'edges' to simplify calculation of graph diff which is required to optimize repaints (with 'shouldRepaint' method).
     Without cloning, diff is not detected since we modify graph object properties without replacing objects themselves and
@@ -57,7 +57,7 @@ class GraphPainter extends CustomPainter {
     );
 
     gridPainter = GridPainter(
-      canvasState: canvasState,
+      canvasTransform: canvasTransform,
     );
   }
 
@@ -65,8 +65,8 @@ class GraphPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     gridPainter.drawGrid(canvas, size);
 
-    canvas.scale(canvasState.scale);
-    canvas.translate(canvasState.position.dx, canvasState.position.dy);
+    canvas.scale(canvasTransform.scale);
+    canvas.translate(canvasTransform.offset.dx, canvasTransform.offset.dy);
 
     emitEdgePaths(drawEdges(canvas, edges));
 
@@ -131,7 +131,7 @@ class GraphPainter extends CustomPainter {
     return nodes.toString() != oldDelegate.nodes.toString() ||
         edges.toString() != oldDelegate.edges.toString() ||
         selectedObject.toString() != oldDelegate.selectedObject.toString() ||
-        canvasState.toString() != oldDelegate.canvasState.toString() ||
+        canvasTransform.toString() != oldDelegate.canvasTransform.toString() ||
         previewEdge != oldDelegate.previewEdge ||
         oldDelegate.preferences != preferences;
   }

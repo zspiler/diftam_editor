@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import '../canvas.dart';
 
 class GridPainter {
-  final CanvasState canvasState;
+  final CanvasTransform canvasTransform;
 
   GridPainter({
-    required this.canvasState,
+    required this.canvasTransform,
   });
 
   void drawGrid(Canvas canvas, Size canvasSize) {
     final paint = Paint()
       ..color = Colors.grey.withAlpha(50)
-      ..strokeWidth = canvasState.scale;
+      ..strokeWidth = canvasTransform.scale;
 
-    final scaledGridSize = gridSize * canvasState.scale;
+    final scaledGridSize = gridSize * canvasTransform.scale;
 
-    final startX = ((canvasState.position.dx * canvasState.scale) % scaledGridSize) - scaledGridSize;
-    final startY = ((canvasState.position.dy * canvasState.scale) % scaledGridSize) - scaledGridSize;
+    final startX = ((canvasTransform.offset.dx * canvasTransform.scale) % scaledGridSize) - scaledGridSize;
+    final startY = ((canvasTransform.offset.dy * canvasTransform.scale) % scaledGridSize) - scaledGridSize;
 
     final numberOfHorizontalLines = (canvasSize.width / scaledGridSize).ceil() + 1;
     final numberOfVerticalLines = (canvasSize.height / scaledGridSize).ceil() + 1;

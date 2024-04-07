@@ -48,10 +48,10 @@ bool isNodeHit(Node node, Offset position, int nodePadding) {
       node.position.dy + nodeSize.height > position.dy;
 }
 
-Offset mapScreenPositionToCanvas(Offset position, CanvasState canvasState) {
+Offset mapScreenPositionToCanvas(Offset position, CanvasTransform canvasTransform) {
   Matrix4 inverseTransformation = Matrix4.identity()
-    ..scale(canvasState.scale, canvasState.scale)
-    ..translate(canvasState.position.dx, canvasState.position.dy)
+    ..scale(canvasTransform.scale, canvasTransform.scale)
+    ..translate(canvasTransform.offset.dx, canvasTransform.offset.dy)
     ..invert();
 
   vector.Vector3 transformedPositionVector = inverseTransformation.transform3(vector.Vector3(position.dx, position.dy, 0));

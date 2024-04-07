@@ -35,7 +35,7 @@ class _CanvasViewState extends State<CanvasView> {
   var edges = <Edge>[];
   var edgePaths = <Path>[];
 
-  CanvasState canvasState = CanvasState();
+  CanvasTransform canvasTransform = CanvasTransform();
   Offset cursorPosition = Offset.zero;
 
   Offset? draggingStartPoint;
@@ -175,7 +175,7 @@ class _CanvasViewState extends State<CanvasView> {
   void createNode(Offset position, NodeType nodeType, {required String labelOrDescriptor}) {
     final Node newNode = Node.fromType(nodeType, labelOrDescriptor);
 
-    final nodeSize = NodePainter.calculateNodeSize(newNode, padding: widget.preferences.nodePadding) * canvasState.scale;
+    final nodeSize = NodePainter.calculateNodeSize(newNode, padding: widget.preferences.nodePadding) * canvasTransform.scale;
     newNode.position = Offset(position.dx - nodeSize.width / 2, position.dy - nodeSize.height / 2);
 
     setState(() {
@@ -187,9 +187,9 @@ class _CanvasViewState extends State<CanvasView> {
 
   void panCanvas(Offset scrollDelta) {
     final adjustedScrollDelta = adjustPanningScrollDeltaForPlatforms(scrollDelta);
-    final newCanvasPosition = canvasState.position - adjustedScrollDelta / 1.5 / canvasState.scale;
+    final newOffset = canvasTransform.offset - adjustedScrollDelta / 1.5 / canvasTransform.scale;
     setState(() {
-      canvasState = canvasState.copyWith(position: newCanvasPosition);
+      canvasTransform = canvasTransform.copyWith(offset: newOffset);
     });
   }
 
@@ -207,33 +207,33 @@ class _CanvasViewState extends State<CanvasView> {
 
     const delta = 0.125;
     final zoomFactor = zoomIn ? 1 + delta : 1 - delta;
-    final newScale = canvasState.scale * zoomFactor;
+    final newScale = canvasTransform.scale * zoomFactor;
     if (newScale >= maxZoom || newScale <= minZoom) {
       return;
     }
 
-    final oldScale = canvasState.scale;
+    final oldScale = canvasTransform.scale;
 
     setState(() {
-      canvasState = canvasState.copyWith(scale: newScale);
+      canvasTransform = canvasTransform.copyWith(scale: newScale);
     });
 
-    final scaleChange = canvasState.scale - oldScale;
+    final scaleChange = canvasTransform.scale - oldScale;
 
-    final cursorOnCanvas = mapScreenPositionToCanvas(cursorPosition, canvasState);
-    final adjustedCursor = (cursorOnCanvas + canvasState.position) / oldScale;
+    final cursorOnCanvas = mapScreenPositionToCanvas(cursorPosition, canvasTransform);
+    final adjustedCursor = (cursorOnCanvas + canvasTransform.offset) / oldScale;
     final offsetX = -(adjustedCursor.dx * scaleChange);
     final offsetY = -(adjustedCursor.dy * scaleChange);
 
-    final newCanvasPosition = canvasState.position + Offset(offsetX, offsetY);
+    final newOffset = canvasTransform.offset + Offset(offsetX, offsetY);
     setState(() {
-      canvasState = canvasState.copyWith(position: newCanvasPosition);
+      canvasTransform = canvasTransform.copyWith(offset: newOffset);
     });
   }
 
   void resetZoomAndPosition() {
     setState(() {
-      canvasState = CanvasState(position: Offset.zero, scale: 1.0);
+      canvasTransform = CanvasTransform(offset: Offset.zero, scale: 1.0);
     });
   }
 
@@ -270,7 +270,7 @@ class _CanvasViewState extends State<CanvasView> {
   // GESTURES
 
   void onTapUp(TapUpDetails details) {
-    final position = mapScreenPositionToCanvas(details.localPosition, canvasState);
+    final position = mapScreenPositionToCanvas(details.localPosition, canvasTransform);
 
     if (isInSelectionMode()) {
       setState(() {
@@ -290,7 +290,7 @@ class _CanvasViewState extends State<CanvasView> {
       return;
     }
 
-    final position = mapScreenPositionToCanvas(details.localPosition, canvasState);
+    final position = mapScreenPositionToCanvas(details.localPosition, canvasTransform);
 
     final nodeAtCursor = getNodeAtPosition(position);
     if (nodeAtCursor == null) {
@@ -318,7 +318,7 @@ class _CanvasViewState extends State<CanvasView> {
   void onPanStart(DragStartDetails details) {
     if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
 
-    final position = mapScreenPositionToCanvas(details.localPosition, canvasState);
+    final position = mapScreenPositionToCanvas(details.localPosition, canvasTransform);
     final nodeAtCursor = getNodeAtPosition(position);
 
     setState(() {
@@ -329,7 +329,7 @@ class _CanvasViewState extends State<CanvasView> {
   void onPanUpdate(DragUpdateDetails details) {
     if (isInEdgeDrawingMode() || isInNodeCreationMode() || draggedNode == null) return;
 
-    final delta = Offset(details.delta.dx, details.delta.dy) / canvasState.scale;
+    final delta = Offset(details.delta.dx, details.delta.dy) / canvasTransform.scale;
     var newX = draggedNode!.position.dx + delta.dx;
     var newY = draggedNode!.position.dy + delta.dy;
 
@@ -371,7 +371,7 @@ class _CanvasViewState extends State<CanvasView> {
             cursorPosition = event.localPosition;
           });
 
-          final position = mapScreenPositionToCanvas(cursorPosition, canvasState);
+          final position = mapScreenPositionToCanvas(cursorPosition, canvasTransform);
           if (isInEdgeDrawingMode()) {
             setState(() {
               draggingEndPoint = position;
@@ -425,7 +425,7 @@ class _CanvasViewState extends State<CanvasView> {
                           getPreviewEdgePositions(),
                           (newEdgePaths) => edgePaths = newEdgePaths,
                           selectedObject,
-                          canvasState,
+                          canvasTransform,
                           widget.preferences,
                         ),
                       ),
