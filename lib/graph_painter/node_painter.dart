@@ -50,18 +50,16 @@ class NodePainter {
   void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
     final nodePosition = snapPositionToGrid(node.position);
     final nodeSize = calculateNodeSize(node, padding: nodePadding);
-    final nodeRadii = getNodeRadii(node);
 
-    canvas.drawRRect(
-        RRect.fromRectAndCorners(Rect.fromLTWH(nodePosition.dx, nodePosition.dy, nodeSize.width, nodeSize.height),
-            topLeft: nodeRadii.topLeft,
-            bottomLeft: nodeRadii.bottomLeft,
-            topRight: nodeRadii.topRight,
-            bottomRight: nodeRadii.bottomRight),
-        getNodePaintStyle(
-          node,
-          isSelected: isSelected,
-        ));
+    final rect = Rect.fromLTWH(nodePosition.dx, nodePosition.dy, nodeSize.width, nodeSize.height);
+    final nodeRadii = getNodeRadii(node);
+    final roundedRect = RRect.fromRectAndCorners(rect,
+        topLeft: nodeRadii.topLeft,
+        bottomLeft: nodeRadii.bottomLeft,
+        topRight: nodeRadii.topRight,
+        bottomRight: nodeRadii.bottomRight);
+
+    canvas.drawRRect(roundedRect, getNodePaintStyle(node, isSelected: isSelected));
 
     drawText(canvas, nodePosition.dx, nodePosition.dy, node.label, node);
   }
