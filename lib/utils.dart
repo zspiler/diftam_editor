@@ -54,6 +54,7 @@ Offset mapScreenPositionToCanvas(Offset position, CanvasTransform canvasTransfor
     ..translate(canvasTransform.offset.dx, canvasTransform.offset.dy)
     ..invert();
 
-  vector.Vector3 transformedPositionVector = inverseTransformation.transform3(vector.Vector3(position.dx, position.dy, 0));
+  final positionVector = vector.Vector3(position.dx, position.dy, 0);
+  final transformedPositionVector = inverseTransformation.transform3(positionVector);
   return Offset(transformedPositionVector.x, transformedPositionVector.y);
 }
