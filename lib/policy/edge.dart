@@ -55,7 +55,7 @@ class Edge implements GraphObject {
     }
 
     if (source is TagNode && target is TagNode && type == EdgeType.boundary) {
-      throw ArgumentError("'Boundary' cannot not connect two 'Tag' nodes!");
+      throw ArgumentError("'Boundary' edge cannot connect two 'Tag' nodes!");
     }
   }
 
