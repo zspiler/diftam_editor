@@ -1,12 +1,15 @@
+// TODO index.dart?
+
 import 'node.dart';
 import 'edge.dart';
-import 'operations.dart';
+import 'product.dart';
 
 export 'edge.dart';
 export 'node.dart';
 export 'graph_object.dart';
 export 'utils.dart';
-export 'operations.dart';
+export 'product.dart';
+export 'analysis.dart';
 
 class Policy {
   late String name;
