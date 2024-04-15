@@ -15,6 +15,12 @@ class _CombinePoliciesDialogState extends State<CombinePoliciesDialog> {
   List<Policy> policies = [];
   List<Policy> selectedPolicies = [];
 
+  var selectedMethod = 0;
+  final methods = [
+    (name: 'Tensor product', func: tensorProduct),
+    (name: 'Cartesian product', func: cartesianProduct),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -62,16 +68,30 @@ class _CombinePoliciesDialogState extends State<CombinePoliciesDialog> {
                           },
                         ),
                 ),
+                ToggleButtons(
+                  onPressed: (int index) {
+                    setState(() => selectedMethod = index);
+                  },
+                  isSelected: List.generate(methods.length, (index) => index == selectedMethod),
+                  borderRadius: BorderRadius.circular(10.0), // Curved edges for buttons
+                  constraints: BoxConstraints(minWidth: 160.0, minHeight: kMinInteractiveDimension),
+                  children: methods
+                      .map((method) => Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Adjust padding as needed
+                            child: Text(method.name),
+                          ))
+                      .toList(),
+                ),
                 SizedBox(height: 10),
                 TextButton(
-                  child: Text("Combine"),
                   onPressed: () {
-                    final product = selectedPolicies[0] * selectedPolicies[1];
+                    final product = methods[selectedMethod].func(selectedPolicies[0], selectedPolicies[1]);
                     widget.onCombine(product);
                     Navigator.of(context).pop();
                   },
                   style:
                       selectedPolicies.length < 2 ? ButtonStyle(foregroundColor: MaterialStateProperty.all(Colors.grey)) : null,
+                  child: Text("Combine"),
                 ),
                 SizedBox(height: 10),
                 TextButton(

@@ -1,8 +1,6 @@
 // TODO index.dart?
-
 import 'node.dart';
 import 'edge.dart';
-import 'product.dart';
 
 export 'edge.dart';
 export 'node.dart';
@@ -45,10 +43,6 @@ class Policy {
       throw ArgumentError('Unknown node type: ${node['type']}');
     }).toList();
     edges = json['edges'].map<Edge>((edge) => Edge.fromJson(edge, nodes)).toList();
-  }
-
-  Policy operator *(Policy otherPolicy) {
-    return tensorProduct(this, otherPolicy);
   }
 
   static List<String> validateEdges(List<Edge> edges) {

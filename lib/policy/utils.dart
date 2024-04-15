@@ -39,7 +39,7 @@ bool anyEdgeOfDifferentTypeBetweenSameNodes(List<Edge> edges, Edge edge) {
           (edge.source == otherEdge.target && edge.target == otherEdge.source)));
 }
 
-List<(T, T)> cartesianProduct<T>(List<T> list1, List<T> list2) {
+List<(T, T)> cartesian<T>(List<T> list1, List<T> list2) {
   final List<(T, T)> result = [];
   for (var item1 in list1) {
     for (var item2 in list2) {
