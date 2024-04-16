@@ -66,12 +66,16 @@ List<Policy> getMockPolicies() {
   // Policy p2 = Policy(name: 'Policy 2', nodes: [a, b, c, d, stdin2], edges: [ab, bc, cd, stdin2A]);
 
   // return [p1, p2];
+  return [];
+}
 
-  Node stdinPol1 = EntryNode('stdin', Offset(0, 0));
+List<Policy> getTensorDemoPolicies1() {
+  Node stdinPol1 = EntryNode('stdin', Offset(100, 100));
 
-  Node pub = TagNode('pub', Offset(100, 100));
-  Node priv = TagNode('priv', Offset(300, 100));
+  Node pub = TagNode('pub', Offset(200, 200));
+  Node priv = TagNode('priv', Offset(400, 200));
 
+  // All edges are oblivious
   Edge pubPriv = Edge(pub, priv, EdgeType.oblivious);
   Edge pubPub = Edge(pub, pub, EdgeType.oblivious);
   Edge privPriv = Edge(priv, priv, EdgeType.oblivious);
@@ -79,6 +83,7 @@ List<Policy> getMockPolicies() {
 
   Policy p1 = Policy(name: 'Policy 1', nodes: [stdinPol1, pub, priv], edges: [pubPriv, pubPub, privPriv, stdinPub]);
 
+  // same label as entry in pol1
   Node stdinPol2 = EntryNode('stdin', Offset(0, 0));
 
   Node low = TagNode('low', Offset(500, 100));
@@ -90,6 +95,34 @@ List<Policy> getMockPolicies() {
   Edge stdinLow = Edge(stdinPol2, low, EdgeType.boundary);
 
   Policy p2 = Policy(name: 'Policy 2', nodes: [high, low, stdinPol2], edges: [highLow, highHigh, lowLow, stdinLow]);
+
+  return [p1, p2];
+}
+
+List<Policy> getTensorDemoPolicies2() {
+  Node stdin1 = EntryNode('stdin', Offset(100, 100));
+
+  Node pub = TagNode('pub', Offset(200, 200));
+  Node priv = TagNode('priv', Offset(400, 200));
+
+  Edge pubPriv = Edge(pub, priv, EdgeType.aware); // Aware!
+  Edge pubPub = Edge(pub, pub, EdgeType.oblivious);
+  Edge privPriv = Edge(priv, priv, EdgeType.oblivious);
+  Edge stdinPub = Edge(stdin1, pub, EdgeType.boundary);
+
+  Policy p1 = Policy(name: 'Policy 1', nodes: [stdin1, pub, priv], edges: [pubPriv, pubPub, privPriv, stdinPub]);
+
+  Node stdin2 = EntryNode('stdin', Offset(0, 0));
+
+  Node low = TagNode('low', Offset(500, 100));
+  Node high = TagNode('high', Offset(700, 100));
+
+  Edge highLow = Edge(high, low, EdgeType.oblivious);
+  Edge highHigh = Edge(high, high, EdgeType.oblivious);
+  Edge lowLow = Edge(low, low, EdgeType.oblivious);
+  Edge stdinLow = Edge(stdin2, low, EdgeType.boundary);
+
+  Policy p2 = Policy(name: 'Policy 2', nodes: [high, low, stdin2], edges: [highLow, highHigh, lowLow, stdinLow]);
 
   return [p1, p2];
 }

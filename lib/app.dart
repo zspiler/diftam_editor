@@ -39,9 +39,10 @@ class _AppState extends State<App> {
     preferences = PreferencesManager.getPreferences();
 
     if (kDebugMode) {
-      // getMockPolicies().forEach(addPolicy);
-      // addPolicy(policies[0] * policies[1]);
-      addPolicy(getMockPolicy());
+      // addPolicy(Policy(name: "foo", nodes: [TagNode('(10, 10)', Offset(0, 0))]));
+
+      getTensorDemoPolicies1().forEach(addPolicy);
+      // addPolicy(tensorProduct(policies[0], policies[1]));
     }
   }
 
