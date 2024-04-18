@@ -39,34 +39,37 @@ class _CombinePoliciesDialogState extends State<CombinePoliciesDialog> {
               children: [
                 Text('Combine policies', style: Theme.of(context).textTheme.headlineLarge),
                 SizedBox(height: 10),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.3,
-                  child: policies.isEmpty
-                      ? Center(child: Text('No policies created yet.'))
-                      : ListView.builder(
-                          itemCount: policies.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return CheckboxListTile(
-                              title: Text(policies[index].name),
-                              value: selectedPolicies.contains(policies[index]),
-                              enabled: selectedPolicies.length < 2 || selectedPolicies.contains(policies[index]),
-                              onChanged: (bool? value) {
-                                if (value == true) {
-                                  if (selectedPolicies.length < 2) {
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 128.0),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.3,
+                    child: policies.isEmpty
+                        ? Center(child: Text('No policies created yet.'))
+                        : ListView.builder(
+                            itemCount: policies.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return CheckboxListTile(
+                                title: Text(policies[index].name),
+                                value: selectedPolicies.contains(policies[index]),
+                                enabled: selectedPolicies.length < 2 || selectedPolicies.contains(policies[index]),
+                                onChanged: (bool? value) {
+                                  if (value == true) {
+                                    if (selectedPolicies.length < 2) {
+                                      setState(() {
+                                        selectedPolicies.add(policies[index]);
+                                      });
+                                    }
+                                  } else {
                                     setState(() {
-                                      selectedPolicies.add(policies[index]);
+                                      selectedPolicies.remove(policies[index]);
                                     });
                                   }
-                                } else {
-                                  setState(() {
-                                    selectedPolicies.remove(policies[index]);
-                                  });
-                                }
-                                // (context as Element).markNeedsBuild();
-                              },
-                            );
-                          },
-                        ),
+                                  // (context as Element).markNeedsBuild();
+                                },
+                              );
+                            },
+                          ),
+                  ),
                 ),
                 ToggleButtons(
                   onPressed: (int index) {
