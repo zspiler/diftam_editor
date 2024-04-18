@@ -12,16 +12,17 @@ class AnalysisResultsDialog extends StatefulWidget {
 }
 
 class _AnalysisResultsDialogState extends State<AnalysisResultsDialog> {
-  late final List<GraphComponent>? awareComponents;
-  late final List<GraphComponent>? obliviousComponents;
+  late final List<GraphComponent> awareComponents;
+  late final List<GraphComponent> obliviousComponents;
+
   late final List<List<Node>> awareCycles;
   late final List<List<Node>> obliviousCycles;
+
+  late final List<TagNode> loneTags;
 
   @override
   void initState() {
     super.initState();
-
-    // TODO do aware & oblivious inside function itself?
 
     // TODO boundary nodes?
     awareComponents = findComponents(widget.policy, EdgeType.aware);
@@ -30,6 +31,8 @@ class _AnalysisResultsDialogState extends State<AnalysisResultsDialog> {
     // TODO boundary nodes?
     awareCycles = findCycles(widget.policy, EdgeType.aware);
     obliviousCycles = findCycles(widget.policy, EdgeType.oblivious);
+
+    loneTags = findLoneTags(widget.policy);
   }
 
   @override
@@ -46,13 +49,13 @@ class _AnalysisResultsDialogState extends State<AnalysisResultsDialog> {
                 SizedBox(height: 20),
                 Text('Graph components', style: Theme.of(context).textTheme.headlineSmall),
                 SizedBox(height: 20),
-                if (awareComponents != null || obliviousComponents != null) ...[
+                if (awareComponents.isNotEmpty || obliviousComponents.isNotEmpty) ...[
                   _NodeGroupsSection(context: context, title: 'Aware', groups: awareComponents!, directed: false, numbered: true),
                   SizedBox(height: 20),
                   _NodeGroupsSection(
                       context: context, title: 'Oblivious', groups: obliviousComponents!, directed: false, numbered: true),
                 ] else
-                  Text('No components found', style: Theme.of(context).textTheme.titleMedium),
+                  Text('No components found', style: TextStyle(fontStyle: FontStyle.italic)),
                 Divider(height: 50),
                 Text('Graph cycles', style: Theme.of(context).textTheme.headlineSmall),
                 SizedBox(height: 20),
@@ -61,7 +64,14 @@ class _AnalysisResultsDialogState extends State<AnalysisResultsDialog> {
                   SizedBox(height: 20),
                   _NodeGroupsSection(context: context, title: 'Oblivious', groups: obliviousCycles, directed: true),
                 ] else
-                  Text('No cycles found', style: Theme.of(context).textTheme.titleMedium),
+                  Text('No cycles found', style: TextStyle(fontStyle: FontStyle.italic)),
+                Divider(height: 50),
+                Text('Lone tags', style: Theme.of(context).textTheme.headlineSmall),
+                SizedBox(height: 20),
+                if (loneTags.isNotEmpty)
+                  _NodeRow(context: context, component: loneTags)
+                else
+                  Text('No lone tags found', style: TextStyle(fontStyle: FontStyle.italic)),
               ],
             ),
           ),

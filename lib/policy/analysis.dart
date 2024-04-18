@@ -3,9 +3,6 @@ import 'policy.dart';
 typedef GraphComponent = List<Node>;
 
 List<GraphComponent> findComponents(Policy policy, EdgeType edgeType) {
-  final List<Node> nodes = policy.nodes;
-  final List<Edge> edges = policy.edges;
-
   final List<List<Node>> components = [];
   final List<Node> visited = [];
 
@@ -15,7 +12,7 @@ List<GraphComponent> findComponents(Policy policy, EdgeType edgeType) {
     }
     visited.add(node);
     component.add(node);
-    for (var edge in edges) {
+    for (var edge in policy.edges) {
       if (edge.type == edgeType) {
         // NOTE: We don't care about the direction of the edge
         if (edge.source == node) {
@@ -27,7 +24,7 @@ List<GraphComponent> findComponents(Policy policy, EdgeType edgeType) {
     }
   }
 
-  for (var node in nodes) {
+  for (var node in policy.nodes) {
     if (!visited.contains(node)) {
       List<Node> component = [];
       dfs(node, component);
@@ -86,4 +83,31 @@ List<List<Node>> findCycles(Policy policy, EdgeType edgeType) {
   }
 
   return cycles;
+}
+
+List<TagNode> findLoneTags(Policy policy) {
+  final List<TagNode> tags = policy.nodes.whereType<TagNode>().toList();
+
+  final List<Node> visited = [];
+
+  void dfs(Node node) {
+    if (visited.contains(node)) {
+      return;
+    }
+
+    visited.add(node);
+
+    final neighbours = policy.edges.where((edge) => edge.source == node).map((edge) => edge.target);
+    for (var neighbour in neighbours) {
+      dfs(neighbour);
+    }
+  }
+
+  for (var node in policy.nodes) {
+    if (node is EntryNode) {
+      dfs(node);
+    }
+  }
+
+  return tags.where((tag) => !visited.contains(tag)).toList();
 }
