@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
+import '../constants.dart';
 
 const defaultNodePadding = 3;
 const defaultNodeStrokeWidth = 4;
@@ -7,8 +8,8 @@ const defaultEdgeStrokeWidth = 4;
 const defaultTagNodeColor = Colors.lime;
 const defaultEntryNodeColor = Colors.grey;
 const defaultExitNodeColor = Colors.grey;
-const defaultObliviousEdgeColor = Colors.red;
-const defaultAwareEdgeColor = Colors.green;
+const defaultObliviousEdgeColor = obliviousColor;
+const defaultAwareEdgeColor = awareColor;
 const defaultBoundaryEdgeColor = Color.fromARGB(255, 74, 195, 243);
 
 enum PreferenceKey {

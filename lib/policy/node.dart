@@ -25,7 +25,7 @@ abstract class Node implements GraphObject {
   }
 
   Node.fromJson(Map<String, dynamic> json)
-      : position = Offset((json['position']['x'] as num).toDouble(), (json['position']['y'] as num).toDouble());
+      : position = Offset((json['position']['x']).toDouble(), (json['position']['y']).toDouble());
 
   @override
   Node copyWith({Offset? position});

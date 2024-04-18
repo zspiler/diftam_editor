@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'policy/policy.dart';
+import './constants.dart';
 
 class ToolBar extends StatelessWidget {
   final VoidCallback onSelectionPress;
@@ -47,14 +48,14 @@ class ToolBar extends StatelessWidget {
           Tooltip(
               message: "Aware connection",
               child: IconButton(
-                icon: Icon(Icons.arrow_forward, color: Colors.green),
+                icon: Icon(Icons.arrow_forward, color: awareColor),
                 onPressed: onAwareConnectionPress,
                 style: IconButton.styleFrom(backgroundColor: drawingEdgeType == EdgeType.aware ? Colors.white : null),
               )),
           Tooltip(
               message: "Oblivious connection",
               child: IconButton(
-                icon: Icon(Icons.arrow_forward, color: Colors.red),
+                icon: Icon(Icons.arrow_forward, color: obliviousColor),
                 onPressed: onObliviousConnectionPress,
                 style: IconButton.styleFrom(backgroundColor: drawingEdgeType == EdgeType.oblivious ? Colors.white : null),
               )),
