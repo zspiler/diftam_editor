@@ -38,7 +38,7 @@ class _AnalysisResultsDialogState extends State<AnalysisResultsDialog> {
       child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.3,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 32.0),
+          padding: const EdgeInsets.symmetric(horizontal: 160.0, vertical: 32.0),
           child: SingleChildScrollView(
             child: Column(
               children: [
@@ -47,9 +47,10 @@ class _AnalysisResultsDialogState extends State<AnalysisResultsDialog> {
                 Text('Graph components', style: Theme.of(context).textTheme.headlineSmall),
                 SizedBox(height: 20),
                 if (awareComponents != null || obliviousComponents != null) ...[
-                  _NodeGroupsSection(context: context, title: 'Aware', groups: awareComponents!, directed: false),
+                  _NodeGroupsSection(context: context, title: 'Aware', groups: awareComponents!, directed: false, numbered: true),
                   SizedBox(height: 20),
-                  _NodeGroupsSection(context: context, title: 'Oblivious', groups: obliviousComponents!, directed: false),
+                  _NodeGroupsSection(
+                      context: context, title: 'Oblivious', groups: obliviousComponents!, directed: false, numbered: true),
                 ] else
                   Text('No components found', style: Theme.of(context).textTheme.titleMedium),
                 Divider(height: 50),
@@ -73,6 +74,7 @@ class _AnalysisResultsDialogState extends State<AnalysisResultsDialog> {
 class _NodeRow extends StatelessWidget {
   final List<Node> component;
   final bool directed;
+
   final BuildContext context;
 
   const _NodeRow({
@@ -84,22 +86,24 @@ class _NodeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: component.asMap().entries.expand((entry) {
-          int index = entry.key;
-          Node node = entry.value;
-          return [
-            HighlightBox(child: Text(node.label, style: Theme.of(context).textTheme.titleMedium)),
-            SizedBox(width: 5),
-            if (directed && index != component.length - 1) ...[
-              Text('->', style: Theme.of(context).textTheme.titleMedium),
+    return Center(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: component.asMap().entries.expand((entry) {
+            int index = entry.key;
+            Node node = entry.value;
+            return [
+              HighlightBox(child: Text(node.label, style: Theme.of(context).textTheme.titleMedium)),
               SizedBox(width: 5),
-            ],
-          ];
-        }).toList(),
+              if (directed && index != component.length - 1) ...[
+                Text('->', style: Theme.of(context).textTheme.titleMedium),
+                SizedBox(width: 5),
+              ],
+            ];
+          }).toList(),
+        ),
       ),
     );
   }
@@ -109,6 +113,7 @@ class _NodeGroupsSection extends StatelessWidget {
   final String title;
   final List<List<Node>> groups;
   final bool directed;
+  final bool numbered;
   final BuildContext context;
 
   const _NodeGroupsSection({
@@ -117,6 +122,7 @@ class _NodeGroupsSection extends StatelessWidget {
     required this.title,
     required this.groups,
     this.directed = false,
+    this.numbered = false,
   }) : super(key: key);
 
   @override
@@ -126,9 +132,26 @@ class _NodeGroupsSection extends StatelessWidget {
         Text(title, style: Theme.of(context).textTheme.titleLarge),
         SizedBox(height: 5),
         if (groups.isNotEmpty)
-          ...groups.map((component) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: _NodeRow(context: context, component: component, directed: directed)))
+          ...groups.asMap().entries.map((entry) {
+            int index = entry.key;
+            List<Node> component = entry.value;
+
+            return Transform.translate(
+              offset: Offset(numbered ? -10.0 : 0.0, 0), // ensure Row below appears centered
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 50),
+                child: numbered
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('$index:  ', style: Theme.of(context).textTheme.titleMedium),
+                          Expanded(child: _NodeRow(context: context, component: component, directed: directed)),
+                        ],
+                      )
+                    : _NodeRow(context: context, component: component, directed: directed),
+              ),
+            );
+          })
         else
           Text('/'),
       ],
