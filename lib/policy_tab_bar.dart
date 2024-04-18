@@ -103,8 +103,10 @@ class PolicyTabBar extends StatelessWidget {
             child: TextButton(
               style: ButtonStyle(
                 shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero,
-                )),
+                    borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(policies.isEmpty ? 10 : 0),
+                  bottomRight: Radius.circular(policies.isEmpty ? 10 : 0),
+                ))),
                 foregroundColor: foregroundColor,
                 backgroundColor: backgroundColor,
               ),
