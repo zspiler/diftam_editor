@@ -11,14 +11,16 @@ To automatically initialize and update the submodule when cloning, use the `--re
 Alternatively, you can initialize the submodule manually after cloning:
 
 `git submodule init`
+
 `git submodule update`
 
-When `d2sc_policy` is updated, the changes can be pulled from the submodule using:
+
+To update the submodule to lastest commit in `d2sc_policy` repo, you can use:
 
 `git submodule update --remote --merge`
 
 
-### How to run 
+## Running the app
 
 #### Web
 `flutter run -d chrome`
