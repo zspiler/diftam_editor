@@ -1,5 +1,23 @@
 # D2SC editor
 
+Flutter app for editing D2SC security policies. 
+
+## Submodules
+
+The app uses the unpublished [d2sc_policy](https://github.com/zspiler/d2sc_policy) package, which is imported as a git submodule.
+
+To automatically initialize and update the submodule when cloning, use the `--recurse-submodules` option.
+
+Alternatively, you can initialize the submodule manually after cloning:
+
+`git submodule init`
+`git submodule update`
+
+When `d2sc_policy` is updated, the changes can be pulled from the submodule using:
+
+`git submodule update --remote --merge`
+
+
 ### How to run 
 
 #### Web
