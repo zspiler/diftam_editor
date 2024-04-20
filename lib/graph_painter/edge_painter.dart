@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-
-import '../policy/policy.dart';
+import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 import 'node_painter.dart';
 import '../canvas.dart';
 
@@ -113,9 +112,9 @@ class EdgePainter {
   Path drawLoop(Canvas canvas, Node node, EdgeType edgeType, {bool small = false, bool isSelected = false}) {
     final paintStyle = getEdgePaintStyle(edgeType, isSelected: isSelected);
 
-    final nodePosition = snapPositionToGrid(node.position);
+    final nodePosition = snapPointToGrid(node.position);
     final nodeSize = NodePainter.calculateNodeSize(node, padding: nodePadding);
-    final Offset boxTopCenter = Offset(nodePosition.dx + nodeSize.width / 2, nodePosition.dy);
+    final Offset boxTopCenter = Offset(nodePosition.x + nodeSize.width / 2, nodePosition.y);
 
     // control points for the Bezier curve
     final loopWidth = 60.0 / (small ? 1.5 : 1);
@@ -147,14 +146,14 @@ class EdgePainter {
   }
 
   List<Offset> calculateIntersectionPoints(Node node1, Node node2) {
-    final node1Position = snapPositionToGrid(node1.position);
-    final node2Position = snapPositionToGrid(node2.position);
+    final node1Position = snapPointToGrid(node1.position);
+    final node2Position = snapPointToGrid(node2.position);
 
     final node1Size = NodePainter.calculateNodeSize(node1, padding: nodePadding);
     final node2Size = NodePainter.calculateNodeSize(node2, padding: nodePadding);
 
-    final node1Offset = Offset(node1Position.dx + node1Size.width / 2, node1Position.dy + node1Size.height / 2);
-    final node2Offset = Offset(node2Position.dx + node2Size.width / 2, node2Position.dy + node2Size.height / 2);
+    final node1Offset = Offset(node1Position.x + node1Size.width / 2, node1Position.y + node1Size.height / 2);
+    final node2Offset = Offset(node2Position.x + node2Size.width / 2, node2Position.y + node2Size.height / 2);
 
     final node1Center = Offset(node1Offset.dx, node1Offset.dy);
     final node2Center = Offset(node2Offset.dx, node2Offset.dy);

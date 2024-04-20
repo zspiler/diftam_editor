@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:file_saver/file_saver.dart';
-import 'policy/policy.dart';
+import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 
 Policy decodeAndParsePolicy(Uint8List bytes) {
   String jsonString;

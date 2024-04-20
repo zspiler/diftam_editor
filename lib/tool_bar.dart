@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'policy/policy.dart';
+import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 import './constants.dart';
 
 class ToolBar extends StatelessWidget {

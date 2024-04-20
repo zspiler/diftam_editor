@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../policy/policy.dart';
+import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 
 class CombinePoliciesDialog extends StatefulWidget {
   final Function(Policy newPolicy) onCombine;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import '../policy/policy.dart';
+import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 import '../canvas.dart';
 
 class NodePainter {
@@ -48,10 +48,10 @@ class NodePainter {
   }
 
   void drawNode(Canvas canvas, Node node, {bool isSelected = false}) {
-    final nodePosition = snapPositionToGrid(node.position);
+    final nodePosition = snapPointToGrid(node.position);
     final nodeSize = calculateNodeSize(node, padding: nodePadding);
 
-    final rect = Rect.fromLTWH(nodePosition.dx, nodePosition.dy, nodeSize.width, nodeSize.height);
+    final rect = Rect.fromLTWH(nodePosition.x, nodePosition.y, nodeSize.width, nodeSize.height);
     final nodeRadii = getNodeRadii(node);
     final roundedRect = RRect.fromRectAndCorners(rect,
         topLeft: nodeRadii.topLeft,
@@ -61,7 +61,7 @@ class NodePainter {
 
     canvas.drawRRect(roundedRect, getNodePaintStyle(node, isSelected: isSelected));
 
-    drawText(canvas, nodePosition.dx, nodePosition.dy, node.label, node);
+    drawText(canvas, nodePosition.x, nodePosition.y, node.label, node);
   }
 
   static TextPainter getNodeTextPainter(String nodeId) {

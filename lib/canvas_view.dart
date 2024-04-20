@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:D2SC_editor/keyboard_utils.dart';
 import 'graph_painter/node_painter.dart';
 import 'graph_painter/graph_painter.dart';
-import 'policy/policy.dart';
+import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 import 'tool_bar.dart';
 import 'utils.dart';
 import 'info_panels/edge_info_panel.dart';
@@ -16,6 +16,7 @@ import 'preferences_manager.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'canvas.dart';
+import 'dart:math';
 import 'theme.dart';
 
 class CanvasView extends StatefulWidget {
@@ -176,7 +177,7 @@ class _CanvasViewState extends State<CanvasView> {
     final Node newNode = Node.fromType(nodeType, labelOrDescriptor);
 
     final nodeSize = NodePainter.calculateNodeSize(newNode, padding: widget.preferences.nodePadding) * canvasTransform.scale;
-    newNode.position = Offset(position.dx - nodeSize.width / 2, position.dy - nodeSize.height / 2);
+    newNode.position = Point(position.dx - nodeSize.width / 2, position.dy - nodeSize.height / 2);
 
     setState(() {
       nodes.add(newNode);
@@ -330,11 +331,11 @@ class _CanvasViewState extends State<CanvasView> {
     if (isInEdgeDrawingMode() || isInNodeCreationMode() || draggedNode == null) return;
 
     final delta = Offset(details.delta.dx, details.delta.dy) / canvasTransform.scale;
-    var newX = draggedNode!.position.dx + delta.dx;
-    var newY = draggedNode!.position.dy + delta.dy;
+    var newX = draggedNode!.position.x + delta.dx;
+    var newY = draggedNode!.position.y + delta.dy;
 
     setState(() {
-      draggedNode!.position = Offset(newX, newY);
+      draggedNode!.position = Point(newX, newY);
     });
   }
 
@@ -348,7 +349,7 @@ class _CanvasViewState extends State<CanvasView> {
   void moveNodes(Offset offset) {
     setState(() {
       for (var node in nodes) {
-        node.position += offset;
+        node.position = Point(node.position.x + offset.dx, node.position.y + offset.dy);
       }
     });
   }

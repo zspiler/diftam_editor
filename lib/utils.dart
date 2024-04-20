@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'policy/policy.dart';
+import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 import 'graph_painter/node_painter.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 import '../canvas.dart';
@@ -42,10 +42,10 @@ T? firstOrNull<T>(List<T> list, bool Function(T element) predicate) {
 bool isNodeHit(Node node, Offset position, int nodePadding) {
   final nodeSize = NodePainter.calculateNodeSize(node, padding: nodePadding);
 
-  return node.position.dx < position.dx &&
-      node.position.dx + nodeSize.width > position.dx &&
-      node.position.dy < position.dy &&
-      node.position.dy + nodeSize.height > position.dy;
+  return node.position.x < position.dx &&
+      node.position.x + nodeSize.width > position.dx &&
+      node.position.y < position.dy &&
+      node.position.y + nodeSize.height > position.dy;
 }
 
 Offset mapScreenPositionToCanvas(Offset position, CanvasTransform canvasTransform) {

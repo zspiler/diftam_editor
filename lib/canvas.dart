@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 const gridSize = 25.0;
 
@@ -6,8 +7,8 @@ double snapToGrid(double value) {
   return (value / gridSize).round() * gridSize;
 }
 
-Offset snapPositionToGrid(Offset position) {
-  return Offset(snapToGrid(position.dx), snapToGrid(position.dy));
+Point<double> snapPointToGrid(Point<double> position) {
+  return Point(snapToGrid(position.x), snapToGrid(position.y));
 }
 
 class CanvasTransform {

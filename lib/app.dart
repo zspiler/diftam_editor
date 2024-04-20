@@ -11,7 +11,7 @@ import 'debug/debug_utils.dart';
 import 'dialogs/combine_policies_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
 import 'dialogs/analysis_results.dialog.dart';
-import 'policy/policy.dart';
+import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 import 'policy_tab_bar.dart';
 import 'preferences_manager.dart';
 import 'ui/custom_dialog.dart';
