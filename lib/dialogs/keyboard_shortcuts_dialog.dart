@@ -11,15 +11,12 @@ class KeyboardShortcutsDialog extends StatelessWidget {
     ShortcutInfo(description: 'Zoom in', icons: [Icon(Icons.add, size: iconSize)], meta: true),
     ShortcutInfo(description: 'Zoom out', icons: [Icon(Icons.remove, size: iconSize)], meta: true),
     ShortcutInfo(description: 'Reset zoom', icons: [Icon(Icons.exposure_zero, size: iconSize)], meta: true),
-    ShortcutInfo(
-        description: 'Move nodes',
-        icons: [
-          Icon(Icons.keyboard_arrow_up, size: iconSize),
-          Icon(Icons.keyboard_arrow_down, size: iconSize),
-          Icon(Icons.keyboard_arrow_left, size: iconSize),
-          Icon(Icons.keyboard_arrow_right, size: iconSize)
-        ],
-        meta: true),
+    ShortcutInfo(description: 'Move nodes', icons: [
+      Icon(Icons.keyboard_arrow_up, size: iconSize),
+      Icon(Icons.keyboard_arrow_down, size: iconSize),
+      Icon(Icons.keyboard_arrow_left, size: iconSize),
+      Icon(Icons.keyboard_arrow_right, size: iconSize)
+    ]),
   ];
 
   TableRow buildTableSpacer(double height) => TableRow(children: [
