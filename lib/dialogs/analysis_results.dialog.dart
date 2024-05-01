@@ -39,7 +39,7 @@ class _AnalysisResultsDialogState extends State<AnalysisResultsDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.3,
+        width: MediaQuery.of(context).size.width * 0.4,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 160.0, vertical: 32.0),
           child: SingleChildScrollView(
