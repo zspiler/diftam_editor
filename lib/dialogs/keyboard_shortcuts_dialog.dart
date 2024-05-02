@@ -10,6 +10,7 @@ class KeyboardShortcutsDialog extends StatelessWidget {
     ShortcutInfo(description: 'Delete object', icons: [Text('Delete'), Icon(Icons.backspace, size: iconSize)]),
     ShortcutInfo(description: 'Zoom in', icons: [Icon(Icons.add, size: iconSize)], meta: true),
     ShortcutInfo(description: 'Zoom out', icons: [Icon(Icons.remove, size: iconSize)], meta: true),
+    ShortcutInfo(description: 'Zoom in/out', text: 'scroll', meta: true),
     ShortcutInfo(description: 'Reset zoom', icons: [Icon(Icons.exposure_zero, size: iconSize)], meta: true),
     ShortcutInfo(description: 'Move nodes', icons: [
       Icon(Icons.keyboard_arrow_up, size: iconSize),
@@ -29,6 +30,7 @@ class KeyboardShortcutsDialog extends StatelessWidget {
       final description = shortcut.description;
       final meta = shortcut.meta ?? false;
       final icons = shortcut.icons;
+      final text = shortcut.text;
 
       final row = TableRow(children: [
         TableCell(
@@ -45,10 +47,12 @@ class KeyboardShortcutsDialog extends StatelessWidget {
                     HighlightBox(child: Icon(Icons.keyboard_command_key, size: iconSize)),
                     Text(' + ', style: TextStyle(fontSize: 20))
                   ],
-                  for (var i = 0; i < icons.length; i++) ...[
-                    HighlightBox(child: icons[i]),
-                    if (i < icons.length - 1) Text(' / ', style: TextStyle(fontSize: 20)),
-                  ],
+                  if (icons != null)
+                    for (var i = 0; i < icons.length; i++) ...[
+                      HighlightBox(child: icons[i]),
+                      if (i < icons.length - 1) Text(' / ', style: TextStyle(fontSize: 20)),
+                    ],
+                  if (text != null) Text(shortcut.text!, style: TextStyle(fontSize: 15))
                 ],
               ),
             )),
@@ -111,12 +115,14 @@ class KeyboardShortcutsDialog extends StatelessWidget {
 
 class ShortcutInfo {
   final String description;
-  final List<Widget> icons;
+  final List<Widget>? icons;
+  final String? text;
   final bool? meta;
 
   const ShortcutInfo({
     required this.description,
-    required this.icons,
+    this.icons,
+    this.text,
     this.meta,
   });
 }
