@@ -287,13 +287,18 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void onTapDown(TapDownDetails details) {
+    final position = mapScreenPositionToCanvas(details.localPosition, canvasTransform);
+    final nodeAtCursor = getNodeAtPosition(position);
+
     if (!isInEdgeDrawingMode()) {
+      // We use set draggedNode here of in onPanStart (which would be more natural) since that event works weirdly with
+      // trackpad on desktop - it seems to be triggered on every trackpad change (without click).
+      setState(() {
+        draggedNode = nodeAtCursor;
+      });
       return;
     }
 
-    final position = mapScreenPositionToCanvas(details.localPosition, canvasTransform);
-
-    final nodeAtCursor = getNodeAtPosition(position);
     if (nodeAtCursor == null) {
       stopEdgeDrawing();
       return;
@@ -314,17 +319,6 @@ class _CanvasViewState extends State<CanvasView> {
       }
       stopEdgeDrawing();
     }
-  }
-
-  void onPanStart(DragStartDetails details) {
-    if (isInEdgeDrawingMode() || isInNodeCreationMode()) return;
-
-    final position = mapScreenPositionToCanvas(details.localPosition, canvasTransform);
-    final nodeAtCursor = getNodeAtPosition(position);
-
-    setState(() {
-      draggedNode = nodeAtCursor;
-    });
   }
 
   void onPanUpdate(DragUpdateDetails details) {
@@ -365,6 +359,20 @@ class _CanvasViewState extends State<CanvasView> {
             zoomCanvas(zoomIn: pointerSignal.scrollDelta.dy < 0);
           } else {
             panCanvas(pointerSignal.scrollDelta);
+          }
+        },
+        onPointerPanZoomUpdate: (PointerPanZoomUpdateEvent event) {
+          // NOTE Because onPointerSignal does not work for scroll event with trackpad on desktop (works ok on web),
+          // we have to use this event which is only triggered on trackpad on desktop.
+          // Hence, we also don't get intertial scrolling behavior when using trackpad on desktop and panning or zooming canvas.
+
+          // https://docs.flutter.dev/release/breaking-changes/trackpad-gesturesk
+
+          final delta = Offset(-event.panDelta.dx, -event.panDelta.dy);
+          if (KeyboardUtils.isScrollModifierPresseed()) {
+            zoomCanvas(zoomIn: delta.dy < 0);
+          } else {
+            panCanvas(delta);
           }
         },
         onPointerHover: (event) {
@@ -413,7 +421,6 @@ class _CanvasViewState extends State<CanvasView> {
                 child: GestureDetector(
                     onTapUp: onTapUp,
                     onTapDown: onTapDown,
-                    onPanStart: onPanStart,
                     onPanUpdate: onPanUpdate,
                     onPanEnd: (details) {
                       draggedNode = null;
