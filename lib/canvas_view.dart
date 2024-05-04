@@ -269,8 +269,8 @@ class _CanvasViewState extends State<CanvasView> {
 
   // GESTURES
 
-  void onTapUp(TapUpDetails details) {
-    final position = mapScreenPositionToCanvas(details.localPosition, canvasTransform);
+  void onPointerUp(PointerUpEvent event) {
+    final position = mapScreenPositionToCanvas(event.localPosition, canvasTransform);
 
     if (isInSelectionMode()) {
       setState(() {
@@ -285,8 +285,8 @@ class _CanvasViewState extends State<CanvasView> {
     }
   }
 
-  void onTapDown(TapDownDetails details) {
-    final position = mapScreenPositionToCanvas(details.localPosition, canvasTransform);
+  void onPointerDown(PointerDownEvent event) {
+    final position = mapScreenPositionToCanvas(event.localPosition, canvasTransform);
     final nodeAtCursor = getNodeAtPosition(position);
 
     if (!isInEdgeDrawingMode()) {
@@ -398,6 +398,8 @@ class _CanvasViewState extends State<CanvasView> {
         onPointerSignal: onPointerSignal,
         onPointerPanZoomUpdate: onPointerPanZoomUpdate,
         onPointerHover: onPointerHover,
+        onPointerDown: onPointerDown,
+        onPointerUp: onPointerUp,
         child: MouseRegion(
           cursor: hoveredObject != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
           child: Container(
@@ -426,8 +428,6 @@ class _CanvasViewState extends State<CanvasView> {
                 focusNode: focusNode,
                 autofocus: true,
                 child: GestureDetector(
-                    onTapUp: onTapUp,
-                    onTapDown: onTapDown,
                     onPanUpdate: onPanUpdate,
                     onPanEnd: (details) {
                       draggedNode = null;
