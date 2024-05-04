@@ -43,7 +43,7 @@ class _CanvasViewState extends State<CanvasView> {
   Offset? draggingEndPoint;
   Node? draggedNode;
 
-  GraphObject? hoveredObject;
+  GraphObject? objectAtCursor;
   GraphObject? selectedObject;
 
   Node? newEdgeSourceNode;
@@ -284,19 +284,16 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   void onPointerDown(PointerDownEvent event) {
-    final position = mapScreenPositionToCanvas(event.localPosition, canvasTransform);
-    final nodeAtCursor = getNodeAtPosition(position);
+    final nodeAtCursor = objectAtCursor is Node ? objectAtCursor as Node : null;
 
     if (isInSelectionMode()) {
       setState(() {
-        selectedObject = hoveredObject;
+        selectedObject = objectAtCursor;
+        draggedNode = nodeAtCursor;
       });
     }
 
     if (!isInEdgeDrawingMode()) {
-      setState(() {
-        draggedNode = nodeAtCursor;
-      });
       return;
     }
 
@@ -306,6 +303,7 @@ class _CanvasViewState extends State<CanvasView> {
     }
 
     if (draggingStartPoint == null) {
+      final position = mapScreenPositionToCanvas(event.localPosition, canvasTransform);
       setState(() {
         draggingStartPoint = position;
         newEdgeSourceNode = nodeAtCursor;
@@ -355,13 +353,14 @@ class _CanvasViewState extends State<CanvasView> {
     });
 
     final position = mapScreenPositionToCanvas(cursorPosition, canvasTransform);
+
+    setState(() {
+      objectAtCursor = getNodeAtPosition(position) ?? getEdgeAtPosition(position);
+    });
+
     if (isInEdgeDrawingMode()) {
       setState(() {
         draggingEndPoint = position;
-      });
-    } else if (isInSelectionMode()) {
-      setState(() {
-        hoveredObject = getNodeAtPosition(position) ?? getEdgeAtPosition(position);
       });
     }
   }
@@ -404,7 +403,7 @@ class _CanvasViewState extends State<CanvasView> {
         onPointerUp: onPointerUp,
         onPointerMove: onPointerMove,
         child: MouseRegion(
-          cursor: hoveredObject != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+          cursor: objectAtCursor != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
           child: Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
