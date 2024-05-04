@@ -270,13 +270,11 @@ class _CanvasViewState extends State<CanvasView> {
   // GESTURES
 
   void onPointerUp(PointerUpEvent event) {
+    draggedNode = null;
+
     final position = mapScreenPositionToCanvas(event.localPosition, canvasTransform);
 
-    if (isInSelectionMode()) {
-      setState(() {
-        selectedObject = hoveredObject;
-      });
-    } else if (isInNodeCreationMode()) {
+    if (isInNodeCreationMode()) {
       if (_drawingNodeType == NodeType.tag) {
         showNewTagNodeDialog(position);
       } else if (_drawingNodeType != null) {
@@ -289,9 +287,13 @@ class _CanvasViewState extends State<CanvasView> {
     final position = mapScreenPositionToCanvas(event.localPosition, canvasTransform);
     final nodeAtCursor = getNodeAtPosition(position);
 
+    if (isInSelectionMode()) {
+      setState(() {
+        selectedObject = hoveredObject;
+      });
+    }
+
     if (!isInEdgeDrawingMode()) {
-      // We use set draggedNode here of in onPanStart (which would be more natural) since that event works weirdly with
-      // trackpad on desktop - it seems to be triggered on every trackpad change (without click).
       setState(() {
         draggedNode = nodeAtCursor;
       });
@@ -320,10 +322,10 @@ class _CanvasViewState extends State<CanvasView> {
     }
   }
 
-  void onPanUpdate(DragUpdateDetails details) {
+  void onPointerMove(PointerMoveEvent event) {
     if (isInEdgeDrawingMode() || isInNodeCreationMode() || draggedNode == null) return;
 
-    final delta = Offset(details.delta.dx, details.delta.dy) / canvasTransform.scale;
+    final delta = Offset(event.localDelta.dx, event.localDelta.dy) / canvasTransform.scale;
     var newX = draggedNode!.position.x + delta.dx;
     var newY = draggedNode!.position.y + delta.dy;
 
@@ -400,6 +402,7 @@ class _CanvasViewState extends State<CanvasView> {
         onPointerHover: onPointerHover,
         onPointerDown: onPointerDown,
         onPointerUp: onPointerUp,
+        onPointerMove: onPointerMove,
         child: MouseRegion(
           cursor: hoveredObject != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
           child: Container(
@@ -427,24 +430,18 @@ class _CanvasViewState extends State<CanvasView> {
               child: Focus(
                 focusNode: focusNode,
                 autofocus: true,
-                child: GestureDetector(
-                    onPanUpdate: onPanUpdate,
-                    onPanEnd: (details) {
-                      draggedNode = null;
-                    },
-                    child: RepaintBoundary(
-                      child: CustomPaint(
-                        painter: GraphPainter(
-                          nodes,
-                          edges,
-                          getPreviewEdgePositions(),
-                          (newEdgePaths) => edgePaths = newEdgePaths,
-                          selectedObject,
-                          canvasTransform,
-                          widget.preferences,
-                        ),
-                      ),
-                    )),
+                child: RepaintBoundary(
+                    child: CustomPaint(
+                  painter: GraphPainter(
+                    nodes,
+                    edges,
+                    getPreviewEdgePositions(),
+                    (newEdgePaths) => edgePaths = newEdgePaths,
+                    selectedObject,
+                    canvasTransform,
+                    widget.preferences,
+                  ),
+                )),
               ),
             ),
           ),
