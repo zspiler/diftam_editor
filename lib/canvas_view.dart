@@ -198,7 +198,6 @@ class _CanvasViewState extends State<CanvasView> {
     if (KeyboardUtils.isShiftPressed() && Platform.isMacOS && !kIsWeb) {
       return Offset(scrollDelta.dy, 0);
     }
-
     return scrollDelta;
   }
 
@@ -333,6 +332,50 @@ class _CanvasViewState extends State<CanvasView> {
     });
   }
 
+  void onPointerPanZoomUpdate(PointerPanZoomUpdateEvent event) {
+    // NOTE Because onPointerSignal does not work for scroll event with trackpad on desktop (works ok on web),
+    // we have to use this event which is only triggered on trackpad on desktop.
+    // Hence, we also don't get intertial scrolling behavior when using trackpad on desktop and panning or zooming canvas.
+
+    // https://docs.flutter.dev/release/breaking-changes/trackpad-gesturesk
+
+    final delta = Offset(-event.panDelta.dx, -event.panDelta.dy);
+    if (KeyboardUtils.isScrollModifierPresseed()) {
+      zoomCanvas(zoomIn: delta.dy < 0);
+    } else {
+      panCanvas(delta);
+    }
+  }
+
+  void onPointerHover(PointerHoverEvent event) {
+    setState(() {
+      cursorPosition = event.localPosition;
+    });
+
+    final position = mapScreenPositionToCanvas(cursorPosition, canvasTransform);
+    if (isInEdgeDrawingMode()) {
+      setState(() {
+        draggingEndPoint = position;
+      });
+    } else if (isInSelectionMode()) {
+      setState(() {
+        hoveredObject = getNodeAtPosition(position) ?? getEdgeAtPosition(position);
+      });
+    }
+  }
+
+  void onPointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent) return;
+
+    if (KeyboardUtils.isScrollModifierPresseed()) {
+      zoomCanvas(zoomIn: event.scrollDelta.dy < 0);
+    } else {
+      panCanvas(event.scrollDelta);
+    }
+  }
+
+  // helpers
+
   (Offset, Offset)? getPreviewEdgePositions() {
     if (isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null) {
       return (draggingStartPoint!, draggingEndPoint!);
@@ -352,45 +395,9 @@ class _CanvasViewState extends State<CanvasView> {
   Widget build(BuildContext context) {
     return Stack(children: [
       Listener(
-        onPointerSignal: (pointerSignal) {
-          if (pointerSignal is! PointerScrollEvent) return;
-
-          if (KeyboardUtils.isScrollModifierPresseed()) {
-            zoomCanvas(zoomIn: pointerSignal.scrollDelta.dy < 0);
-          } else {
-            panCanvas(pointerSignal.scrollDelta);
-          }
-        },
-        onPointerPanZoomUpdate: (PointerPanZoomUpdateEvent event) {
-          // NOTE Because onPointerSignal does not work for scroll event with trackpad on desktop (works ok on web),
-          // we have to use this event which is only triggered on trackpad on desktop.
-          // Hence, we also don't get intertial scrolling behavior when using trackpad on desktop and panning or zooming canvas.
-
-          // https://docs.flutter.dev/release/breaking-changes/trackpad-gesturesk
-
-          final delta = Offset(-event.panDelta.dx, -event.panDelta.dy);
-          if (KeyboardUtils.isScrollModifierPresseed()) {
-            zoomCanvas(zoomIn: delta.dy < 0);
-          } else {
-            panCanvas(delta);
-          }
-        },
-        onPointerHover: (event) {
-          setState(() {
-            cursorPosition = event.localPosition;
-          });
-
-          final position = mapScreenPositionToCanvas(cursorPosition, canvasTransform);
-          if (isInEdgeDrawingMode()) {
-            setState(() {
-              draggingEndPoint = position;
-            });
-          } else if (isInSelectionMode()) {
-            setState(() {
-              hoveredObject = getNodeAtPosition(position) ?? getEdgeAtPosition(position);
-            });
-          }
-        },
+        onPointerSignal: onPointerSignal,
+        onPointerPanZoomUpdate: onPointerPanZoomUpdate,
+        onPointerHover: onPointerHover,
         child: MouseRegion(
           cursor: hoveredObject != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
           child: Container(
