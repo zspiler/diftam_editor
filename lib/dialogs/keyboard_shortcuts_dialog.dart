@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../ui/highlight_box.dart';
+import 'package:D2SC_editor/dialogs/my_dialog.dart';
 
 class KeyboardShortcutsDialog extends StatelessWidget {
   const KeyboardShortcutsDialog({super.key});

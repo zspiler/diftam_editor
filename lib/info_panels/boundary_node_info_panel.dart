@@ -41,10 +41,10 @@ class BoundaryNodeInfoPanel extends StatelessWidget {
               Tooltip(
                 message: 'Edit descriptor',
                 child: Align(
-                  alignment: Alignment.centerLeft, // Adjust alignment as needed
+                  alignment: Alignment.centerLeft,
                   child: IconButton(
-                    padding: EdgeInsets.zero, // Minimize padding
-                    icon: Icon(Icons.edit, size: 16.0), // Adjust icon size as needed
+                    padding: EdgeInsets.zero,
+                    icon: Icon(Icons.edit, size: 16.0),
                     onPressed: () {
                       CustomDialog.showInputDialog(context,
                           title: 'Edit descriptor',

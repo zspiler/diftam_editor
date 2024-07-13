@@ -3,6 +3,7 @@ import '../ui/custom_dialog.dart';
 import '../ui/snackbar.dart';
 import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 import '../import_export.dart';
+import 'package:D2SC_editor/dialogs/my_dialog.dart';
 
 class ManagePoliciesDialog extends StatefulWidget {
   final Function(List<Policy> updatedPolicies) onChange;
@@ -131,47 +132,44 @@ class _ManagePoliciesDialogState extends State<ManagePoliciesDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.3,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 32.0),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Text('Manage policies', style: Theme.of(context).textTheme.headlineLarge),
-                SizedBox(height: 10),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.3,
-                  child: _policies.isEmpty
-                      ? Center(child: Text('No policies created yet.'))
-                      : SingleChildScrollView(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              SizedBox(height: 16),
-                              SizedBox(
-                                width: 400,
-                                child: Table(children: buildPoliciesTableRows(), columnWidths: const {
-                                  0: FlexColumnWidth(1),
-                                  1: IntrinsicColumnWidth(),
-                                  2: IntrinsicColumnWidth(),
-                                  3: IntrinsicColumnWidth(),
-                                }),
-                              ),
-                            ],
-                          ),
+    return ConstrainedDialog(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 32.0),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Text('Manage policies', style: Theme.of(context).textTheme.headlineLarge),
+              SizedBox(height: 10),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.3,
+                child: _policies.isEmpty
+                    ? Center(child: Text('No policies created yet.'))
+                    : SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            SizedBox(height: 16),
+                            SizedBox(
+                              width: 400,
+                              child: Table(children: buildPoliciesTableRows(), columnWidths: const {
+                                0: FlexColumnWidth(1),
+                                1: IntrinsicColumnWidth(),
+                                2: IntrinsicColumnWidth(),
+                                3: IntrinsicColumnWidth(),
+                              }),
+                            ),
+                          ],
                         ),
-                ),
-                SizedBox(height: 10),
-                TextButton(
-                  child: Text("Close"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
+                      ),
+              ),
+              SizedBox(height: 10),
+              TextButton(
+                child: Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
           ),
         ),
       ),

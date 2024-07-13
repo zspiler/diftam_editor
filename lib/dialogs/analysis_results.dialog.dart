@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 import '../ui/highlight_box.dart';
+import 'package:D2SC_editor/dialogs/my_dialog.dart';
 
 class AnalysisResultsDialog extends StatefulWidget {
   final Policy policy;
@@ -37,43 +38,40 @@ class _AnalysisResultsDialogState extends State<AnalysisResultsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.4,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 160.0, vertical: 32.0),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Text('Policy analysis', style: Theme.of(context).textTheme.headlineLarge),
+    return ConstrainedDialog(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 160.0, vertical: 32.0),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Text('Policy analysis', style: Theme.of(context).textTheme.headlineLarge),
+              SizedBox(height: 20),
+              Text('Graph components', style: Theme.of(context).textTheme.headlineSmall),
+              SizedBox(height: 20),
+              if (awareComponents.isNotEmpty || obliviousComponents.isNotEmpty) ...[
+                _NodeGroupsSection(context: context, title: 'Aware', groups: awareComponents!, directed: false, numbered: true),
                 SizedBox(height: 20),
-                Text('Graph components', style: Theme.of(context).textTheme.headlineSmall),
+                _NodeGroupsSection(
+                    context: context, title: 'Oblivious', groups: obliviousComponents!, directed: false, numbered: true),
+              ] else
+                Text('No components found', style: TextStyle(fontStyle: FontStyle.italic)),
+              Divider(height: 50),
+              Text('Graph cycles', style: Theme.of(context).textTheme.headlineSmall),
+              SizedBox(height: 20),
+              if (awareCycles.isNotEmpty || obliviousCycles.isNotEmpty) ...[
+                _NodeGroupsSection(context: context, title: 'Aware', groups: awareCycles, directed: true),
                 SizedBox(height: 20),
-                if (awareComponents.isNotEmpty || obliviousComponents.isNotEmpty) ...[
-                  _NodeGroupsSection(context: context, title: 'Aware', groups: awareComponents!, directed: false, numbered: true),
-                  SizedBox(height: 20),
-                  _NodeGroupsSection(
-                      context: context, title: 'Oblivious', groups: obliviousComponents!, directed: false, numbered: true),
-                ] else
-                  Text('No components found', style: TextStyle(fontStyle: FontStyle.italic)),
-                Divider(height: 50),
-                Text('Graph cycles', style: Theme.of(context).textTheme.headlineSmall),
-                SizedBox(height: 20),
-                if (awareCycles.isNotEmpty || obliviousCycles.isNotEmpty) ...[
-                  _NodeGroupsSection(context: context, title: 'Aware', groups: awareCycles, directed: true),
-                  SizedBox(height: 20),
-                  _NodeGroupsSection(context: context, title: 'Oblivious', groups: obliviousCycles, directed: true),
-                ] else
-                  Text('No cycles found', style: TextStyle(fontStyle: FontStyle.italic)),
-                Divider(height: 50),
-                Text('Lone tags', style: Theme.of(context).textTheme.headlineSmall),
-                SizedBox(height: 20),
-                if (loneTags.isNotEmpty)
-                  _NodeRow(context: context, component: loneTags)
-                else
-                  Text('No lone tags found', style: TextStyle(fontStyle: FontStyle.italic)),
-              ],
-            ),
+                _NodeGroupsSection(context: context, title: 'Oblivious', groups: obliviousCycles, directed: true),
+              ] else
+                Text('No cycles found', style: TextStyle(fontStyle: FontStyle.italic)),
+              Divider(height: 50),
+              Text('Lone tags', style: Theme.of(context).textTheme.headlineSmall),
+              SizedBox(height: 20),
+              if (loneTags.isNotEmpty)
+                _NodeRow(context: context, component: loneTags)
+              else
+                Text('No lone tags found', style: TextStyle(fontStyle: FontStyle.italic)),
+            ],
           ),
         ),
       ),

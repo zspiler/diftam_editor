@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../preferences_manager.dart';
 import '../ui/number_input.dart';
 import '../ui/color_picker.dart';
+import 'package:D2SC_editor/dialogs/my_dialog.dart';
 
 class PreferencesDialog extends StatefulWidget {
   final Function(Preferences newPreferences) onChange;
@@ -104,109 +105,105 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
       return rowsWithSpacers;
     }
 
-    return Dialog(
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.3,
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text('Settings', style: Theme.of(context).textTheme.headlineLarge),
-                SizedBox(height: 30),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text('Sizing', style: Theme.of(context).textTheme.titleLarge),
-                    SizedBox(height: 16),
-                    Table(columnWidths: const {
-                      0: FixedColumnWidth(150),
-                      1: FixedColumnWidth(150),
-                    }, children: [
-                      TableRow(children: [
-                        TableCell(
-                          verticalAlignment: TableCellVerticalAlignment.middle,
-                          child:
-                              Text('Node padding', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
-                        ),
-                        TableCell(
-                          verticalAlignment: TableCellVerticalAlignment.middle,
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: NumberInput(
-                              value: _nodePadding,
-                              onChange: (newPadding) => setPreference(PreferencesManager.setNodePadding, newPadding),
-                              max: 5,
-                              min: 1,
-                            ),
+    return ConstrainedDialog(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text('Settings', style: Theme.of(context).textTheme.headlineLarge),
+              SizedBox(height: 30),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text('Sizing', style: Theme.of(context).textTheme.titleLarge),
+                  SizedBox(height: 16),
+                  Table(columnWidths: const {
+                    0: FixedColumnWidth(150),
+                    1: FixedColumnWidth(150),
+                  }, children: [
+                    TableRow(children: [
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Text('Node padding', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+                      ),
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: NumberInput(
+                            value: _nodePadding,
+                            onChange: (newPadding) => setPreference(PreferencesManager.setNodePadding, newPadding),
+                            max: 5,
+                            min: 1,
                           ),
                         ),
-                      ]),
-                      buildTableSpacer(6),
-                      TableRow(children: [
-                        TableCell(
-                          verticalAlignment: TableCellVerticalAlignment.middle,
-                          child: Text('Node stroke width',
-                              style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
-                        ),
-                        TableCell(
-                          verticalAlignment: TableCellVerticalAlignment.middle,
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: NumberInput(
-                              value: _nodeStrokeWidth,
-                              onChange: (newStrokeWidth) => setPreference(PreferencesManager.setNodeStrokeWidth, newStrokeWidth),
-                              max: 10,
-                              min: 1,
-                            ),
-                          ),
-                        ),
-                      ]),
-                      buildTableSpacer(6),
-                      TableRow(children: [
-                        TableCell(
-                          verticalAlignment: TableCellVerticalAlignment.middle,
-                          child: Text('Edge stroke width',
-                              style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
-                        ),
-                        TableCell(
-                          verticalAlignment: TableCellVerticalAlignment.middle,
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: NumberInput(
-                              value: _edgeStrokeWidth,
-                              onChange: (newStrokeWidth) => setPreference(PreferencesManager.setEdgeStrokeWidth, newStrokeWidth),
-                              max: 8,
-                              min: 1,
-                            ),
-                          ),
-                        ),
-                      ])
+                      ),
                     ]),
-                    SizedBox(height: 30),
-                    Text('Colors', style: Theme.of(context).textTheme.titleLarge),
-                    SizedBox(height: 16),
-                    Table(columnWidths: const {
-                      0: FixedColumnWidth(110),
-                      1: FixedColumnWidth(110),
-                    }, children: buildColorPreferencesTableRows()),
-                    SizedBox(height: 30),
-                    TextButton(
-                      onPressed: _clearPreferences,
-                      child: Text("Reset"),
-                    ),
-                    SizedBox(height: 10),
-                    TextButton(
-                      child: Text("Close"),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                )
-              ],
-            ),
+                    buildTableSpacer(6),
+                    TableRow(children: [
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Text('Node stroke width',
+                            style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+                      ),
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: NumberInput(
+                            value: _nodeStrokeWidth,
+                            onChange: (newStrokeWidth) => setPreference(PreferencesManager.setNodeStrokeWidth, newStrokeWidth),
+                            max: 10,
+                            min: 1,
+                          ),
+                        ),
+                      ),
+                    ]),
+                    buildTableSpacer(6),
+                    TableRow(children: [
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Text('Edge stroke width',
+                            style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+                      ),
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.middle,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: NumberInput(
+                            value: _edgeStrokeWidth,
+                            onChange: (newStrokeWidth) => setPreference(PreferencesManager.setEdgeStrokeWidth, newStrokeWidth),
+                            max: 8,
+                            min: 1,
+                          ),
+                        ),
+                      ),
+                    ])
+                  ]),
+                  SizedBox(height: 30),
+                  Text('Colors', style: Theme.of(context).textTheme.titleLarge),
+                  SizedBox(height: 16),
+                  Table(columnWidths: const {
+                    0: FixedColumnWidth(110),
+                    1: FixedColumnWidth(110),
+                  }, children: buildColorPreferencesTableRows()),
+                  SizedBox(height: 30),
+                  TextButton(
+                    onPressed: _clearPreferences,
+                    child: Text("Reset"),
+                  ),
+                  SizedBox(height: 10),
+                  TextButton(
+                    child: Text("Close"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              )
+            ],
           ),
         ),
       ),
