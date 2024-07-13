@@ -81,9 +81,18 @@ class NodePainter {
   each time we called this from outside. TODO
    */
   static Size calculateNodeSize(Node node, {required int padding}) {
-    var width = min(getNodeTextPainter(node.label).width, 100) + 15.0 * padding;
-    var height = 25.0 * padding;
-    return Size(snapToGrid(width), snapToGrid(height));
+    var baseWidth = min(getNodeTextPainter(node.label).width, 100) + 15.0 * padding;
+
+    // Ensure node width is always even number of grid-squares wide.
+    // This ensures edges between nodes and nodes right below/above them are straight.
+    var snappedWidth = snapToGrid(baseWidth);
+    if (snappedWidth % (2 * gridSize) != 0) {
+      snappedWidth += gridSize;
+    }
+
+    final height = gridSize * padding;
+
+    return Size(snappedWidth, snapToGrid(height));
   }
 
   void drawText(Canvas canvas, double x, double y, String text, Node node) {
