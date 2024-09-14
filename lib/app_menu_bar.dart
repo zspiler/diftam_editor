@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 
-class PolicyTabBar extends StatelessWidget {
+class AppMenuBar extends StatelessWidget {
   final List<Policy> policies;
   final Function(int index) onSelect;
   final Function() onAddPressed;
@@ -11,7 +11,7 @@ class PolicyTabBar extends StatelessWidget {
   final Function() onAnalyzePressed;
   final int currentPolicyIndex;
 
-  const PolicyTabBar(this.policies, this.currentPolicyIndex,
+  const AppMenuBar(this.policies, this.currentPolicyIndex,
       {Key? key,
       required this.onSelect,
       required this.onAddPressed,

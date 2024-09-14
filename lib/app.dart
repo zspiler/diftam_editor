@@ -12,7 +12,7 @@ import 'dialogs/combine_policies_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
 import 'dialogs/analysis_results.dialog.dart';
 import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
-import 'policy_tab_bar.dart';
+import 'app_menu_bar.dart';
 import 'preferences_manager.dart';
 import 'ui/custom_dialog.dart';
 import 'ui/snackbar.dart';
@@ -207,7 +207,7 @@ class _AppState extends State<App> {
               bottom: 0,
               child: Align(
                   alignment: Alignment.bottomCenter,
-                  child: PolicyTabBar(
+                  child: AppMenuBar(
                     policies,
                     selectedPolicyIndex,
                     onSelect: selectPolicy,
