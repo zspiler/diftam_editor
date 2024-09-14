@@ -1,10 +1,16 @@
 # D2SC editor
 
-Flutter app for editing D2SC security policies. 
+Flutter app for editing D2SC security policies, which are essentially directed graphs. 
+
+Developed as part of my undergraduate thesis.
+
+Tested only on MacOS and the web.
+
+<img src="assets/screenshots/downgrader.png" width="600">
 
 ## Submodules
 
-The app uses the unpublished [d2sc_policy](https://github.com/zspiler/d2sc_policy) package, which is imported as a git submodule.
+The app uses the [d2sc_policy](https://github.com/zspiler/d2sc_policy) library, which is imported as a git submodule.
 
 To automatically initialize and update the submodule when cloning, use the `--recurse-submodules` option.
 
