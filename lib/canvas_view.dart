@@ -244,20 +244,20 @@ class _CanvasViewState extends State<CanvasView> {
   void showNewTagNodeDialog(Offset position) {
     CustomDialog.showInputDialog(
       context,
-      title: 'Create new tag',
-      hint: 'Enter tag label',
+      title: 'Create new Tag',
+      hint: 'Enter Tag label',
       onConfirm: (String inputText) {
         createNode(position, NodeType.tag, labelOrDescriptor: inputText);
         stopNodeDrawing();
       },
       isInputValid: (String inputText) => !nodes.any((node) => node is TagNode && node.label == inputText),
-      errorMessage: 'Please choose a unique tag label',
+      errorMessage: 'Please choose a unique Tag label',
     );
   }
 
   void showNewBoundaryNodeDialog(Offset position) {
     CustomDialog.showInputDialog(context,
-        title: 'Create new ${_drawingNodeType!.value} node',
+        title: 'Create new ${_drawingNodeType!.value} descriptor',
         hint: 'Enter descriptor',
         onConfirm: (String inputText) {
           createNode(position, _drawingNodeType!, labelOrDescriptor: inputText);

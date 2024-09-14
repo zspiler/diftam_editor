@@ -64,9 +64,9 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
   @override
   Widget build(BuildContext context) {
     final nodeColorPreferencesRows = [
-      ('Tag node', _tagNodeColor, (Color newColor) => setPreference(PreferencesManager.setTagNodeColor, newColor)),
-      ('Entry node', _entryNodeColor, (Color newColor) => setPreference(PreferencesManager.setEntryNodeColor, newColor)),
-      ('Exit node', _exitNodeColor, (Color newColor) => setPreference(PreferencesManager.setExitNodeColor, newColor)),
+      ('Tag', _tagNodeColor, (Color newColor) => setPreference(PreferencesManager.setTagNodeColor, newColor)),
+      ('Entry descriptor', _entryNodeColor, (Color newColor) => setPreference(PreferencesManager.setEntryNodeColor, newColor)),
+      ('Exit descriptor', _exitNodeColor, (Color newColor) => setPreference(PreferencesManager.setExitNodeColor, newColor)),
       (
         'Oblivious edge',
         _obliviousEdgeColor,

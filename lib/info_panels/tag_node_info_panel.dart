@@ -17,7 +17,7 @@ class TagNodeInfoPanel extends StatelessWidget {
     const rowPadding = EdgeInsets.symmetric(vertical: 8.0);
     return ObjectInfoPanel(children: [
       Text(
-        'Tag node',
+        'Tag',
         style: Theme.of(context).textTheme.headlineSmall,
       ),
       SizedBox(height: 8.0),
@@ -57,7 +57,7 @@ class TagNodeInfoPanel extends StatelessWidget {
                         },
                         isInputValid: (String inputText) =>
                             !nodes.any((node2) => node2 != node && node2 is TagNode && node2.label == inputText),
-                        errorMessage: 'Please choose a unique tag label',
+                        errorMessage: 'Please choose a unique Tag label',
                       );
                     },
                   ),

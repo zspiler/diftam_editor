@@ -67,21 +67,21 @@ class ToolBar extends StatelessWidget {
                 style: IconButton.styleFrom(backgroundColor: drawingEdgeType == EdgeType.boundary ? Colors.white : null),
               )),
           Tooltip(
-              message: "Tag node",
+              message: "Tag",
               child: IconButton(
                 icon: Icon(Icons.crop_square),
                 onPressed: onTagNodePress,
                 style: IconButton.styleFrom(backgroundColor: drawingNodeType == NodeType.tag ? Colors.white : null),
               )),
           Tooltip(
-              message: "Entry node",
+              message: "Entry descriptor",
               child: IconButton(
                 icon: Icon(Icons.login),
                 onPressed: onEntryNodePress,
                 style: IconButton.styleFrom(backgroundColor: drawingNodeType == NodeType.entry ? Colors.white : null),
               )),
           Tooltip(
-              message: "Exit node",
+              message: "Exit descriptor",
               child: IconButton(
                 icon: Icon(Icons.logout),
                 onPressed: onExitNodePress,

@@ -20,13 +20,13 @@ class EdgeInfoPanel extends StatelessWidget {
 
   String getNodeDisplayText(Node node) {
     if (node is TagNode) {
-      return 'Tag node (${node.label})';
+      return 'Tag: ${node.label}';
     }
     if (node is EntryNode) {
-      return 'Entry node (${node.descriptor})';
+      return 'Entry descriptor: ${node.descriptor}';
     }
     if (node is ExitNode) {
-      return 'Exit node (${node.descriptor})';
+      return 'Exit descriptor: ${node.descriptor}';
     }
     return '';
   }

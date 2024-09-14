@@ -17,7 +17,7 @@ class BoundaryNodeInfoPanel extends StatelessWidget {
     const rowPadding = EdgeInsets.symmetric(vertical: 8.0);
     return ObjectInfoPanel(children: [
       Text(
-        '${node is ExitNode ? 'Exit' : 'Entry'} node',
+        '${node is ExitNode ? 'Exit' : 'Entry'} descriptor',
         style: Theme.of(context).textTheme.headlineSmall,
       ),
       SizedBox(height: 8.0),
