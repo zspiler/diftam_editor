@@ -41,7 +41,7 @@ class _AppState extends State<App> {
     if (kDebugMode) {
       // addPolicy(Policy(name: "foo", nodes: [TagNode('(10, 10)', Offset(0, 0))]));
 
-      getTensorDemoPolicies1().forEach(addPolicy);
+      // getTensorDemoPolicies1().forEach(addPolicy);
       // addPolicy(tensorProduct(policies[0], policies[1]));
     }
   }
