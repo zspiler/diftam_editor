@@ -25,11 +25,9 @@ class _AnalysisResultsDialogState extends State<AnalysisResultsDialog> {
   void initState() {
     super.initState();
 
-    // TODO boundary nodes?
     awareComponents = findComponents(widget.policy, EdgeType.aware);
     obliviousComponents = findComponents(widget.policy, EdgeType.oblivious);
 
-    // TODO boundary nodes?
     awareCycles = findCycles(widget.policy, EdgeType.aware);
     obliviousCycles = findCycles(widget.policy, EdgeType.oblivious);
 

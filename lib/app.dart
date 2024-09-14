@@ -1,6 +1,6 @@
 import 'package:D2SC_editor/dialogs/manage_policies_dialog.dart';
 import 'package:D2SC_editor/dialogs/preferences_dialog.dart';
-import 'package:D2SC_editor/import_export.dart';
+import 'package:D2SC_editor/utils/import_export.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';

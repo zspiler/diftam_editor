@@ -101,4 +101,13 @@ class NodePainter {
     textPainter.paint(
         canvas, Offset(x + nodeSize.width / 2 - textPainter.width * 0.5, y + nodeSize.height / 2 - textPainter.height * 0.5));
   }
+
+  static bool isPositionWithinNode(Node node, Offset position, int nodePadding) {
+    final nodeSize = NodePainter.calculateNodeSize(node, padding: nodePadding);
+
+    return node.position.x < position.dx &&
+        node.position.x + nodeSize.width > position.dx &&
+        node.position.y < position.dy &&
+        node.position.y + nodeSize.height > position.dy;
+  }
 }

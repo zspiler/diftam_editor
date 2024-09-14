@@ -1,12 +1,14 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:D2SC_editor/keyboard_utils.dart';
 import 'graph_painter/node_painter.dart';
 import 'graph_painter/graph_painter.dart';
 import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 import 'tool_bar.dart';
-import 'utils.dart';
+import 'utils/array.dart';
+import 'utils/math.dart';
+import 'utils/canvas.dart';
+import 'utils/keyboard.dart';
 import 'info_panels/edge_info_panel.dart';
 import 'info_panels/tag_node_info_panel.dart';
 import 'info_panels/boundary_node_info_panel.dart';
@@ -81,7 +83,7 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   Node? getNodeAtPosition(Offset position) {
-    return firstOrNull(nodes, ((node) => isNodeHit(node, position, widget.preferences.nodePadding)));
+    return firstOrNull(nodes, ((node) => NodePainter.isPositionWithinNode(node, position, widget.preferences.nodePadding)));
   }
 
   void enterEdgeDrawingMode(EdgeType edgeType) {
@@ -195,7 +197,7 @@ class _CanvasViewState extends State<CanvasView> {
   }
 
   Offset adjustPanningScrollDeltaForPlatforms(Offset scrollDelta) {
-    if (KeyboardUtils.isShiftPressed() && Platform.isMacOS && !kIsWeb) {
+    if (isShiftPressed() && Platform.isMacOS && !kIsWeb) {
       return Offset(scrollDelta.dy, 0);
     }
     return scrollDelta;
@@ -220,7 +222,7 @@ class _CanvasViewState extends State<CanvasView> {
 
     final scaleChange = canvasTransform.scale - oldScale;
 
-    final cursorOnCanvas = mapScreenPositionToCanvas(cursorPosition, canvasTransform);
+    final cursorOnCanvas = transformScreenToCanvasPosition(cursorPosition, canvasTransform);
     final adjustedCursor = (cursorOnCanvas + canvasTransform.offset) / oldScale;
     final offsetX = -(adjustedCursor.dx * scaleChange);
     final offsetY = -(adjustedCursor.dy * scaleChange);
@@ -272,7 +274,7 @@ class _CanvasViewState extends State<CanvasView> {
   void onPointerUp(PointerUpEvent event) {
     draggedNode = null;
 
-    final position = mapScreenPositionToCanvas(event.localPosition, canvasTransform);
+    final position = transformScreenToCanvasPosition(event.localPosition, canvasTransform);
 
     if (isInNodeCreationMode()) {
       if (_drawingNodeType == NodeType.tag) {
@@ -303,7 +305,7 @@ class _CanvasViewState extends State<CanvasView> {
     }
 
     if (draggingStartPoint == null) {
-      final position = mapScreenPositionToCanvas(event.localPosition, canvasTransform);
+      final position = transformScreenToCanvasPosition(event.localPosition, canvasTransform);
       setState(() {
         draggingStartPoint = position;
         newEdgeSourceNode = nodeAtCursor;
@@ -335,12 +337,12 @@ class _CanvasViewState extends State<CanvasView> {
   void onPointerPanZoomUpdate(PointerPanZoomUpdateEvent event) {
     // NOTE Because onPointerSignal does not work for scroll event with trackpad on desktop (works ok on web),
     // we have to use this event which is only triggered on trackpad on desktop.
-    // Hence, we also don't get intertial scrolling behavior when using trackpad on desktop and panning or zooming canvas.
+    // This means that we don't get inertial scrolling behavior when using trackpad on desktop.
 
-    // https://docs.flutter.dev/release/breaking-changes/trackpad-gesturesk
+    // https://docs.flutter.dev/release/breaking-changes/trackpad-gestures
 
     final delta = Offset(-event.panDelta.dx, -event.panDelta.dy);
-    if (KeyboardUtils.isScrollModifierPresseed()) {
+    if (isScrollModifierPresseed()) {
       zoomCanvas(zoomIn: delta.dy < 0);
     } else {
       panCanvas(delta);
@@ -352,7 +354,7 @@ class _CanvasViewState extends State<CanvasView> {
       cursorPosition = event.localPosition;
     });
 
-    final position = mapScreenPositionToCanvas(cursorPosition, canvasTransform);
+    final position = transformScreenToCanvasPosition(cursorPosition, canvasTransform);
 
     setState(() {
       objectAtCursor = getNodeAtPosition(position) ?? getEdgeAtPosition(position);
@@ -368,14 +370,14 @@ class _CanvasViewState extends State<CanvasView> {
   void onPointerSignal(PointerSignalEvent event) {
     if (event is! PointerScrollEvent) return;
 
-    if (KeyboardUtils.isScrollModifierPresseed()) {
+    if (isScrollModifierPresseed()) {
       zoomCanvas(zoomIn: event.scrollDelta.dy < 0);
     } else {
       panCanvas(event.scrollDelta);
     }
   }
 
-  // helpers
+  // HELPERS
 
   (Offset, Offset)? getPreviewEdgePositions() {
     if (isInEdgeDrawingMode() && draggingStartPoint != null && draggingEndPoint != null) {

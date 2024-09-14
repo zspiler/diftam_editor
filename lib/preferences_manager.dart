@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
-import '../constants.dart';
+import 'theme.dart';
 
 const defaultNodePadding = 3;
 const defaultNodeStrokeWidth = 4;

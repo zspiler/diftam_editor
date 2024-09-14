@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../ui/custom_dialog.dart';
 import '../ui/snackbar.dart';
 import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
-import '../import_export.dart';
+import '../utils/import_export.dart';
 import 'package:D2SC_editor/dialogs/my_dialog.dart';
 
 class ManagePoliciesDialog extends StatefulWidget {
