@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:file_saver/file_saver.dart';
 import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
 
+import 'd2sc_policy/lib/src/exceptions.dart';
+
 Policy decodeAndParsePolicy(Uint8List bytes) {
   String jsonString;
   try {
@@ -20,8 +22,10 @@ Policy decodeAndParsePolicy(Uint8List bytes) {
 
   try {
     return Policy.fromJson(jsonObject);
-  } catch (_) {
-    throw 'Failed to parse policy';
+  } on PolicyValidationException {
+    rethrow;
+  } catch (e) {
+    throw "Failed to parse policy: ${e.toString()}";
   }
 }
 
