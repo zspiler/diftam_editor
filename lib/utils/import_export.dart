@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:file_saver/file_saver.dart';
-import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/diftam_lib/lib/diftam_lib.dart';
 
-import '../d2sc_policy/lib/src/exceptions.dart';
+import '../diftam_lib/lib/src/exceptions.dart';
 
 Policy decodeAndParsePolicy(Uint8List bytes) {
   String jsonString;

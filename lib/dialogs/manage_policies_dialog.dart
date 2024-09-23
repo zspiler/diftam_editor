@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../ui/custom_dialog.dart';
 import '../ui/snackbar.dart';
-import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/diftam_lib/lib/diftam_lib.dart';
 import '../utils/import_export.dart';
 import 'package:diftam_editor/dialogs/my_dialog.dart';
 

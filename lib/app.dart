@@ -11,7 +11,7 @@ import 'debug/debug_utils.dart';
 import 'dialogs/combine_policies_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
 import 'dialogs/analysis_results.dialog.dart';
-import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/diftam_lib/lib/diftam_lib.dart';
 import 'app_menu_bar.dart';
 import 'preferences_manager.dart';
 import 'ui/custom_dialog.dart';

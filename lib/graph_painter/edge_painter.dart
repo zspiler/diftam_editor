@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/diftam_lib/lib/diftam_lib.dart';
 import 'node_painter.dart';
 import '../canvas.dart';
 

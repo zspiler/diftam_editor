@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'graph_painter/node_painter.dart';
 import 'graph_painter/graph_painter.dart';
-import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/diftam_lib/lib/diftam_lib.dart';
 import 'tool_bar.dart';
 import 'utils/array.dart';
 import 'utils/math.dart';

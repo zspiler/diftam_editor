@@ -10,7 +10,7 @@ Tested only on MacOS and the web.
 
 ## Submodules
 
-The app uses the [d2sc_policy](https://github.com/zspiler/d2sc_policy) library, which is imported as a git submodule.
+The app uses the [diftam_lib](https://github.com/zspiler/diftam_lib) library, which is imported as a git submodule.
 
 To automatically initialize and update the submodule when cloning, use the `--recurse-submodules` option.
 
@@ -21,7 +21,7 @@ Alternatively, you can initialize the submodule manually after cloning:
 `git submodule update`
 
 
-To update the submodule to lastest commit in `d2sc_policy` repo, you can use:
+To update the submodule to lastest commit in `diftam_lib` repo, you can use:
 
 `git submodule update --remote --merge`
 

@@ -1,3 +1,3 @@
-[submodule "lib/d2sc_policy"]
-	path = lib/d2sc_policy
-	url = https://github.com/zspiler/d2sc_policy
+[submodule "lib/diftam_lib"]
+	path = lib/diftam_lib
+	url = https://github.com/zspiler/diftam_lib

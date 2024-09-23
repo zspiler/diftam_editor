@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/diftam_lib/lib/diftam_lib.dart';
 import 'object_info_panel.dart';
 import '../ui/custom_dialog.dart';
 
