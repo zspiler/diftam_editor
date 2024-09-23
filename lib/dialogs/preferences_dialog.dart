@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../preferences_manager.dart';
 import '../ui/number_input.dart';
 import '../ui/color_picker.dart';
-import 'package:D2SC_editor/dialogs/my_dialog.dart';
+import 'package:diftam_editor/dialogs/my_dialog.dart';
 
 class PreferencesDialog extends StatefulWidget {
   final Function(Preferences newPreferences) onChange;

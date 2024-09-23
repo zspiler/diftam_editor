@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'node_painter.dart';
 import 'edge_painter.dart';
 import 'grid_painter.dart';
-import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
 import '../preferences_manager.dart';
 import '../canvas.dart';
 

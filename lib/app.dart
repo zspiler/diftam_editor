@@ -1,6 +1,6 @@
-import 'package:D2SC_editor/dialogs/manage_policies_dialog.dart';
-import 'package:D2SC_editor/dialogs/preferences_dialog.dart';
-import 'package:D2SC_editor/utils/import_export.dart';
+import 'package:diftam_editor/dialogs/manage_policies_dialog.dart';
+import 'package:diftam_editor/dialogs/preferences_dialog.dart';
+import 'package:diftam_editor/utils/import_export.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -11,7 +11,7 @@ import 'debug/debug_utils.dart';
 import 'dialogs/combine_policies_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
 import 'dialogs/analysis_results.dialog.dart';
-import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
 import 'app_menu_bar.dart';
 import 'preferences_manager.dart';
 import 'ui/custom_dialog.dart';

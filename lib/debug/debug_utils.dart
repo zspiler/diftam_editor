@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
 import 'dart:math';
 
 Policy getMockPolicy() {

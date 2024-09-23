@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../ui/custom_dialog.dart';
 import '../ui/snackbar.dart';
-import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
 import '../utils/import_export.dart';
-import 'package:D2SC_editor/dialogs/my_dialog.dart';
+import 'package:diftam_editor/dialogs/my_dialog.dart';
 
 class ManagePoliciesDialog extends StatefulWidget {
   final Function(List<Policy> updatedPolicies) onChange;

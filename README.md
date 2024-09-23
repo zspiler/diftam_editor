@@ -1,6 +1,6 @@
-# D2SC editor
+# DIFTAM editor
 
-Flutter app for editing D2SC security policies, which are essentially directed graphs. 
+Flutter app for editing DIFTAM security policies, which are essentially directed graphs. 
 
 Developed as part of my undergraduate thesis.
 

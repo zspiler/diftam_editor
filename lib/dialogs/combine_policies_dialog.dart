@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:D2SC_editor/d2sc_policy/lib/d2sc_policy.dart';
-import 'package:D2SC_editor/dialogs/my_dialog.dart';
+import 'package:diftam_editor/d2sc_policy/lib/d2sc_policy.dart';
+import 'package:diftam_editor/dialogs/my_dialog.dart';
 
 class CombinePoliciesDialog extends StatefulWidget {
   final Function(Policy newPolicy) onCombine;

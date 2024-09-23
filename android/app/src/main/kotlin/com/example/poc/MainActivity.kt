@@ -1,4 +1,4 @@
-package com.example.D2SC_editor
+package com.example.diftam_editor
 
 import io.flutter.embedding.android.FlutterActivity
 
